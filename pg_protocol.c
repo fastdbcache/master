@@ -48,11 +48,11 @@ int PGStartupPacket3(int fd,PACK *pa){
         pv_len = Socket_Read(fd, pa->pack+sizeof(uint32), pv-sizeof(uint32));
 
         if(pv_len == (pv-sizeof(uint32))){
-            v=0;
+            /*  v=0;
             memcpy(&v, pa->pack+sizeof(uint32), sizeof(uint32));
             printf("pv major: %d pv minor:%d\n", ntohl(v)>>16, ntohl(v)&0x0000ffff);
             printf("param: %s\n", pa->pack+sizeof(uint32)+sizeof(uint32));
-            printf("pv:%d\n", pv);
+            printf("pv:%d\n", pv);*/
             return pv;
         }
         return -1;
@@ -96,7 +96,6 @@ SESSION_SLOTS *resolve_slot(const char *buf){
                 free(_slot);
                 return NULL;
             }
-            printf("user:%s\n", _slot->user);
         }
         else if (!strcmp("database", p))
         {
@@ -160,8 +159,6 @@ int AuthPG(const int bfd,const int ffd, SESSION_SLOTS *slot){
      
     FB(1);
     
-    
-    
     auth_loop:
         _apack = calloc(1, sizeof(char));
         cmd_size = Socket_Read(rfd, _apack, sizeof(char));
@@ -206,7 +203,23 @@ int AuthPG(const int bfd,const int ffd, SESSION_SLOTS *slot){
         Socket_Read(rfd, _apack+sizeof(char)+sizeof(uint32), total-sizeof(uint32));
 
         Socket_Send(wfd, _apack, totalsize);
-       
+
+        if ( slot->backend_fd == 0 && *_apack != 'p') {
+            MSGFORMAT *_mf;
+            _mf = (MSGFORMAT *)calloc(1, sizeof(MSGFORMAT));
+            _mf->format = (char *)calloc(1, totalsize);
+
+            memcpy(_mf->format, _apack, totalsize);                    
+            _mf->format_len = totalsize;
+           
+            if(slot->tail == NULL){
+                slot->tail = slot->head = _mf;
+
+            }else{    
+                slot->head->next = _mf;
+                slot->head = _mf;
+            }   
+        }
         switch ( *_apack ) {
             case 'R':	
 
@@ -228,17 +241,25 @@ int AuthPG(const int bfd,const int ffd, SESSION_SLOTS *slot){
                 goto free_pack;
             case 'Z':
                 printf("Z\n");
-                //FB(0);
-                if(_apack)
-                    free(_apack); 
-                return 0;
-            
+                FB(0);
+                //if(_apack)
+                //    free(_apack); 
+                goto free_pack;
+            case 'E':
+                printf("E\n");
+                return -1; 
+            case 'Q':
+                FB(1);
+                goto free_pack;
+            case 'T':
+                FB(1);
+                goto free_pack;
             case 'X':
                 free(_apack);
                 return 0;
                 
             default:	
-                
+                printf("any:%c\n", *_apack);
                 break;
         }				/* -----  end switch  ----- */
     
@@ -247,6 +268,10 @@ int AuthPG(const int bfd,const int ffd, SESSION_SLOTS *slot){
         free(_apack);
         _apack = NULL;
         goto auth_loop;
+}
+
+int SimpleQuery(const int bfd,const int ffd){
+    
 }
 
 int PGExchange(const int bfd,const int ffd, SESSION_SLOTS *slot){

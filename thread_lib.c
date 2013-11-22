@@ -62,7 +62,7 @@ void libevent_work_process(int fd, short ev, void *arg){
         sprintf(err_log, "accept-- %s", err);
         d_log(err_log);
         free(err_log);*/
-        printf("0.work process accepet error no: %d\n", _wpq_me->no);
+        //printf("0.work process accepet error no: %d\n", _wpq_me->no);
         goto err;
     }
 
@@ -91,14 +91,17 @@ void libevent_work_process(int fd, short ev, void *arg){
         if(AuthPG(pg_fds, frontend, _slot)==-1){
             printf("auth error\n");
             goto bad;
+        }else{
+            
         }
     }
-        
-    pg_len = PGExchange(pg_fds, frontend, _slot);      /*  exchange --- */
-    if(pg_len == -1){
+
+    printf("out :ask:%c\n", *_slot->head->format); 
+    //pg_len = PGExchange(pg_fds, frontend, _slot);      /*  exchange --- */
+    //if(pg_len == -1){
         //close(pg_fds);
-        goto bad;
-    }      
+      //  goto bad;
+    //}      
    
     bad:
         free(_slot->user);
@@ -138,7 +141,14 @@ void work_process_init(int nprocess, int socket_fd){
 
     for(i=0; i< nprocess; i++){
         pid_t childpid;
-       
+
+        int fds[2];
+        if(pipe(fds)){
+
+        }
+        work_process[i].notify_read_fd = fds[0];
+        work_process[i].notify_write_fd = fds[1];
+
         work_process[i].socket_fd = socket_fd;
         childpid = fork();
         switch ( childpid ) {
