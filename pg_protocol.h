@@ -26,14 +26,6 @@
 #include "log_lib.h"
 #include "socket_lib.h"
 
-#ifndef STANDARD
-#include "hashtable/standard.h"
-#endif
-#ifndef HASHTAB
-#include "hashtable/hashtab.h"
-#endif
-#define LINELEN 10
-
 #define MAX_BACKEND_SESSION 128
 
 /* These are the authentication request codes sent by the backend. */
@@ -49,17 +41,19 @@
 #define AUTH_REQ_GSS_CONT   8   /* Continue GSS exchanges */
 #define AUTH_REQ_SSPI       9   /* SSPI negotiate without wrap() */
 
-
 typedef struct _msg_format MSGFORMAT;
 struct _msg_format{
     char *format;
     ssize_t format_len;
     MSGFORMAT *next;
 };
+
+/* test */
 typedef struct work_process_q PACK;
 struct work_process_q{
     char *pack;
 };
+
 typedef struct {
    char *StartupPack;
    ssize_t sp_len;
@@ -83,9 +77,6 @@ struct pg_conn {
 typedef struct pg_conn Pg_conn;
 
 SESSION_SLOTS *bs_slots[MAX_BACKEND_SESSION];
-
-//htab *cache_hast_table = NULL;
-
 
 int PGStartupPacket3(int fd, PACK *pa); /* 1. F -> B */
 int PGAuthenticationMD5Password(int fd, char *pack);/* 2. B -> F */

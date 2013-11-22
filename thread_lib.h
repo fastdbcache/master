@@ -44,9 +44,11 @@ typedef enum {
 typedef struct {
     pid_t pid;        /* work pid ID */
     struct event_base *base;    /* libevent headle */
-    struct event notify_event;  /* 通知事件，主线程通过这个事件通知worker线程有新连接 */
+    struct event notify_event;  /* event */
+    int notify_read_fd;    /*   pipe */
+    int notify_write_fd;     /*  pipe   */
     int socket_fd;
-    int no;
+    ssize_t no;
 } LIBEVENT_WORK_PROCESS;
 // http://stackoverflow.com/questions/2289852/how-to-share-a-linked-list-between-two-processes
 typedef struct work_process_token WPT;
@@ -56,12 +58,10 @@ struct work_process_token{
 
 typedef struct work_process_queue WPQ;
 struct work_process_queue{
-    int no;
+    ssize_t no;
     pid_t pid;        /* work pid ID */
     RING_JOB_STATE isjob;
 };
-
-
 
 typedef struct conn conn;
 struct conn {
@@ -76,7 +76,6 @@ conn *conns;
 int share_mem_token; 
 int share_mem_wpq;
 int process_num;
-
 
 struct event_base *main_base; /* main process base */
 
