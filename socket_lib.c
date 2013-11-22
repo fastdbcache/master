@@ -243,11 +243,11 @@ int Client_Init(char *host, int port){
         printf("noblock connect\n");
         return (-1);
     }
-    if (setsockopt(client_fd, IPPROTO_TCP, TCP_NODELAY,
+   /*  if (setsockopt(client_fd, IPPROTO_TCP, TCP_NODELAY,
                   &flag, sizeof(flag)) == -1) {
         printf("noblock SockOpt\n");
 		return (-1);
-    }
+    }*/
     //SetUnsetBlocking(client_fd); 
 	return client_fd;
 }

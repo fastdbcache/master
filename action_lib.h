@@ -11,6 +11,7 @@
 
 #include "thread_lib.h"
 
+void do_dispatch(int fd, short ev, void *arg);
 void conn_new(int sfd, struct event_base *base);
 #endif /* LIBEVENT_LIB_H_ */
 /* vim: set ts=4 sw=4: */

@@ -22,37 +22,37 @@
 /* 
  * client to pg
  * */
-int PGStartupPacket3(int fd,char *pack){
+int PGStartupPacket3(int fd,PACK *pa){
     char *newbuf;
     size_t pv_len;
     uint32 pv, v;
 
-    if(pack == NULL) {
+    if(pa->pack == NULL) {
         d_log("pack calloc error !\n");
         return -1;
     }
 
-    pv_len = Socket_Read(fd, pack, sizeof(uint32));
+    pv_len = Socket_Read(fd, pa->pack, sizeof(uint32));
     if(pv_len == sizeof(uint32)){
-        memcpy(&pv, pack, sizeof(uint32));
+        memcpy(&pv, pa->pack, sizeof(uint32));
 
         pv = ntohl(pv);
-        newbuf = realloc(pack, pv);
+        newbuf = realloc(pa->pack, pv);
         if(newbuf){
-            pack = newbuf;
+            pa->pack = newbuf;
         }else {
             printf("errr-----\n");
-            return ;
+            return -1;
         }
 
-        pv_len = Socket_Read(fd, pack+sizeof(uint32), pv-sizeof(uint32));
+        pv_len = Socket_Read(fd, pa->pack+sizeof(uint32), pv-sizeof(uint32));
 
         if(pv_len == (pv-sizeof(uint32))){
-            /*   v=0;
-            memcpy(&v, pack+sizeof(uint32), sizeof(uint32));
+            v=0;
+            memcpy(&v, pa->pack+sizeof(uint32), sizeof(uint32));
             printf("pv major: %d pv minor:%d\n", ntohl(v)>>16, ntohl(v)&0x0000ffff);
-            printf("param: %s\n", pack+sizeof(uint32), sizeof(uint32));
-            printf("pv:%d\n", pv);*/
+            printf("param: %s\n", pa->pack+sizeof(uint32)+sizeof(uint32));
+            printf("pv:%d\n", pv);
             return pv;
         }
         return -1;
@@ -96,6 +96,7 @@ SESSION_SLOTS *resolve_slot(const char *buf){
                 free(_slot);
                 return NULL;
             }
+            printf("user:%s\n", _slot->user);
         }
         else if (!strcmp("database", p))
         {
@@ -286,9 +287,9 @@ int PGExchange(const int bfd,const int ffd, SESSION_SLOTS *slot){
         } else return -1;*/
         //printf("pro start--\n");
         if(type == 1)
-        cmd_size = pSocket_Read(rfd, &ask, sizeof(char));
+        cmd_size = Socket_Read(rfd, &ask, sizeof(char));
         else
-        cmd_size = cSocket_Read(rfd, &ask, sizeof(char));
+        cmd_size = Socket_Read(rfd, &ask, sizeof(char));
 
         if(cmd_size != sizeof(char)) {            
             //printf("error cmd_size:%d ask %c \n",cmd_size, ask);
@@ -299,9 +300,9 @@ int PGExchange(const int bfd,const int ffd, SESSION_SLOTS *slot){
         if(ask == 'X')return 0;
        // printf("ask: %c\n", ask);
         if(type == 1)    
-        total_size = pSocket_Read(rfd, pack+psize, sizeof(uint32));
+        total_size = Socket_Read(rfd, pack+psize, sizeof(uint32));
         else
-        total_size = cSocket_Read(rfd, pack+psize, sizeof(uint32));
+        total_size = Socket_Read(rfd, pack+psize, sizeof(uint32));
 
         if(total_size != sizeof(uint32)) return -1;
         memcpy(&total, pack, sizeof(uint32));
@@ -318,9 +319,9 @@ int PGExchange(const int bfd,const int ffd, SESSION_SLOTS *slot){
             } else return -1;
         }
         if(type == 1)
-        name_size = pSocket_Read(rfd, pack+sizeof(uint32), total-sizeof(uint32));
+        name_size = Socket_Read(rfd, pack+sizeof(uint32), total-sizeof(uint32));
         else
-            name_size = cSocket_Read(rfd, pack+sizeof(uint32), total-sizeof(uint32));
+            name_size = Socket_Read(rfd, pack+sizeof(uint32), total-sizeof(uint32));
 
         /*  if(slot->backend_fd != 0){
             if(q !=0 || ask == 'Q'){ 
@@ -330,11 +331,11 @@ int PGExchange(const int bfd,const int ffd, SESSION_SLOTS *slot){
             }
         }else{*/
         if(type == 1){
-            pSocket_Send(wfd, &ask, sizeof(char));
-            pSocket_Send(wfd, pack, psize);
+            Socket_Send(wfd, &ask, sizeof(char));
+            Socket_Send(wfd, pack, psize);
         }else{
-            cSocket_Send(wfd, &ask, sizeof(char));
-            cSocket_Send(wfd, pack, psize);
+            Socket_Send(wfd, &ask, sizeof(char));
+            Socket_Send(wfd, pack, psize);
         }
         /*  }
        printf("pack:%s\n", pack+sizeof(uint32));

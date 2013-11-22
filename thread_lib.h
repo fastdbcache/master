@@ -45,16 +45,23 @@ typedef struct {
     pid_t pid;        /* work pid ID */
     struct event_base *base;    /* libevent headle */
     struct event notify_event;  /* 通知事件，主线程通过这个事件通知worker线程有新连接 */
-    int notify_read_fd;    /*   通知事件关联的读fd，这和下面的notify_send_fd是一对管道，具体使用后面讲 */
-    int notify_write_fd;     /*     通知事件关联的写fd，后面讲 */
+    int socket_fd;
     int no;
-    int socket_fd; 
 } LIBEVENT_WORK_PROCESS;
 // http://stackoverflow.com/questions/2289852/how-to-share-a-linked-list-between-two-processes
-typedef struct work_process_queue WPQ;
-struct work_process_queue{
+typedef struct work_process_token WPT;
+struct work_process_token{
     int token;
 };
+
+typedef struct work_process_queue WPQ;
+struct work_process_queue{
+    int no;
+    pid_t pid;        /* work pid ID */
+    RING_JOB_STATE isjob;
+};
+
+
 
 typedef struct conn conn;
 struct conn {
@@ -66,9 +73,10 @@ struct conn {
 
 conn *conns;
 
+int share_mem_token; 
 int share_mem_wpq;
-RING_JOB_STATE work_process_job;
 int process_num;
+
 
 struct event_base *main_base; /* main process base */
 

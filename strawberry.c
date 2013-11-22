@@ -17,12 +17,13 @@
 #include "./modules/modules.h"
 
 int main(int argc, char* argv[]){
-    int listen_fd, unix_sock, h;
+    int listen_fd, unix_sock;
     pid_t pid;
     int fds[2];
-    extern int process_num;
+	int h, max_ring_queue;
 	char *c, pid_file[500], buf[1];
 	ssize_t do_daemonize = 0;
+    extern int process_num;
     char help[]=" -c etc/suning.cnf\n \
                 Usage: \n \
                 -c which loading suning.cnf \n \
@@ -86,8 +87,11 @@ int main(int argc, char* argv[]){
     process_num = atoi(conf_get("process_num"));
     if(process_num < 1) exit(-1);
     
-    share_mem_wpq = shmget(IPC_PRIVATE, sizeof(WPQ), SHM_R | SHM_W);
+    share_mem_wpq = shmget(IPC_PRIVATE, process_num*sizeof(WPQ), SHM_R | SHM_W);
     if(share_mem_wpq == NULL) exit(-1);
+
+    share_mem_token = shmget(IPC_PRIVATE, sizeof(WPT), SHM_R | SHM_W);
+    if(share_mem_token == NULL) exit(-1);
 
     work_process_init(process_num, listen_fd);
     

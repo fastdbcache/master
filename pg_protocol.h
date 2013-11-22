@@ -56,7 +56,10 @@ struct _msg_format{
     ssize_t format_len;
     MSGFORMAT *next;
 };
-
+typedef struct work_process_q PACK;
+struct work_process_q{
+    char *pack;
+};
 typedef struct {
    char *StartupPack;
    ssize_t sp_len;
@@ -84,7 +87,7 @@ SESSION_SLOTS *bs_slots[MAX_BACKEND_SESSION];
 //htab *cache_hast_table = NULL;
 
 
-int PGStartupPacket3(int fd, char *pack); /* 1. F -> B */
+int PGStartupPacket3(int fd, PACK *pa); /* 1. F -> B */
 int PGAuthenticationMD5Password(int fd, char *pack);/* 2. B -> F */
 int PGPasswordMessage(int fd, char *pack);/* 3. F -> B */
 int PGAuthenticationOk(int fd, char *pack);/* 4.  B -> F */
