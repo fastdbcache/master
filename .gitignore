@@ -16,3 +16,6 @@
 *.exe
 *.out
 *.app
+
+# vim temp file
+*.swp
