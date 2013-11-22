@@ -1,0 +1,30 @@
+
+#server info
+[Listen]
+server_ip=0.0.0.0
+server_port=8008
+
+#bind use AF_UNIX
+[SocketUnix]
+unix_sock=0
+path=/tmp/sqlproxy.sock
+
+
+[PostGreSQL]
+pg_host=127.0.0.1
+pg_port=5432
+
+# 1 run as a daemon , 0 is no
+[daemon]
+do_daemonize=0
+
+# store a pid file
+[pid]
+pid_file=/var/run/server.pid
+
+# work process
+[work_process]
+process_num=2
+
+# module include in here
+modules={"mod_class","mod_xxx"}

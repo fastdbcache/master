@@ -1,0 +1,272 @@
+Flat profile:
+
+Each sample counts as 0.01 seconds.
+  %   cumulative   self              self     total           
+ time   seconds   seconds    calls  us/call  us/call  name    
+ 83.36      0.05     0.05      908    55.08    55.08  rq_pop
+ 16.67      0.06     0.01      303    33.01    33.01  PGExchange
+  0.00      0.06     0.00    29775     0.00     0.00  Socket_Read
+  0.00      0.06     0.00    23082     0.00     0.00  Socket_Send
+  0.00      0.06     0.00     8129     0.00     0.00  rq_item_init
+  0.00      0.06     0.00      303     0.00     0.00  PGStartupPacket3
+  0.00      0.06     0.00      303     0.00     0.00  get_sec
+  0.00      0.06     0.00      303     0.00     0.00  resolve_slot
+  0.00      0.06     0.00      303     0.00     0.00  rq_push
+  0.00      0.06     0.00      303     0.00     0.00  wtq_free
+  0.00      0.06     0.00       60     0.00     0.00  Trims
+  0.00      0.06     0.00       23     0.00     0.00  conf_get
+  0.00      0.06     0.00        8     0.00     0.00  Client_Init
+  0.00      0.06     0.00        8     0.00     0.00  setup_thread
+  0.00      0.06     0.00        8     0.00     0.00  wtq_init
+  0.00      0.06     0.00        7     0.00     0.00  create_worker
+  0.00      0.06     0.00        1     0.00     0.00  SetNonBlocking
+  0.00      0.06     0.00        1     0.00     0.00  Set_SockOpt
+  0.00      0.06     0.00        1     0.00     0.00  Socket_Init
+  0.00      0.06     0.00        1     0.00     0.00  conf_init
+  0.00      0.06     0.00        1     0.00     0.00  conn_new
+  0.00      0.06     0.00        1     0.00     0.00  d_log
+  0.00      0.06     0.00        1     0.00     0.00  rq_init
+  0.00      0.06     0.00        1     0.00     0.00  set_signal
+  0.00      0.06     0.00        1     0.00     0.00  setup_token
+  0.00      0.06     0.00        1     0.00     0.00  token_thread_init
+  0.00      0.06     0.00        1     0.00     0.00  work_thread_init
+
+ %         the percentage of the total running time of the
+time       program used by this function.
+
+cumulative a running sum of the number of seconds accounted
+ seconds   for by this function and those listed above it.
+
+ self      the number of seconds accounted for by this
+seconds    function alone.  This is the major sort for this
+           listing.
+
+calls      the number of times this function was invoked, if
+           this function is profiled, else blank.
+ 
+ self      the average number of milliseconds spent in this
+ms/call    function per call, if this function is profiled,
+	   else blank.
+
+ total     the average number of milliseconds spent in this
+ms/call    function and its descendents per call, if this 
+	   function is profiled, else blank.
+
+name       the name of the function.  This is the minor sort
+           for this listing. The index shows the location of
+	   the function in the gprof listing. If the index is
+	   in parenthesis it shows where it would appear in
+	   the gprof listing if it were to be printed.
+
+		     Call graph (explanation follows)
+
+
+granularity: each sample hit covers 2 byte(s) for 16.66% of 0.06 seconds
+
+index % time    self  children    called     name
+                0.05    0.00     908/908         libevent_token_thread [2]
+[1]     83.3    0.05    0.00     908         rq_pop [1]
+-----------------------------------------------
+                                                 <spontaneous>
+[2]     83.3    0.00    0.05                 libevent_token_thread [2]
+                0.05    0.00     908/908         rq_pop [1]
+-----------------------------------------------
+                0.01    0.00     303/303         libevent_work_thread [4]
+[3]     16.7    0.01    0.00     303         PGExchange [3]
+                0.00    0.00   29170/29775       Socket_Read [5]
+                0.00    0.00   23074/23082       Socket_Send [6]
+-----------------------------------------------
+                                                 <spontaneous>
+[4]     16.7    0.00    0.01                 libevent_work_thread [4]
+                0.01    0.00     303/303         PGExchange [3]
+                0.00    0.00     303/303         PGStartupPacket3 [8]
+                0.00    0.00     303/303         resolve_slot [10]
+                0.00    0.00     303/303         wtq_free [12]
+                0.00    0.00      16/23          conf_get [14]
+                0.00    0.00       8/8           Client_Init [15]
+                0.00    0.00       8/23082       Socket_Send [6]
+-----------------------------------------------
+                0.00    0.00     605/29775       PGStartupPacket3 [8]
+                0.00    0.00   29170/29775       PGExchange [3]
+[5]      0.0    0.00    0.00   29775         Socket_Read [5]
+-----------------------------------------------
+                0.00    0.00       8/23082       libevent_work_thread [4]
+                0.00    0.00   23074/23082       PGExchange [3]
+[6]      0.0    0.00    0.00   23082         Socket_Send [6]
+-----------------------------------------------
+                0.00    0.00    8129/8129        rq_init [25]
+[7]      0.0    0.00    0.00    8129         rq_item_init [7]
+-----------------------------------------------
+                0.00    0.00     303/303         libevent_work_thread [4]
+[8]      0.0    0.00    0.00     303         PGStartupPacket3 [8]
+                0.00    0.00     605/29775       Socket_Read [5]
+-----------------------------------------------
+                0.00    0.00     303/303         rq_push [11]
+[9]      0.0    0.00    0.00     303         get_sec [9]
+-----------------------------------------------
+                0.00    0.00     303/303         libevent_work_thread [4]
+[10]     0.0    0.00    0.00     303         resolve_slot [10]
+-----------------------------------------------
+                0.00    0.00     303/303         on_accept [107]
+[11]     0.0    0.00    0.00     303         rq_push [11]
+                0.00    0.00     303/303         get_sec [9]
+-----------------------------------------------
+                0.00    0.00     303/303         libevent_work_thread [4]
+[12]     0.0    0.00    0.00     303         wtq_free [12]
+-----------------------------------------------
+                0.00    0.00      60/60          conf_init [22]
+[13]     0.0    0.00    0.00      60         Trims [13]
+-----------------------------------------------
+                0.00    0.00       3/23          Socket_Init [21]
+                0.00    0.00       4/23          main [102]
+                0.00    0.00      16/23          libevent_work_thread [4]
+[14]     0.0    0.00    0.00      23         conf_get [14]
+-----------------------------------------------
+                0.00    0.00       8/8           libevent_work_thread [4]
+[15]     0.0    0.00    0.00       8         Client_Init [15]
+-----------------------------------------------
+                0.00    0.00       8/8           work_thread_init [29]
+[16]     0.0    0.00    0.00       8         setup_thread [16]
+-----------------------------------------------
+                0.00    0.00       8/8           worker_libevent [122]
+[17]     0.0    0.00    0.00       8         wtq_init [17]
+-----------------------------------------------
+                0.00    0.00       7/7           work_thread_init [29]
+[18]     0.0    0.00    0.00       7         create_worker [18]
+-----------------------------------------------
+                0.00    0.00       1/1           Socket_Init [21]
+[19]     0.0    0.00    0.00       1         SetNonBlocking [19]
+-----------------------------------------------
+                0.00    0.00       1/1           Socket_Init [21]
+[20]     0.0    0.00    0.00       1         Set_SockOpt [20]
+-----------------------------------------------
+                0.00    0.00       1/1           main [102]
+[21]     0.0    0.00    0.00       1         Socket_Init [21]
+                0.00    0.00       3/23          conf_get [14]
+                0.00    0.00       1/1           Set_SockOpt [20]
+                0.00    0.00       1/1           SetNonBlocking [19]
+-----------------------------------------------
+                0.00    0.00       1/1           main [102]
+[22]     0.0    0.00    0.00       1         conf_init [22]
+                0.00    0.00      60/60          Trims [13]
+-----------------------------------------------
+                0.00    0.00       1/1           main [102]
+[23]     0.0    0.00    0.00       1         conn_new [23]
+-----------------------------------------------
+                0.00    0.00       1/1           main [102]
+[24]     0.0    0.00    0.00       1         d_log [24]
+-----------------------------------------------
+                0.00    0.00       1/1           main [102]
+[25]     0.0    0.00    0.00       1         rq_init [25]
+                0.00    0.00    8129/8129        rq_item_init [7]
+-----------------------------------------------
+                0.00    0.00       1/1           main [102]
+[26]     0.0    0.00    0.00       1         set_signal [26]
+-----------------------------------------------
+                0.00    0.00       1/1           token_thread_init [28]
+[27]     0.0    0.00    0.00       1         setup_token [27]
+-----------------------------------------------
+                0.00    0.00       1/1           main [102]
+[28]     0.0    0.00    0.00       1         token_thread_init [28]
+                0.00    0.00       1/1           setup_token [27]
+-----------------------------------------------
+                0.00    0.00       1/1           main [102]
+[29]     0.0    0.00    0.00       1         work_thread_init [29]
+                0.00    0.00       8/8           setup_thread [16]
+                0.00    0.00       7/7           create_worker [18]
+-----------------------------------------------
+
+ This table describes the call tree of the program, and was sorted by
+ the total amount of time spent in each function and its children.
+
+ Each entry in this table consists of several lines.  The line with the
+ index number at the left hand margin lists the current function.
+ The lines above it list the functions that called this function,
+ and the lines below it list the functions this one called.
+ This line lists:
+     index	A unique number given to each element of the table.
+		Index numbers are sorted numerically.
+		The index number is printed next to every function name so
+		it is easier to look up where the function in the table.
+
+     % time	This is the percentage of the `total' time that was spent
+		in this function and its children.  Note that due to
+		different viewpoints, functions excluded by options, etc,
+		these numbers will NOT add up to 100%.
+
+     self	This is the total amount of time spent in this function.
+
+     children	This is the total amount of time propagated into this
+		function by its children.
+
+     called	This is the number of times the function was called.
+		If the function called itself recursively, the number
+		only includes non-recursive calls, and is followed by
+		a `+' and the number of recursive calls.
+
+     name	The name of the current function.  The index number is
+		printed after it.  If the function is a member of a
+		cycle, the cycle number is printed between the
+		function's name and the index number.
+
+
+ For the function's parents, the fields have the following meanings:
+
+     self	This is the amount of time that was propagated directly
+		from the function into this parent.
+
+     children	This is the amount of time that was propagated from
+		the function's children into this parent.
+
+     called	This is the number of times this parent called the
+		function `/' the total number of times the function
+		was called.  Recursive calls to the function are not
+		included in the number after the `/'.
+
+     name	This is the name of the parent.  The parent's index
+		number is printed after it.  If the parent is a
+		member of a cycle, the cycle number is printed between
+		the name and the index number.
+
+ If the parents of the function cannot be determined, the word
+ `<spontaneous>' is printed in the `name' field, and all the other
+ fields are blank.
+
+ For the function's children, the fields have the following meanings:
+
+     self	This is the amount of time that was propagated directly
+		from the child into the function.
+
+     children	This is the amount of time that was propagated from the
+		child's children to the function.
+
+     called	This is the number of times the function called
+		this child `/' the total number of times the child
+		was called.  Recursive calls by the child are not
+		listed in the number after the `/'.
+
+     name	This is the name of the child.  The child's index
+		number is printed after it.  If the child is a
+		member of a cycle, the cycle number is printed
+		between the name and the index number.
+
+ If there are any cycles (circles) in the call graph, there is an
+ entry for the cycle-as-a-whole.  This entry shows who called the
+ cycle (as parents) and the members of the cycle (as children.)
+ The `+' recursive calls entry shows the number of function calls that
+ were internal to the cycle, and the calls entry for each member shows,
+ for that member, how many times it was called from other members of
+ the cycle.
+
+
+Index by function name
+
+  [15] Client_Init            [14] conf_get                [1] rq_pop
+   [3] PGExchange             [22] conf_init              [11] rq_push
+   [8] PGStartupPacket3       [23] conn_new               [26] set_signal
+  [19] SetNonBlocking         [18] create_worker          [16] setup_thread
+  [20] Set_SockOpt            [24] d_log                  [27] setup_token
+  [21] Socket_Init             [9] get_sec                [28] token_thread_init
+   [5] Socket_Read            [10] resolve_slot           [29] work_thread_init
+   [6] Socket_Send            [25] rq_init                [12] wtq_free
+  [13] Trims                   [7] rq_item_init           [17] wtq_init

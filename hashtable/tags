@@ -1,0 +1,103 @@
+!_TAG_FILE_FORMAT	2	/extended format; --format=1 will not append ;" to lines/
+!_TAG_FILE_SORTED	1	/0=unsorted, 1=sorted, 2=foldcase/
+!_TAG_PROGRAM_AUTHOR	Darren Hiebert	/dhiebert@users.sourceforge.net/
+!_TAG_PROGRAM_NAME	Exuberant Ctags	//
+!_TAG_PROGRAM_URL	http://ctags.sourceforge.net	/official site/
+!_TAG_PROGRAM_VERSION	5.8	//
+CHECKSTATE	lookupa.h	17;"	d
+FALSE	standard.h	54;"	d
+HASHTAB	hashtab.h	36;"	d
+LINELEN	unique.c	16;"	d	file:
+LOOKUPA	lookupa.h	15;"	d
+RECYCLE	recycle.h	21;"	d
+REMAX	recycle.h	24;"	d
+RESTART	recycle.h	23;"	d
+SB1MAXVAL	standard.h	35;"	d
+SB2MAXVAL	standard.h	30;"	d
+SB4MAXVAL	standard.h	25;"	d
+SB8MAXVAL	standard.h	20;"	d
+STANDARD	standard.h	7;"	d
+STDDEF	standard.h	14;"	d
+STDIO	standard.h	10;"	d
+SUCCESS	standard.h	55;"	d
+TRUE	standard.h	53;"	d
+UB1BITS	standard.h	33;"	d
+UB1MAXVAL	standard.h	32;"	d
+UB2BITS	standard.h	28;"	d
+UB2MAXVAL	standard.h	27;"	d
+UB4BITS	standard.h	24;"	d
+UB4MAXVAL	standard.h	22;"	d
+UB8BITS	standard.h	18;"	d
+UB8MAXVAL	standard.h	17;"	d
+abs	standard.h	51;"	d
+align	standard.h	48;"	d
+apos	hashtab.h	/^  ub4            apos;    \/* position in the array *\/$/;"	m	struct:htab
+bcount	hashtab.h	/^  ub4            bcount;  \/* # hitems useable in current block *\/$/;"	m	struct:htab
+bic	standard.h	39;"	d
+bis	standard.h	38;"	d
+bit	standard.h	40;"	d
+checksum	lookupa.c	/^void  checksum( k, len, state)$/;"	f
+count	hashtab.h	/^  ub4            count;   \/* how many items in this hash table so far? *\/$/;"	m	struct:htab
+hadd	hashtab.c	/^word hadd( t, key, keyl, stuff)$/;"	f
+hashmask	lookupa.h	19;"	d
+hashsize	lookupa.h	18;"	d
+hcount	hashtab.h	104;"	d
+hcreate	hashtab.c	/^htab *hcreate(logsize)$/;"	f
+hdel	hashtab.c	/^word  hdel(t)$/;"	f
+hdestroy	hashtab.c	/^void hdestroy( t)$/;"	f
+hfind	hashtab.c	/^word   hfind( t, key, keyl )$/;"	f
+hfirst	hashtab.c	/^word hfirst(t)$/;"	f
+hgrow	hashtab.c	/^static void hgrow( t)$/;"	f	file:
+hitem	hashtab.h	/^struct hitem$/;"	s
+hitem	hashtab.h	/^typedef  struct hitem  hitem;$/;"	t	typeref:struct:hitem
+hkey	hashtab.h	105;"	d
+hkeyl	hashtab.h	107;"	d
+hnbucket	hashtab.c	/^word hnbucket(t)$/;"	f
+hnext	hashtab.h	181;"	d
+hsanity	hashtab.c	/^static void  hsanity(t)$/;"	f	file:
+hstat	hashtab.c	/^void hstat(t)$/;"	f
+hstuff	hashtab.h	108;"	d
+htab	hashtab.h	/^struct htab$/;"	s
+htab	hashtab.h	/^typedef  struct htab  htab;$/;"	t	typeref:struct:htab
+hval	hashtab.h	/^  ub4           hval;     \/* hash value *\/$/;"	m	struct:hitem
+hval	hashtab.h	106;"	d
+ipos	hashtab.h	/^  struct hitem  *ipos;    \/* current item in the array *\/$/;"	m	struct:htab	typeref:struct:htab::hitem
+key	hashtab.h	/^  ub1          *key;      \/* key that is hashed *\/$/;"	m	struct:hitem
+keyl	hashtab.h	/^  ub4           keyl;     \/* length of key *\/$/;"	m	struct:hitem
+list	recycle.h	/^   struct recycle *list;     \/* list of malloced blocks *\/$/;"	m	struct:reroot	typeref:struct:reroot::recycle
+logsize	hashtab.h	/^  word           logsize; \/* log of size of table *\/$/;"	m	struct:htab
+logsize	recycle.h	/^   size_t          logsize;  \/* log_2 of number of items in a block *\/$/;"	m	struct:reroot
+lookup	lookupa.c	/^ub4 lookup( k, length, level)$/;"	f
+main	unique.c	/^int main()$/;"	f
+mask	hashtab.h	/^  size_t         mask;    \/* (hashval & mask) is position in table *\/$/;"	m	struct:htab
+max	standard.h	45;"	d
+min	standard.h	42;"	d
+mix	lookupa.c	41;"	d	file:
+mixc	lookupa.c	136;"	d	file:
+next	hashtab.h	/^  struct hitem *next;     \/* next hitem in list *\/$/;"	m	struct:hitem	typeref:struct:hitem::hitem
+next	recycle.h	/^   struct recycle *next;$/;"	m	struct:recycle	typeref:struct:recycle::recycle
+numleft	recycle.h	/^   word            numleft;  \/* number of bytes left in this block *\/$/;"	m	struct:reroot
+recycle	recycle.h	/^struct recycle$/;"	s
+recycle	recycle.h	/^typedef  struct recycle  recycle;$/;"	t	typeref:struct:recycle
+redel	recycle.h	56;"	d
+refree	recycle.c	/^void  refree(r)$/;"	f
+remalloc	recycle.c	/^char   *remalloc(len, purpose)$/;"	f
+remkroot	recycle.c	/^reroot *remkroot(size)$/;"	f
+renew	recycle.h	49;"	d
+renewx	recycle.c	/^char  *renewx(r)$/;"	f
+reroot	recycle.h	/^struct reroot$/;"	s
+reroot	recycle.h	/^typedef  struct reroot  reroot;$/;"	t	typeref:struct:reroot
+sb1	standard.h	/^typedef    signed       char sb1;   \/* signed 1-byte quantities *\/$/;"	t
+sb2	standard.h	/^typedef    signed short int  sb2;$/;"	t
+sb4	standard.h	/^typedef    signed long  int  sb4;$/;"	t
+sb8	standard.h	/^typedef    signed long long  sb8;$/;"	t
+size	recycle.h	/^   size_t          size;     \/* size of an item *\/$/;"	m	struct:reroot
+space	hashtab.h	/^  struct reroot *space;   \/* space for the hitems *\/$/;"	m	struct:htab	typeref:struct:htab::reroot
+stuff	hashtab.h	/^  void         *stuff;    \/* stuff stored in this hitem *\/$/;"	m	struct:hitem
+table	hashtab.h	/^  struct hitem **table;   \/* hash table, array of size 2^logsize *\/$/;"	m	struct:htab	typeref:struct:htab::hitem
+trash	recycle.h	/^   struct recycle *trash;    \/* list of deleted items *\/$/;"	m	struct:reroot	typeref:struct:reroot::recycle
+ub1	standard.h	/^typedef  unsigned       char ub1;$/;"	t
+ub2	standard.h	/^typedef  unsigned short int  ub2;$/;"	t
+ub4	standard.h	/^typedef  unsigned long  int  ub4;   \/* unsigned 4-byte quantities *\/$/;"	t
+ub8	standard.h	/^typedef  unsigned long long  ub8;$/;"	t
+word	standard.h	/^typedef                 int  word;  \/* fastest type available *\/$/;"	t
