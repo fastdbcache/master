@@ -62,7 +62,7 @@ void libevent_work_process(int fd, short ev, void *arg){
         sprintf(err_log, "accept-- %s", err);
         d_log(err_log);
         free(err_log);*/
-       // printf("0.work process accepet error no: %d\n", _wpq_me->no);
+        printf("0.work process accepet error no: %d\n", _wpq_me->no);
         goto err;
     }
 
@@ -71,14 +71,13 @@ void libevent_work_process(int fd, short ev, void *arg){
     start_pack = (PACK *)calloc(1, sizeof(PACK));
     start_pack->pack = (char *)calloc(1, sizeof(char));
     pack_len = PGStartupPacket3(frontend, start_pack);  /* 1. F -> B */
-    printf("user---:%s\n", start_pack->pack+sizeof(uint32)+sizeof(uint32));
     if(pack_len == -1)goto ok;
      
     _slot = resolve_slot(start_pack->pack);
-    if(_slot != NULL) 
+    /*  if(_slot != NULL) 
         printf("user:%s, database:%s, major:%d, app:%s, pid:%llu\n", _slot->user, _slot->database, _slot->major, _slot->application_name, getpid()); 
-    
-    if(_slot->user != NULL){
+    */
+    if(_slot->backend_fd == 0){
         pg_fds = Client_Init(conf_get("pg_host"), atoi(conf_get("pg_port")));
         if(pg_fds == -1){
             if(start_pack->pack != NULL)free(start_pack->pack);
@@ -87,15 +86,12 @@ void libevent_work_process(int fd, short ev, void *arg){
         }
         pg_len = Socket_Send(pg_fds, start_pack->pack, pack_len);
          
-        if(start_pack->pack){
-            free(start_pack->pack);
-        }
-        start_pack->pack = NULL;
+        
         if(pg_len != pack_len) goto bad;
-        /*  if(AuthPG(pg_fds, frontend, _slot)==-1){
+        if(AuthPG(pg_fds, frontend, _slot)==-1){
             printf("auth error\n");
             goto bad;
-        }*/
+        }
     }
         
     pg_len = PGExchange(pg_fds, frontend, _slot);      /*  exchange --- */
@@ -110,14 +106,17 @@ void libevent_work_process(int fd, short ev, void *arg){
         free(_slot);
 
     ok:
-        
+        if(start_pack->pack){
+            free(start_pack->pack);
+        }
+        start_pack->pack = NULL;
         close(pg_fds);
         close(frontend); 
        // _wpq_me->isjob = JOB_FREE;
-        
+        work_process_job = JOB_FREE;
 
     err:
-        work_process_job = JOB_FREE;
+        
         (void)0;       
                  
 }

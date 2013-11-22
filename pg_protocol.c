@@ -160,20 +160,18 @@ int AuthPG(const int bfd,const int ffd, SESSION_SLOTS *slot){
      
     FB(1);
     
-    _apack = calloc(1, sizeof(char));
-    totalsize = sizeof(char);
+    
     
     auth_loop:
-        offset = 0; 
-        cmd_size = Socket_Read(rfd, _apack+offset, sizeof(char));
-        offset += sizeof(char);
+        _apack = calloc(1, sizeof(char));
+        cmd_size = Socket_Read(rfd, _apack, sizeof(char));
 
         if(cmd_size != sizeof(char)) {            
             free(_apack);
             return -1;
         }
 
-        newbuf = realloc(_apack, totalsize+sizeof(uint32));
+        newbuf = realloc(_apack, sizeof(char)+sizeof(uint32));
         
         if(newbuf){
             _apack = newbuf;
@@ -183,31 +181,32 @@ int AuthPG(const int bfd,const int ffd, SESSION_SLOTS *slot){
         }
         printf("ask: %c\n", *_apack);
 
-        total_size = Socket_Read(rfd, _apack+offset, sizeof(uint32));
-        offset += sizeof(uint32);
+        total_size = Socket_Read(rfd, _apack+sizeof(char), sizeof(uint32));
 
-        if(total_size != sizeof(uint32)) return -1;
-
+        if(total_size != sizeof(uint32)){
+            free(_apack);
+            return -1;
+        }
+        total = 0;
         memcpy(&total, _apack+sizeof(char), sizeof(uint32));
 
         total = ntohl(total);
 
-        if(totalsize < total){
-            totalsize += total;
-            newbuf = realloc(_apack, total-sizeof(uint32));
+        //if(totalsize < total){
+            totalsize = sizeof(char)+total;
+            newbuf = realloc(_apack, total+sizeof(char));
         
             if(newbuf){
-                    _apack = newbuf;
+                _apack = newbuf;
             } else{
                 free(_apack);
                 return -1;
             }
-        }
-        Socket_Read(rfd, _apack+offset, total-sizeof(uint32));
+        //}
+        Socket_Read(rfd, _apack+sizeof(char)+sizeof(uint32), total-sizeof(uint32));
 
         Socket_Send(wfd, _apack, totalsize);
        
-        
         switch ( *_apack ) {
             case 'R':	
 
@@ -215,32 +214,39 @@ int AuthPG(const int bfd,const int ffd, SESSION_SLOTS *slot){
                     FB(1);
                 }else
                     FB(0);
-                goto auth_loop;
+                
+                goto free_pack;
 
             case 'p':	
                 FB(1);
-                goto auth_loop;
+                goto free_pack;
             case 'S':
                 FB(1);
-                goto auth_loop;
+                goto free_pack;
             case 'K':
                 FB(1);
-                goto auth_loop;
+                goto free_pack;
             case 'Z':
-                FB(0);
-                
-                break;
+                printf("Z\n");
+                //FB(0);
+                if(_apack)
+                    free(_apack); 
+                return 0;
             
             case 'X':
+                free(_apack);
                 return 0;
                 
             default:	
                 
                 break;
         }				/* -----  end switch  ----- */
-
     
-
+    free_pack:
+        if(_apack)
+        free(_apack);
+        _apack = NULL;
+        goto auth_loop;
 }
 
 int PGExchange(const int bfd,const int ffd, SESSION_SLOTS *slot){
@@ -267,16 +273,8 @@ int PGExchange(const int bfd,const int ffd, SESSION_SLOTS *slot){
         }             \
 	} while (0)
 
-    FB(type);
-    /*  
-    if(slot->backend_fd == 0)
-        FB(1);
-    else {
-        _mf = slot->tail;
-        Socket_Send(ffd, _mf->format, _mf->format_len);
-        FB(0);
-    }*/
-
+    FB(0);
+    
     pack = calloc(1, sizeof(uint32));
     totalsize = sizeof(uint32);
     for(;;){
