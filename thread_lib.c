@@ -29,9 +29,9 @@ void libevent_work_process(int fd, short ev, void *arg){
     SESSION_SLOTS *_slot;
 
 
-    if(work_process_job != JOB_FREE) goto err;
-    work_process_job = JOB_HAS;
-    /*  _wpq = (WPQ *)shmat(share_mem_wpq, NULL, 0);
+    /*if(work_process_job != JOB_FREE) goto err;
+    work_process_job = JOB_HAS;*/
+    _wpq = (WPQ *)shmat(share_mem_wpq, NULL, 0);
     if(_wpq == NULL){
         printf("1._wpq is null\n");
         goto err;
@@ -40,7 +40,7 @@ void libevent_work_process(int fd, short ev, void *arg){
     if(_wpq_me == NULL) {printf("2._wpq_me is null\n");goto err;}
 
     if(_wpq_me->isjob != JOB_FREE) {printf("3.job no free:%d \n", _wpq_me->no);goto err;}
-    _wpq_me->isjob = JOB_HAS;
+    
 
     _wpt = (WPT *)shmat(share_mem_token, NULL, 0);
       
@@ -51,8 +51,9 @@ void libevent_work_process(int fd, short ev, void *arg){
     _token = (_wpt->token + 1) % process_num;
     //printf("5.now _token:%d, no:%d\n", _token, _wpq_me->no);
      
-    //if(_wpq_me->no != _token) goto err;*/
+    if(_wpq_me->no != _token) goto err;
 
+    _wpq_me->isjob = JOB_HAS;
     frontend_len = sizeof(frontend_addr); 
     frontend = accept(me->socket_fd, (struct sockaddr *)&frontend_addr, &frontend_len);
     if (frontend == -1) {
@@ -62,7 +63,7 @@ void libevent_work_process(int fd, short ev, void *arg){
         sprintf(err_log, "accept-- %s", err);
         d_log(err_log);
         free(err_log);*/
-        //printf("0.work process accepet error no: %d\n", _wpq_me->no);
+        printf("0.work process accepet error no: %d\n", _wpq_me->no);
         goto err;
     }
 
@@ -119,7 +120,6 @@ void libevent_work_process(int fd, short ev, void *arg){
         work_process_job = JOB_FREE;
 
     err:
-        
         (void)0;       
                  
 }

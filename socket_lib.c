@@ -240,7 +240,7 @@ int Client_Init(char *host, int port){
     to_server_addr.sin_addr.s_addr = inet_addr(host) ;
 
 	if(connect(client_fd, (struct sockaddr *)&to_server_addr, sizeof(struct sockaddr)) == - 1) {
-        printf("noblock connect\n");
+        printf("can't connect backend server\n");
         return (-1);
     }
    /*  if (setsockopt(client_fd, IPPROTO_TCP, TCP_NODELAY,
