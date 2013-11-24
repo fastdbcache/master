@@ -21,13 +21,14 @@ void libevent_work_process(int fd, short ev, void *arg){
     PACK *start_pack;
     WPQ *_wpq, *_wpq_next, *_wpq_me; 
     WPT *_wpt;
-    int pg_fds, m, pg_len, pack_len, _token;
+    int pg_fds, m, pg_len, pack_len, _token, start;
     int frontend, err_len;
     char *err, *err_log;
 	struct sockaddr_in frontend_addr;
 	socklen_t frontend_len;
     SESSION_SLOTS *_slot;
-
+    uint64_t u;
+    ssize_t s;
 
     /*if(work_process_job != JOB_FREE) goto err;
     work_process_job = JOB_HAS;*/
@@ -40,18 +41,11 @@ void libevent_work_process(int fd, short ev, void *arg){
     if(_wpq_me == NULL) {printf("2._wpq_me is null\n");goto err;}
 
     if(_wpq_me->isjob != JOB_FREE) {printf("3.job no free:%d \n", _wpq_me->no);goto err;}
-    
-
-    _wpt = (WPT *)shmat(share_mem_token, NULL, 0);
-      
-    if ( _wpt == NULL ) {
-        printf("4._wpt null\n");
-        goto err;
-    }
-    _token = (_wpt->token + 1) % process_num;
+        
+    //_token = (_wpt->token + 1) % process_num;
     //printf("5.now _token:%d, no:%d\n", _token, _wpq_me->no);
      
-    if(_wpq_me->no != _token) goto err;
+   // if(_wpq_me->no != _token) goto err;
 
     _wpq_me->isjob = JOB_HAS;
     frontend_len = sizeof(frontend_addr); 
@@ -66,8 +60,34 @@ void libevent_work_process(int fd, short ev, void *arg){
         printf("0.work process accepet error no: %d\n", _wpq_me->no);
         goto err;
     }
-
-   // printf("6._wpq_me no:%d\n", _wpq_me->no);
+    printf("accept sussce no: %d\n", _wpq_me->no);
+    _wpt = (WPT *)shmat(share_mem_token, NULL, 0);
+      
+    if ( _wpt == NULL ) {
+        printf("4._wpt null\n");
+        goto err;
+    }
+    start = _wpt->token % process_num;
+    do {
+        _token = (_wpt->token + 1) % process_num;
+        _wpq_me = _wpq + _token;
+        _wpt->token = _wpq_me->no;
+        printf("token:%d, start:%d, now wpq no:%d, isjob:%d\n", _wpt->token, start, _wpq_me->no, _wpq_me->isjob);
+        if(_wpq_me->isjob == JOB_FREE){
+            
+            write(work_process[_wpq_me->no].notify_write_fd, "" , 1);
+            break;
+        }
+         
+        if( _wpt->token == start ){
+            printf(" fail\n");     
+            _wpt->control_token_fail = 1;
+            s = write(me->master_efd, &u , sizeof(uint64_t));
+            break;
+        }
+    } while ( 1 ); 
+    
+    printf("control_token_fail:%d\n", _wpt->control_token_fail);
     
     start_pack = (PACK *)calloc(1, sizeof(PACK));
     start_pack->pack = (char *)calloc(1, sizeof(char));
@@ -97,7 +117,7 @@ void libevent_work_process(int fd, short ev, void *arg){
         }
     }
 
-    printf("out :ask:%c\n", *_slot->head->format); 
+    //printf("out :ask:%c\n", *_slot->head->format); 
     //pg_len = PGExchange(pg_fds, frontend, _slot);      /*  exchange --- */
     //if(pg_len == -1){
         //close(pg_fds);
@@ -117,14 +137,16 @@ void libevent_work_process(int fd, short ev, void *arg){
         close(pg_fds);
         close(frontend); 
        // _wpq_me->isjob = JOB_FREE;
-        work_process_job = JOB_FREE;
-
+    
     err:
+        _wpq_me->isjob = JOB_FREE;
+        if(_wpt->control_token_fail == 1)
+            s = write(me->master_efd, &u , sizeof(uint64_t));
         (void)0;       
                  
 }
 
-void work_process_init(int nprocess, int socket_fd){
+void work_process_init(int nprocess, int socket_fd, int ev_fd){
     int i;
     WPQ *_wpq, *_wpq_me;
     WPT *_wpt;
@@ -137,19 +159,23 @@ void work_process_init(int nprocess, int socket_fd){
     work_process_job = JOB_FREE;
     
     _wpt = (WPT *)shmat(share_mem_token, NULL, 0);
-    _wpt->token = nprocess - 1;
-
+    _wpt->token = nprocess ;
+    
     for(i=0; i< nprocess; i++){
-        pid_t childpid;
-
         int fds[2];
         if(pipe(fds)){
-
+            perror("Can't create notify pipe\n");
+            exit(1);
         }
         work_process[i].notify_read_fd = fds[0];
         work_process[i].notify_write_fd = fds[1];
-
+        work_process[i].master_efd = ev_fd;
         work_process[i].socket_fd = socket_fd;
+        work_process[i].no = i;
+    }
+
+    for(i=0; i< nprocess; i++){
+        pid_t childpid;
         childpid = fork();
         switch ( childpid ) {
             case -1:	
@@ -167,14 +193,16 @@ void work_process_init(int nprocess, int socket_fd){
                     printf("_wpq_me is null\n");
                     exit(1);
                 }
-
+                if(work_process[i].no != i) {
+                    printf("work_process no error\n");
+                    exit(1);
+                }
                 _wpq_me->no = i; 
                 _wpq_me->isjob = JOB_FREE;
                 _wpq_me->pid = getpid();
 
                 work_process[i].pid = _wpq_me->pid;
-                work_process[i].no = i;
-
+                
                 setup_process(&work_process[i]);
                 worker_libevent(&work_process[i]);
                 break;
@@ -194,7 +222,7 @@ void setup_process(LIBEVENT_WORK_PROCESS *me) {
     }
 
     /* Listen for notifications from other threads */
-    event_set(&me->notify_event, me->socket_fd,
+    event_set(&me->notify_event, me->notify_read_fd,
               EV_READ | EV_PERSIST, libevent_work_process, me);
     event_base_set(me->base, &me->notify_event);
 

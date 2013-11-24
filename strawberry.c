@@ -77,26 +77,29 @@ int main(int argc, char* argv[]){
 		exit(-1);
 	}
 
-    if(-1 == SetNonBlocking(listen_fd)){
+    /*if(-1 == SetNonBlocking(listen_fd)){
         printf("noblock error\n");
         close(listen_fd);
         return (-1);
-    }
-
+    }*/
 
     process_num = atoi(conf_get("process_num"));
     if(process_num < 1) exit(-1);
     
     share_mem_wpq = shmget(IPC_PRIVATE, process_num*sizeof(WPQ), SHM_R | SHM_W);
-    if(share_mem_wpq == NULL) exit(-1);
+    if(share_mem_wpq == -1 ) exit(-1);
 
     share_mem_token = shmget(IPC_PRIVATE, sizeof(WPT), SHM_R | SHM_W);
-    if(share_mem_token == NULL) exit(-1);
+    if(share_mem_token == -1) exit(-1);
 
-    work_process_init(process_num, listen_fd);
+    master_efd = eventfd(0, 0); 
+    if(master_efd == -1) exit(1);    
+
+    work_process_init(process_num, listen_fd, master_efd);
     
+    write(work_process[0].notify_write_fd, "" , 1); 
     main_base = event_init();
-	conn_new(listen_fd, main_base);
+	conn_new(master_efd, main_base);
     event_base_loop(main_base, 0);
 
     return 0;

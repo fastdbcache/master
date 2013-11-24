@@ -176,7 +176,7 @@ int AuthPG(const int bfd,const int ffd, SESSION_SLOTS *slot){
             free(_apack);
             return -1;
         }
-        printf("ask: %c\n", *_apack);
+        //printf("ask: %c\n", *_apack);
 
         total_size = Socket_Read(rfd, _apack+sizeof(char), sizeof(uint32));
 
@@ -240,7 +240,7 @@ int AuthPG(const int bfd,const int ffd, SESSION_SLOTS *slot){
                 FB(1);
                 goto free_pack;
             case 'Z':
-                printf("Z\n");
+                //printf("Z\n");
                 FB(0);
                 //if(_apack)
                 //    free(_apack); 
@@ -259,7 +259,7 @@ int AuthPG(const int bfd,const int ffd, SESSION_SLOTS *slot){
                 return 0;
                 
             default:	
-                printf("any:%c\n", *_apack);
+                //printf("any:%c\n", *_apack);
                 break;
         }				/* -----  end switch  ----- */
     
