@@ -87,8 +87,6 @@ void libevent_work_process(int fd, short ev, void *arg){
         }
     } while ( 1 ); 
     
-    printf("control_token_fail:%d\n", _wpt->control_token_fail);
-    
     start_pack = (PACK *)calloc(1, sizeof(PACK));
     start_pack->pack = (char *)calloc(1, sizeof(char));
     pack_len = PGStartupPacket3(frontend, start_pack);  /* 1. F -> B */
