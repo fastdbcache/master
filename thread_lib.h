@@ -49,11 +49,15 @@ typedef struct {
     int notify_write_fd;     /*  pipe   */
     int socket_fd;
     ssize_t no;
+    int master_efd;   /* call master fd*/
 } LIBEVENT_WORK_PROCESS;
+
 // http://stackoverflow.com/questions/2289852/how-to-share-a-linked-list-between-two-processes
 typedef struct work_process_token WPT;
 struct work_process_token{
     int token;
+    ssize_t control_token_fail;
+    int token_read_fd;
 };
 
 typedef struct work_process_queue WPQ;
@@ -76,6 +80,7 @@ conn *conns;
 int share_mem_token; 
 int share_mem_wpq;
 int process_num;
+int master_efd;
 
 struct event_base *main_base; /* main process base */
 
@@ -83,7 +88,7 @@ struct event_base *main_base; /* main process base */
 LIBEVENT_WORK_PROCESS *work_process;  /* work threads */
 
 /* child worker process for token thread  */
-void work_process_init(int nprocess, int socket_fd);
+void work_process_init(int nprocess, int socket_fd, int ev_fd);
 void setup_process(LIBEVENT_WORK_PROCESS *me) ;
 void worker_libevent(LIBEVENT_WORK_PROCESS *arg);
 void libevent_work_process(int fd, short ev, void *arg);
