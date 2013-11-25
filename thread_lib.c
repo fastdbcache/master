@@ -40,7 +40,7 @@ void libevent_work_process(int fd, short ev, void *arg){
     _wpq_me = _wpq + me->no;
     if(_wpq_me == NULL) {printf("2._wpq_me is null\n");goto err;}
 
-    if(_wpq_me->isjob != JOB_FREE) {printf("3.job no free:%d \n", _wpq_me->no);goto err;}
+    if(_wpq_me->isjob != JOB_FREE) {/*printf("3.job no free:%d \n", _wpq_me->no);*/goto err;}
         
     //_token = (_wpt->token + 1) % process_num;
     //printf("5.now _token:%d, no:%d\n", _token, _wpq_me->no);
@@ -60,7 +60,7 @@ void libevent_work_process(int fd, short ev, void *arg){
         printf("0.work process accepet error no: %d\n", _wpq_me->no);
         goto err;
     }
-    printf("accept sussce no: %d\n", _wpq_me->no);
+   // printf("accept sussce no: %d\n", _wpq_me->no);
     _wpt = (WPT *)shmat(share_mem_token, NULL, 0);
       
     if ( _wpt == NULL ) {
@@ -72,7 +72,7 @@ void libevent_work_process(int fd, short ev, void *arg){
         _token = (_wpt->token + 1) % process_num;
         _wpq_me = _wpq + _token;
         _wpt->token = _wpq_me->no;
-        printf("token:%d, start:%d, now wpq no:%d, isjob:%d\n", _wpt->token, start, _wpq_me->no, _wpq_me->isjob);
+        //printf("token:%d, start:%d, now wpq no:%d, isjob:%d\n", _wpt->token, start, _wpq_me->no, _wpq_me->isjob);
         if(_wpq_me->isjob == JOB_FREE){
             
             write(work_process[_wpq_me->no].notify_write_fd, "" , 1);
@@ -108,7 +108,7 @@ void libevent_work_process(int fd, short ev, void *arg){
         
         if(pg_len != pack_len) goto bad;
         if(AuthPG(pg_fds, frontend, _slot)==-1){
-            printf("auth error\n");
+            //printf("auth error\n");
             goto bad;
         }else{
             

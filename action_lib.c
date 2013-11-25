@@ -47,7 +47,7 @@ void do_dispatch(int fd, short ev, void *arg){
             }
         }
     } while ( _token != start );				/* -----  end do-while  ----- */
-    printf("master control\n");
+    //printf("master control\n");
 }
 
 void conn_new(int sfd, struct event_base *base){
