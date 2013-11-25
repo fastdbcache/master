@@ -29,6 +29,7 @@ struct _hitem
   ub1          *key;      /* key that is hashed */
   ub4           keyl;     /* length of key */
   ub4           hval;     /* hash value */
+  ub4           utime;    /* */
   struct _hitem *next;     /* next hitem in list */
 };
 typedef  struct _hitem  hitem;
@@ -44,6 +45,24 @@ struct _htab
   ub4            miss;    /* hval miss times */
 };
 typedef  struct _htab  htab;
+
+struct _tlist{
+  ub4       hval;
+  char      *name;
+  ub4       utime; 
+};
+typedef struct _tlist tlist;
+
+struct _ulist{
+  char      *name;
+  struct _ulist *next; 
+};
+typedef struct _ulist ulist;
+
+int hitem_semid;
+int htab_semid;
+int tlist_semid;
+int ulist_semid;
 
 htab *hcreate();
 void hdestroy();

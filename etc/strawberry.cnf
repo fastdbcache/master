@@ -24,7 +24,7 @@ pid_file=/var/run/server.pid
 
 # work process
 [work_process]
-process_num=2
+process_num=3
 
 # module include in here
 modules={"mod_class","mod_xxx"}

@@ -15,17 +15,8 @@
  *
  * =====================================================================================
  */
-#ifndef hashtab_H
-#define hashtab_H
-#ifdef __cplusplus
- extern "C"
- {
-#endif
 
 
-#ifdef __cplusplus
- }
-#endif
-#endif /* --- #hashtab_H ---*/
+
  /* vim: set ts=4 sw=4: */
 
