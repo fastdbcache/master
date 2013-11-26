@@ -24,6 +24,8 @@
 
 #include "standard.h"
 
+
+
 struct _hitem
 {
   ub1          *key;      /* key that is hashed */
@@ -32,7 +34,7 @@ struct _hitem
   ub4           utime;    /* */
   struct _hitem *next;     /* next hitem in list */
 };
-typedef  struct _hitem  hitem;
+typedef  struct _hitem  HITEM;
 
 struct _htab
 {
@@ -44,26 +46,27 @@ struct _htab
   ub4            hit;     /* hval hit times */
   ub4            miss;    /* hval miss times */
 };
-typedef  struct _htab  htab;
+typedef  struct _htab  HTAB;
 
 struct _tlist{
   ub4       hval;
   char      *name;
   ub4       utime; 
 };
-typedef struct _tlist tlist;
+typedef struct _tlist TLIST;
 
 struct _ulist{
   char      *name;
   struct _ulist *next; 
 };
-typedef struct _ulist ulist;
+typedef struct _ulist ULIST;
 
 int hitem_semid;
 int htab_semid;
 int tlist_semid;
 int ulist_semid;
 
+hitem *iteminit();
 htab *hcreate();
 void hdestroy();
 word hfind();
