@@ -32,10 +32,11 @@ struct _hitem
   ub4           keyl;     /* length of key */
   ub4           hval;     /* hash value */
   ub4           utime;    /* */
+  ub4           ahit;     /* all hit */
   struct _hitem *next;     /* next hitem in list */
 };
 typedef  struct _hitem  HITEM;
-
+//https://github.com/troydhanson/uthash
 struct _htab
 {
   word           logsize; /* log of size of table */
