@@ -76,7 +76,6 @@ struct _hitem
   struct _hitem *next;     /* next hitem in list */
 };
 typedef  struct _hitem  HITEM;
-<<<<<<< HEAD
 
 /* algorithm Recently Used 
  * array use this struct 
@@ -106,9 +105,7 @@ struct _hdr
 };
 typedef  struct _hdr  HDR;
 
-=======
 //https://github.com/troydhanson/uthash
->>>>>>> ddb99090ff8789fde5a89870d403b54056c8c5db
 struct _htab
 {
   word           logsize; /* log of size of table */
