@@ -14,6 +14,7 @@
 #include "action_lib.h"
 #include "daemon_lib.h"
 #include "signal_lib.h"
+#include "config_global.h"
 #include "./modules/modules.h"
 
 int main(int argc, char* argv[]){
@@ -52,12 +53,13 @@ int main(int argc, char* argv[]){
 	}
 
 	conf_init(c);
+    conn_init_global();
 
 	d_log("snooker:0.0.1 start ...");
 
-	if(do_daemonize == 1 || atoi(conf_get("do_daemonize")) == 1){
+	if(do_daemonize == 1 || conn_global->do_daemonize == 1){
 		daemon_init(argv[0], 0);	
-		if(strlen(conf_get("pid_file")) > 0)strcpy(pid_file, conf_get("pid_file"));
+		if(strlen(conn_global->pid_file) > 0)strcpy(pid_file, conn_global->pid_file);
 		else strcpy(pid_file, "/var/run/strawberry.pid");
 
 		save_pid(getpid(), pid_file);
@@ -66,7 +68,7 @@ int main(int argc, char* argv[]){
     /* register moduels 
 	modules_register();*/
 
-    unix_sock = atoi(conf_get("unix_sock"));
+    unix_sock = conn_global->unix_sock;
 	if(0 == unix_sock)
 		listen_fd = Socket_Init();
 	else
@@ -83,7 +85,7 @@ int main(int argc, char* argv[]){
         return (-1);
     }*/
 
-    process_num = atoi(conf_get("process_num"));
+    process_num = conn_global->process_num;
     if(process_num < 1) exit(-1);
     
     share_mem_wpq = shmget(IPC_PRIVATE, process_num*sizeof(WPQ), SHM_R | SHM_W);
