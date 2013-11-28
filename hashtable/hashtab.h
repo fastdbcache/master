@@ -22,6 +22,9 @@
  {
 #endif
 
+#include <stdio.h>
+#include <math.h>
+
 #include "standard.h"
 #include "../config_global.h"
 
@@ -32,6 +35,7 @@
 #define MAX_SLAB_CLASS  200
 #define CHUNK_ALIGN_BYTES 8
 #define MAX_SLAB_BYTE 1024 * 1024
+#define SLAB_BEGIN 88
 /* 
  * f=1.25
  * slab class   1: chunk size     88 perslab 11915

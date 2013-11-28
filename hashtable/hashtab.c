@@ -16,7 +16,7 @@
  * =====================================================================================
  */
 
-
+#include "hashtab.h"
 
 /* 
  * ===  FUNCTION  ======================================================================
@@ -285,14 +285,25 @@ HITEM *hfind ( ub1 *key, ub4 keyl ){
  */
 char *gslab ( HITEM *hi ){
     HITEM *hp = hi;
-    HSLAB **hslab_pool, *slab;
-
+    HSLAB **hslab_pool, *slab, *p;
+    int i;    
+    char *res;
     **hslab_pool = (HSLAB**)(shmat(semid_hslab_pool, (void *) 0, 0));
     if(!hslab_pool){
         perror("shmat hitem_pool");
     }
-    
-    slab = hslab_pool[]
+
+    i = hsms(hi->psize);
+
+    slab = hslab_pool[i];
+
+    for(p=slab; p; p=p->next){
+        if(p->id == p->sid){
+            res = p->ss * hi->psize;  
+            return res;
+        }
+    }
+
     return NULL;
 }		/* -----  end of function hslab  ----- */
 
@@ -305,7 +316,7 @@ char *gslab ( HITEM *hi ){
  * =====================================================================================
  */
 void hslabclass ( void ){
-    int size = 88;
+    int size = SLAB_BEGIN;
     int i=0;
     
      while (i++ < MAX_SLAB_CLASS && size <= MAX_SLAB_BYTE / slabclass) {
@@ -331,8 +342,19 @@ void hslabclass ( void ){
  */
 int hsms ( ub4 bytes ){
     int i;
-    
-    for ( i=0; slabclass[i].chunk > 0; i++ ) {
+    float l;
+
+    if(bytes > MAX_SLAB_BYTE) return -1;
+
+    i = 0;
+    l = (bytes / SLAB_BEGIN);
+    while( l>conn_global->factor ){
+        l = l / conn_global->factor;
+        i++;
+    }
+    if( i>0 ) --i;
+
+    for ( ; slabclass[i].chunk > 0; i++ ) {
         if(slabclass[i].size > bytes) return i;
     }
 
