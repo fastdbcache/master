@@ -23,8 +23,15 @@
 #endif
 
 #include "standard.h"
+#include "../config_global.h"
 
-#define MAX_POOL 39
+#define MAX_SLAB 39
+#define MAX_HITEM_LENGTH 1024
+#define MAX_HITEM_LENGTH_8 (MAX_HITEM_LENGTH<<8)
+#define MAX_HARU_POOL 1024
+#define MAX_SLAB_CLASS  200
+#define CHUNK_ALIGN_BYTES 8
+#define MAX_SLAB_BYTE 1024 * 1024
 /* 
  * f=1.25
  * slab class   1: chunk size     88 perslab 11915
@@ -39,30 +46,30 @@
  * slab class  39: chunk size 489032 perslab     2  
  * */
 
-struct _hslab
+struct __hslab
 {
   ub1           *sm;      /* slab malloc 1M */
   ub4           ss;      /* start of pool malloc */
   ub4           sf;      /* free of pool malloc if(sf==0) check fslab if return == -1 mount next*/
   sb2           id;       /* slab id */
-  struct _hslab *next;     /* next */
+  struct __hslab *next;     /* next */
 };
-typedef  struct _hslab  HSLAB;
+typedef  struct __hslab  HSLAB;
 
 
 /* record the unlink slab */
-struct _fslab
+struct __fslab
 {
   sb2           psize;     /* hpool size */
   sb2           sid;       /* slab id */
   sb2           sa;       /* data row start addr of hslab  sa*psize */   
-  struct _fslab *next;     /* next */
+  struct __fslab *next;     /* next */
 };
-typedef  struct _fslab  FSLAB;
+typedef  struct __fslab  FSLAB;
 
-HSLAB  HPOOL[MAX_POOL];
+//HSLAB  HPOOL[MAX__POOL];
 
-struct _hitem
+struct __hitem
 {
   ub1          *key;      /* key that is hashed */
   ub4           keyl;     /* length of key */
@@ -70,12 +77,13 @@ struct _hitem
   sb2           psize;    /* hpools size */
   sb2           sid;      /* slab id */
   ub4           sa;       /* data row start addr of hslab  sa*psize */
-  ub4           hval;     /* hash value */
+  ub4           hval;     /* hash value for key */
+  ub4           hjval;     /* hash value for key */
   ub4           utime;    /* */
   ub4           ahit;     /* all hit */
-  struct _hitem *next;     /* next hitem in list */
+  struct __hitem *next;     /* next hitem in list */
 };
-typedef  struct _hitem  HITEM;
+typedef  struct __hitem  HITEM;
 
 /* algorithm Recently Used 
  * array use this struct 
@@ -85,15 +93,15 @@ typedef  struct _hitem  HITEM;
  *  if(update) MRU 
  * }
  * */
-struct _haru
+struct __haru
 {
   ub4           hval;     /* hash value */
   ub4           hit;    /* haru hit */
 };
-typedef  struct _haru  HARU;
+typedef  struct __haru  HARU;
 
 /* for select any proc */
-struct _hdr
+struct __hdr
 {
   ub1           *sql;     /* sql that is hashed */
   ub4           sqll;     /* length of key */
@@ -102,45 +110,62 @@ struct _hdr
   ssize_t       flag;     /* 0 is new, 1 is update */
   ub1           *dr;      /* db return data row */
   ub4           drl;      /* length of data row */
+  struct __hdr   *next;  
 };
-typedef  struct _hdr  HDR;
+typedef  struct __hdr  HDR;
 
 //https://github.com/troydhanson/uthash
-struct _htab
+struct __htab
 {
   word           logsize; /* log of size of table */
   size_t         mask;    /* (hashval & mask) is position in table */
-  ub4            count;   /* how many items in this hash table so far? */
+  ub4            count;   /* how many items in this hash table so far? 记录目前使用多少hitem_pool */
+  sb2            bcount;  /* single items length 记录最长的hitem*/
+  sb2            lcount;  /* single items length 记录最短的hitem*/
   ub4            hit;     /* hval hit times */
   ub4            miss;    /* hval miss times */
   ub4            set;     /* total set */
   ub4            get;     /* total get */
   ub4            bytes;    /* total data size */
-  
+  sb2            hslab_stat[MAX_SLAB];  /* hsalb pool length */
 };
-typedef  struct _htab  HTAB;
+typedef  struct __htab  HTAB;
 
-struct _tlist{
+struct __tlist{
   char      *name;  /* name is table name */
   ub4       utime;  /* table the last update time */
   ssize_t   flag;   /* 1.work set 1 , 2.mem set 0, 3.work free 0 */
-  struct _tlist *next;  /* the next table */
+  struct __tlist *next;  /* the next table */
 };
 /* mem proc table list */
-typedef struct _tlist TLIST;
+typedef struct __tlist TLIST;
 
 /* work proc for change table list */
-typedef struct _tlist ULIST;
+typedef struct __tlist ULIST;
 
-int hslab_semid;   /* slab leave in data row of the store*/
-int fslab_semid;   /* free slab */
-int hitem_semid;   /* hitem struct */
-int haru_semid;    /* haru  */
-int hdr_semid;     /* any work proc of data row */
-int htab_semid;   /* stat record */
-int tlist_semid;  /* mem proc change, and work proc read table list shm id */
-int ulist_semid;  /* any work proc change flag=1, and work proc read from this to tlist */
+/* slab malloc slot 1M */
+struct __hsms{
+  ub4       size; 
+  ssize_t   chunk;   /* 1.work set 1 , 2.mem set 0, 3.work free 0 */
+};
+/* mem proc table list */
+typedef struct __hsms HSMS;
 
+HTAB *mem_htab;   /* stat record */
+int mem_hslab_stat[MAX_SLAB];
+ub4 mem_hitem_row[MAX_HITEM_LENGTH_8];
+HARU *mem_haru_POOL[MAX_HARU_POOL];    /* haru  */
+
+int semid_hitem_pool;   /* hitem struct */
+int semid_hdr_pool;     /* any work proc of data row */
+int semid_tlist;  /* mem proc change, and work proc read table list shm id */
+int semid_ulist;  /* any work proc change flag=1, and work proc read from this to tlist */
+int semid_hslab_pool;   /* slab leave in data row of the store*/
+int semid_fslab;   /* free slab */
+
+HSMS slabclass[MAX_SLAB_CLASS];
+
+void hinit();
 hitem *iteminit();
 htab *hcreate();
 void hdestroy();
@@ -148,6 +173,8 @@ word hfind();
 word hadd();
 word hdel();
 void hstat();
+
+void hslabclass ( void );
 
 #ifdef __cplusplus
  }
