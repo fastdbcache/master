@@ -28,13 +28,13 @@
 #include "standard.h"
 #include "../config_global.h"
 
-#define MAX_SLAB 39
 #define MAX_HITEM_LENGTH 1024
 #define MAX_HITEM_LENGTH_8 (MAX_HITEM_LENGTH<<8)
 #define MAX_HARU_POOL 1024
 #define MAX_SLAB_CLASS  200
 #define CHUNK_ALIGN_BYTES 8
 #define MAX_SLAB_BYTE 1024 * 1024
+#define LIMIT_SLAB_BYTE 1024 * 1024
 #define SLAB_BEGIN 88
 /* 
  * f=1.25
@@ -107,9 +107,8 @@ typedef  struct __haru  HARU;
 /* for select any proc */
 struct __hdr
 {
-  ub1           *sql;     /* sql that is hashed */
-  ub4           sqll;     /* length of key */
-  ub4           hval;     /* hash value */
+  ub1           *sk;     /* sql that is hashed */
+  ub4           skl;     /* length of key */
   ub4           stime;    /* select time */
   ssize_t       flag;     /* 0 is new, 1 is update */
   ub1           *dr;      /* db return data row */

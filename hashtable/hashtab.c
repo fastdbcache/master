@@ -93,10 +93,13 @@ int semid_fslab;   /* free slab */
         exit(1);
     };
 
-    if ((semid_hslab_pool = shmget(IPC_PRIVATE, sizeof(HSLAB)*MAX_SLAB, IPC_CREAT | 0666)) < 0) {
-        perror("shmget semid_hslab_pool");
-        exit(1);
-    };
+    int max_slab = hslabclass();
+    if(max_slab > 0){
+        if ((semid_hslab_pool = shmget(IPC_PRIVATE, sizeof(HSLAB)*max_slab, IPC_CREAT | 0666)) < 0) {
+            perror("shmget semid_hslab_pool");
+            exit(1);
+        };
+    }
 
     if ((semid_fslab = shmget(IPC_PRIVATE, sizeof(FSLAB), IPC_CREAT | 0666)) < 0) {
         perror("shmget semid_hslab_pool");
@@ -149,27 +152,31 @@ void hcreate ( work isize ){
 
 /* 
  * ===  FUNCTION  ======================================================================
- *         Name:  hadd
+ *         Name:  haddItem
  *  Description:  
  * =====================================================================================
  */
-word hadd (ub1 key,ub4 keyl,void *stuff ){
+word haddItem ( HDR *hdr ){   
+    HTAB *tab;
+    HITEM  *h,*hp, **hitempool;
+    ub4     y, x, hjval;
+
+    if(hdr == NULL) return;
+    if(hdr->skl > LIMIT_SLAB_BYTE) return;
+
+    x = lookup(hdr->sk,hdr->skl,0);
+    hjval = jenkins_one_at_a_time_hash(hdr->sk, hdr->skl);
     
-    HTAB *t;
-    HITEM  *h,*hp, **table;
-    ub4     y, x = lookup(key,keyl,0);
-    
-    
-    t = (HTAB *)shmat(htab_semid, (void *) 0, 0);
-    table = (HITEM **)shmat(hitem_semid, (void *)0, 0);
+    tab = mem_htab;
+
+    hitempool = (HITEM **)shmat(semid_hitem_pool, (void *)0, 0);
 
     /* make sure the key is not already there 
     for (h = table[(y=(x&t->mask))]; h; h = h->next)
     {*/
 
-    h = table[(y=(x&t->mask))];    
+    h = hitempool[(y=(x&tab->mask))];    
     
-
     while ( h ){
         
         if ((x == h->hval) && 
@@ -234,7 +241,7 @@ word hadd (ub1 key,ub4 keyl,void *stuff ){
 #endif  /* HSANITY */
 
     return TRUE;
-}		/* -----  end of function hadd  ----- */
+}		/* -----  end of function haddItem  ----- */
 
 
 /* 
@@ -266,10 +273,11 @@ HITEM *hfind ( ub1 *key, ub4 keyl ){
             (keyl == hp->keyl) &&
             (hjval == hp->hjval) 
             ){
-            /*  if(hp->utime > ){
-
-            }*/
-            return hp;
+                /*  if(tlist->next == NULL) return hp;
+                else if(hp->utime > tlist->){
+                
+                }*/
+                return hp;
         }
     }
     
@@ -299,7 +307,7 @@ char *gslab ( HITEM *hi ){
 
     for(p=slab; p; p=p->next){
         if(p->id == p->sid){
-            res = p->ss * hi->psize;  
+            res = p->sm + p->id * hi->psize;  
             return res;
         }
     }
@@ -315,22 +323,26 @@ char *gslab ( HITEM *hi ){
  *  Description:  
  * =====================================================================================
  */
-void hslabclass ( void ){
+int hslabclass ( void ){
     int size = SLAB_BEGIN;
     int i=0;
     
-     while (i++ < MAX_SLAB_CLASS && size <= MAX_SLAB_BYTE / slabclass) {
+    while (i++ < MAX_SLAB_CLASS && size <= MAX_SLAB_BYTE / slabclass) {
         if (size % CHUNK_ALIGN_BYTES)
             size += CHUNK_ALIGN_BYTES - (size % CHUNK_ALIGN_BYTES);
-        if((item_size_max / size) < 2) break; 
+        /*if((item_size_max / size) < 2) break; 
 
         printf("slab class  chunk size %9u perslab %7u\n",
-                     size, (MAX_SLAB_BYTE / size));
+                     size, (MAX_SLAB_BYTE / size));*/
         slabclass[i].size = size;
         slabclass[i].chunk = (MAX_SLAB_BYTE / size);
 
         size *= conn_global->factor;
-   } 
+    } 
+    slabclass[i].size = MAX_SLAB_BYTE;
+    slabclass[i].chunk = 1;
+
+    return (++i);
 }		/* -----  end of function hslabclass  ----- */
 
 
@@ -348,14 +360,14 @@ int hsms ( ub4 bytes ){
 
     i = 0;
     l = (bytes / SLAB_BEGIN);
-    while( l>conn_global->factor ){
+    while( l >= conn_global->factor ){
         l = l / conn_global->factor;
         i++;
     }
     if( i>0 ) --i;
 
     for ( ; slabclass[i].chunk > 0; i++ ) {
-        if(slabclass[i].size > bytes) return i;
+        if(slabclass[i].size >= bytes) return i;
     }
 
     return -1;
