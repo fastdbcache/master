@@ -11,54 +11,59 @@
 #include "log_lib.h"
 #include "conf_lib.h"
 
-void do_dispatch(int fd, short ev, void *arg){
-    WPQ *_wpq;
-    WPT *_wpt;
-    int icount, m, start, _token;
-    extern int process_num;
-    extern LIBEVENT_WORK_PROCESS *work_process;
+void on_accept(int fd, short ev, void *arg){
+	int client_fd, err_len;
+    char *err, *err_log;
+	struct sockaddr_in client_addr;
+	socklen_t client_len;
+    LIBEVENT_WORK_THREAD *thread;
+    client_len = sizeof(client_addr);
     uint64_t u;
     ssize_t s;
+    extern NOTIFY_TOKEN_STATE notify_token_thread;
+    extern int token_efd;
+        
+	/* Accept the new connection. */
+	client_fd = accept(fd, (struct sockaddr *)&client_addr, &client_len);
+	if (client_fd == -1) {
+        err = strerror(errno);
+        err_len = strlen(err);
+        err_log = calloc(1, err_len+10);
+        sprintf(err_log, "accept-- %s", err);
+		d_log(err_log);
+        free(err_log);
+		return;
+	}
+    if(rq_push(client_fd) == 0){
+        if(notify_token_thread == NT_FREE){
+            /*  thread = work_threads+1;
+              write(thread->notify_write_fd, "", 1);       
+                 token_sem_post();*/
+             u = 1;
+             s = write(token_efd, &u , sizeof(uint64_t));
 
-    s = read(fd, &u, sizeof(uint64_t));
-    if (s != sizeof(uint64_t))
-        printf("read err\n");
-    _wpq =  (WPQ *)shmat(share_mem_wpq, NULL, 0);
-    /* icount = m = 0; 
-    do {
-        if(_wpq[m].isjob == JOB_FREE)
-            icount++;
-        m++;
-    } while ( m < process_num );				 -----  end do-while  ----- */
-    //printf("free wpq is:%d\n", icount);
-
-    _wpt = (WPT *)shmat(share_mem_token, NULL, 0);
-    start = _wpt->token;
-    do {
-        _token = (_wpt->token + 1) % process_num;
-        _wpt->token = _wpq[_token].no;
-        if(_wpq[_token].isjob == JOB_FREE){
-            
-            if(write(work_process[_wpq[_token].no].notify_write_fd, "" , 1) != 1){
-                printf("master write work process error\n");
-            }else{
-                _wpt->control_token_fail = 0;       
-                break;
-            }
+             if(s != sizeof(uint64_t))printf("error---\n");
+ 
+        }else{
+            printf("accept error\n");
         }
-    } while ( _token != start );				/* -----  end do-while  ----- */
-    //printf("master control\n");
+
+        
+
+    }else{
+        close(client_fd);
+        d_log("RQ is full");
+    }
 }
 
 void conn_new(int sfd, struct event_base *base){
 	conns = (conn *)calloc(1, sizeof(conn));
 	conns->sfd = sfd;
 
-	event_set(&conns->event, sfd, EV_READ|EV_PERSIST, do_dispatch, (void *)conns);
+	event_set(&conns->event, sfd, EV_READ|EV_PERSIST, on_accept, (void *)conns);
 	event_base_set(base, &conns->event);
 	event_add(&conns->event, 0);
 
 }
-
 /* vim: set ts=4 sw=4: */
 

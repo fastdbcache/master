@@ -22,8 +22,6 @@
  {
 #endif
 
-#ifndef STANDARD
-# define STANDARD
 # ifndef STDIO
 #  include <stdio.h>
 #  define STDIO
@@ -35,6 +33,9 @@
 #include <sys/types.h>
 
 #include "conf_lib.h"
+#include <unistd.h>
+#include <malloc.h>
+#include <string.h>
 
 typedef  unsigned long long  ub8;
 #define UB8MAXVAL 0xffffffffffffffffLL
@@ -78,8 +79,8 @@ typedef                 int  word;  /* fastest type available */
 #define SUCCESS 0  /* 1 on VAX */
 
 
-typedef struct _conn conn;
-struct _conn{
+typedef struct __conn _conn;
+struct __conn{
     char *server_ip;   /* server listen ip */
     ssize_t server_port; /* server listen port */
 
@@ -94,11 +95,12 @@ struct _conn{
     char *pid_file;  /* pid path */
     
     ssize_t process_num;  /* work process number */
+    ssize_t max_link;
 
     float factor;
 };
 
-conn *conn_global;
+_conn *conn_global;
 
 void conn_init_global();
 

@@ -15,8 +15,6 @@
 #include <malloc.h>
 #include <string.h>
 #include <sys/eventfd.h>
-#include <sys/ipc.h>
-#include <sys/shm.h>
 
 #include "socket_lib.h"
 #include "pg_protocol.h"
@@ -27,6 +25,28 @@
     (type_val) = 0;                                                \
     Socket_Send((client_sfd), (send_val), (send_val_len)); \
 } while (0)
+
+#define FIND_RQ(cq, stat) do{\
+    FIND_Q(RQ, cq, isjob, stat); \
+}while(0)
+
+#define FIND_WTQ(cq, stat) do{\
+    FIND_Q(WTQ, cq, isjob, stat); \
+}while(0)
+
+#define FIND_WTQPID(cq, stat) do{\
+    FIND_Q(WTQ, cq, pid, stat); \
+}while(0)
+
+#define FIND_Q(type, cq, table, stat) do{\
+    type *rq_head = (cq);             \
+    do{                             \
+        if(rq_head->table==(stat)) break; \
+        rq_head = rq_head->next;            \
+    }while(rq_head!=(cq));                  \
+    (cq) = rq_head;                       \
+}while(0)
+
 
 typedef enum {
     JOB_FREE=0,  /* default 0 ,it's 1 has a job, 2 working */
@@ -40,31 +60,49 @@ typedef enum {
     NT_WORKING
 } NOTIFY_TOKEN_STATE;
 
-/* main process call it , and get one rq to work process*/
-typedef struct {
-    pid_t pid;        /* work pid ID */
-    struct event_base *base;    /* libevent headle */
-    struct event notify_event;  /* event */
-    int notify_read_fd;    /*   pipe */
-    int notify_write_fd;     /*  pipe   */
-    int socket_fd;
-    ssize_t no;
-    int master_efd;   /* call master fd*/
-} LIBEVENT_WORK_PROCESS;
 
-// http://stackoverflow.com/questions/2289852/how-to-share-a-linked-list-between-two-processes
-typedef struct work_process_token WPT;
-struct work_process_token{
-    int token;
-    ssize_t control_token_fail;
-    int token_read_fd;
+/* main thread call it , and get one rq to child thread*/
+typedef struct {
+    pthread_t thread_id;        /* token thread ID */
+    struct event_base *base;    /* libevent headle */
+    struct event notify_event;  /* 通知事件，主线程通过这个事件通知worker线程有新连接 */
+
+} LIBEVENT_TOKEN_THREAD;
+
+/* token thread call it , and get one rq to work thread*/
+typedef struct {
+    pthread_t thread_id;        /* token thread ID */
+    struct event_base *base;    /* libevent headle */
+    struct event notify_event;  /* 通知事件，主线程通过这个事件通知worker线程有新连接 */
+    int notify_read_fd;    /*   通知事件关联的读fd，这和下面的notify_send_fd是一对管道，具体使用后面讲 */
+    int notify_write_fd;     /*     通知事件关联的写fd，后面讲 */
+    int no;
+    
+} LIBEVENT_WORK_THREAD;
+
+/* a client item  */
+typedef struct frontend_conn_item FC_ITEM;
+struct frontend_conn_item{
+    int ffd;    /* frontend connect fd */
+    double ctime;  /* start time and for overtime */ 
 };
 
-typedef struct work_process_queue WPQ;
-struct work_process_queue{
-    ssize_t no;
-    pid_t pid;        /* work pid ID */
+/* a ring connect queue  */
+typedef struct ring_queue RQ;
+struct ring_queue{
+    FC_ITEM *frontend; 
     RING_JOB_STATE isjob;
+    RQ *next; 
+};
+
+typedef struct work_thread_queue WTQ;
+struct work_thread_queue{
+    RING_JOB_STATE isjob; 
+    pthread_t pid;
+    int no;
+    SESSION_SLOTS *slots[MAX_BACKEND_SESSION];
+    RQ *rq_item;
+    WTQ *next;
 };
 
 typedef struct conn conn;
@@ -77,23 +115,54 @@ struct conn {
 
 conn *conns;
 
-int share_mem_token; 
-int share_mem_wpq;
-int process_num;
-int master_efd;
+RQ *rq_queue_head;
+RQ *rq_queue_tail;
+
+WTQ *wtq_queue_head;
+WTQ *wtq_queue_tail;
 
 struct event_base *main_base; /* main process base */
 
-/* worker thread */
-LIBEVENT_WORK_PROCESS *work_process;  /* work threads */
+LIBEVENT_TOKEN_THREAD *token_thread; /* manager from main thread job, and chose one free child thread do work */
+NOTIFY_TOKEN_STATE notify_token_thread; /* wait for child notify thread  */
 
-/* child worker process for token thread  */
-void work_process_init(int nprocess, int socket_fd, int ev_fd);
-void setup_process(LIBEVENT_WORK_PROCESS *me) ;
-void worker_libevent(LIBEVENT_WORK_PROCESS *arg);
-void libevent_work_process(int fd, short ev, void *arg);
+/* worker thread */
+LIBEVENT_WORK_THREAD *work_threads;  /* work threads */
+pthread_mutex_t init_work_lock;
+pthread_cond_t init_work_cond;
+
+
+int token_efd;
+/*sem_t token_sem;        synch semaphore         */
+
+/* child worker thread for token process  */
+void work_thread_init(int nthreads);
+void setup_thread(LIBEVENT_WORK_THREAD *me) ;
+void create_worker(void *(*func)(void *), void *arg);
+void *worker_libevent(void *arg);
+void libevent_work_thread(int fd, short ev, void *arg);
 /* work thread end */
 
+/* child notify thread for main process */
+
+void token_thread_init();
+void setup_token(void *(*func)(void *), void *arg);
+void *main_token_thread(void *arg);
+void libevent_token_thread( int fd, short ev,void *arg);
+/* token thread end */
+
+
+/* RQ  */
+RQ *rq_item_init();
+int rq_init(int numbers);
+int rq_push(int client_fd);
+RQ *rq_pop();
+void rq_free(RQ *child);
+
+/* WTQ */
+WTQ *wtq_init();
+void wtq_push();
+WTQ *wtq_pop();
 
 #endif /* THREAD_LIB_H_ */
 /* vim: set ts=4 sw=4: */

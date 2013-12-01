@@ -24,7 +24,7 @@
  * =====================================================================================
  */
 void conn_init_global ( void ){
-    conn_global = (conn *)calloc(1, sizeof(conn));
+    conn_global = (_conn *)calloc(1, sizeof(_conn));
     conn_global->server_ip = conf_get("server_ip");
     conn_global->server_port = atoi(conf_get("server_port"));
 
@@ -38,7 +38,7 @@ void conn_init_global ( void ){
     conn_global->pid_file = conf_get("pid_file");
 
     conn_global->process_num = atoi(conf_get("process_num"));
-
+    conn_global->max_link = 2;
     conn_global->factor = 1.25;
 }		/* -----  end of function conn_init_global  ----- */
 

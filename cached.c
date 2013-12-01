@@ -26,8 +26,8 @@
  */
 void cached_init (int shms){
 
-    cache_shmid = shmget(IPC_PRIVATE, shms*sizeof(CQI), SHM_R | SHM_W);
-    if(cache_shmid == -1) exit(-1);
+    //cache_shmid = shmget(IPC_PRIVATE, shms*sizeof(CQI), SHM_R | SHM_W);
+    //if(cache_shmid == -1) exit(-1);
 
     
 }		/* -----  end of function cached_init  ----- */
