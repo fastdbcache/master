@@ -101,24 +101,14 @@ htab  *t;    /* table */
   free((char *)oldtab);
 
 }
+
 /* 
  * ===  FUNCTION  ======================================================================
- *         Name:  hinit
+ *         Name:  hcreate
  *  Description:  
  * =====================================================================================
  */
-void hinit ( work isize ){
-HTAB mem_htab;   /* stat record */
-int mem_hslab_stat[MAX_SLAB];
-ub4 mem_hitem_row[MAX_HITEM_LENGTH_8];
-HARU *mem_haru_POOL[MAX_HITEM_LENGTH];    /* haru  */
-HITEM *pools_hitem;
-HDR *pools_hdr;
-TLIST *pools_tlist;
-TLIST *pools_utist;
-HSLAB *pools_hsalb;
-FSLAB *pools_fslab;
-
+void hcreate ( work isize ){
     int i;
 
     *mem_htab = (HTAB *)calloc(1, sizeof(HTAB));
@@ -139,7 +129,7 @@ FSLAB *pools_fslab;
     bzero(mem_htab->hslab_stat, 0, sizeof(mem_htab->hslab_stat));
 
     for(i=0; i < MAX_HARU_POOL; i++){
-        mem_haru_POOL[i] = (HARU *)calloc(1, sizeof(HARU));
+        mem_haru_pool[i] = (HARU *)calloc(1, sizeof(HARU));
         if(mem_haru_POOL[i] == NULL){
             perror("mem_haru_POOL callo error ");
             exit(1);
@@ -151,81 +141,24 @@ FSLAB *pools_fslab;
 
     for (i=0; i<(ub4)len; ++i) pools_hitem[i] = (HITEM *)0;
     
-    
-    if ((semid_hdr_pool = shmget(IPC_PRIVATE, sizeof(HDR)*conn_global->process_num, IPC_CREAT | 0666)) < 0) {
-        perror("shmget semid_hslab_pool");
-        exit(1);
-    };
+    pools_hdr = (HDR *) calloc(conn_global->process_num, sizeof(HDR));    
 
-    if ((semid_tlist = shmget(IPC_PRIVATE, sizeof(TLIST), IPC_CREAT | 0666)) < 0) {
-        perror("shmget semid_hslab_pool");
-        exit(1);
-    };
+    pools_tlist = (TLIST *)calloc(1, sizeof(TLIST));
 
-    if ((semid_ulist = shmget(IPC_PRIVATE, sizeof(TLIST), IPC_CREAT | 0666)) < 0) {
-        perror("shmget semid_hslab_pool");
-        exit(1);
-    };
+    pools_utist = (TLIST *)calloc(conn_global->process_num, sizeof(TLIST));
 
     int max_slab = hslabclass();
+
     if(max_slab > 0){
-        if ((semid_hslab_pool = shmget(IPC_PRIVATE, sizeof(HSLAB)*max_slab, IPC_CREAT | 0666)) < 0) {
-            perror("shmget semid_hslab_pool");
-            exit(1);
-        };
+        pools_hsalb = (HSLAB *)calloc(max_slab, sizeof(HSLAB));        
     }
 
-    if ((semid_fslab = shmget(IPC_PRIVATE, sizeof(FSLAB), IPC_CREAT | 0666)) < 0) {
-        perror("shmget semid_hslab_pool");
-        exit(1);
-    };
-    
+    pools_fslab = (FSLAB *)calloc(1, sizeof(FSLAB));
+        
     return ;
-}		/* -----  end of function hinit  ----- */
-
-/* 
- * ===  FUNCTION  ======================================================================
- *         Name:  hcreate
- *  Description:  
- * =====================================================================================
- */
-void hcreate ( work isize ){    
-    HTAB *htab;
-    HITEM **table;
-
-    len = ((ub4)1<<isize);
-    pools_hitem = (HITEM **)malloc(sizeof(HITEM *)*(ub4)len);
-
-    for (i=0; i<len; ++i) table[i] = (HITEM *)0;
-    
-    mem_htab 
-    htab->logsize = isize;
-    htab->mask = len-1;
-    htab->count = 0;
-    htab->apos = (ub4)0;
-    htab->bcount = 0;
-
 }		/* -----  end of function hcreate  ----- */
 
-/* hcreate - create a hash table initially of size power(2,logsize) */
-htab *hcreate(logsize)
-word  logsize;    /* log base 2 of the size of the hash table */
-{
-  ub4 i,len;
-  htab *t = (htab *)malloc(sizeof(htab));
 
-  len = ((ub4)1<<logsize);
-  t->table = (hitem **)malloc(sizeof(hitem *)*(ub4)len);
-  for (i=0; i<len; ++i) t->table[i] = (hitem *)0;
-  t->logsize = logsize;
-  t->mask = len-1;
-  t->count = 0;
-  t->apos = (ub4)0;
-  t->ipos = (hitem *)0;
-  t->space = remkroot(sizeof(hitem));
-  t->bcount = 0;
-  return t;
-}
 
 /* hdestroy - destroy the hash table and free all its memory */
 void hdestroy( t)
@@ -352,9 +285,9 @@ HITEM *hfind ( ub1 *key, ub4 keyl ){
     hval = lookup(key, keyl, 0);
     hjval = jenkins_one_at_a_time_hash(key, keyl);
     
-    tlist = (TLIST *)(shmat(semid_tlist, (void *) 0, 0));
+    tlist = pools_tlist;
      
-    hitem_pool = (HITEM**)(shmat(semid_hitem_pool, (void *) 0, 0));
+    hitem_pool = pools_hitem;
     if(!hitem_pool){
         perror("shmat hitem_pool");
     }
