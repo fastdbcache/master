@@ -159,12 +159,12 @@ int mem_hslab_stat[MAX_SLAB];
 ub4 mem_hitem_row[MAX_HITEM_LENGTH_8];
 HARU *mem_haru_POOL[MAX_HARU_POOL];    /* haru  */
 
-int semid_hitem_pool;   /* hitem struct */
-int semid_hdr_pool;     /* any work proc of data row */
-int semid_tlist;  /* mem proc change, and work proc read table list shm id */
-int semid_ulist;  /* any work proc change flag=1, and work proc read from this to tlist */
-int semid_hslab_pool;   /* slab leave in data row of the store*/
-int semid_fslab;   /* free slab */
+HITEM *pools_hitem;
+HDR *pools_hdr;
+TLIST *pools_tlist;
+TLIST *pools_utist;
+HSLAB *pools_hsalb;
+FSLAB *pools_fslab;
 
 HSMS slabclass[MAX_SLAB_CLASS];
 
