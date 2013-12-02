@@ -116,7 +116,7 @@ void hcreate ( work isize ){
     ub4 len;
     len = ((ub4)1<<isize);
 
-    *pools_htab = (HTAB *)calloc(1, sizeof(HTAB));
+    pools_htab = (HTAB *)calloc(1, sizeof(HTAB));
     if(pools_htab == NULL){
         perror("pools_htab calloc error");
         exit(1);
@@ -141,12 +141,9 @@ void hcreate ( work isize ){
         }
     
     }
+    inithitem ( (ub4) len )
     
-    pools_hitem = (HITEM *)calloc((ub4)len, sizeof(HITEM));
-    /* pools_hitem head not store anything */
-    for (i=0; i<(ub4)len; ++i) pools_hitem[i]->next = NULL;
-    
-    pools_hdr = (HDR *) calloc(conn_global->process_num, sizeof(HDR));    
+    inithdr();
 
     pools_tlist = (TLIST *)calloc(1, sizeof(TLIST));
 
@@ -155,7 +152,6 @@ void hcreate ( work isize ){
     int max_slab = hslabclass();
 
     if(max_slab > 0){
-                
         inithslab ( max_slab );
     }
 
@@ -562,6 +558,64 @@ static void inithslab ( int i ){
 
 }		/* -----  end of static function inithslab  ----- */
 
+
+
+/* 
+ * ===  FUNCTION  ======================================================================
+ *         Name:  inithitem
+ *  Description:  
+ * =====================================================================================
+ */
+void inithitem ( ub4 len ){
+    int i;
+
+    pools_hitem = (HITEM *)calloc(len, sizeof(HITEM));
+    /* pools_hitem head not store anything */
+    for (i=0; i<len; ++i) {
+        pools_hitem[i] = (HITEM *)calloc(1, sizeof(HITEM));
+        if(pools_hitem[i]){
+            pools_hitem[i]->key = NULL;
+            pools_hitem[i]->keyl = 0;
+            pools_hitem[i]->drl = 0;
+            pools_hitem[i]->psize = 0;
+            pools_hitem[i]->sid = 0;
+            pools_hitem[i]->sa = 0;
+            pools_hitem[i]->hval = 0;
+            pools_hitem[i]->hjval = 0;
+            pools_hitem[i]->utime = 0;
+            pools_hitem[i]->ahit = 0;  
+            pools_hitem[i]->next = NULL;
+        }
+    }
+
+}		/* -----  end of function inithitem  ----- */
+
+
+/* 
+ * ===  FUNCTION  ======================================================================
+ *         Name:  inithdr
+ *  Description:  
+ * =====================================================================================
+ */
+void inithdr (  ){
+    int i;
+    pools_hdr = (HDR *) calloc(conn_global->process_num, sizeof(HDR)); 
+    
+    for(i=0; i<conn_global->process_num; i++){
+        pools_hdr[i] = (HDR *)calloc(1, sizeof(HDR));
+        if(pools_hdr[i]){
+            pools_hdr[i]->key = NULL;
+            pools_hdr[i]->keyl = 0;
+            pools_hdr[i]->stime = 0;
+            pools_hdr[i]->flag = 0;
+            pools_hdr[i]->dr = NULL;
+            pools_hdr[i]->drl = 0;
+            pools_hdr[i]->next = NULL;
+        }
+    }
+        
+    return <+return_value+>;
+}		/* -----  end of function inithdr  ----- */
 
 /* 
  * ===  FUNCTION  ======================================================================
