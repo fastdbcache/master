@@ -66,7 +66,7 @@ struct __fslab
 {
   sb2           psize;     /* hpool size */
   sb2           sid;       /* slab id */
-  sb2           sa;       /* data row start addr of hslab  sa*psize */   
+  sb2           sa;       /* data row start addr of hslab  sa*psize  sa = ss */   
   struct __fslab *next;     /* next */
 };
 typedef  struct __fslab  FSLAB;
@@ -80,7 +80,7 @@ struct __hitem
   ub4           drl;      /* length of data row */
   sb2           psize;    /* hpools size */
   sb2           sid;      /* slab id */
-  ub4           sa;       /* data row start addr of hslab  sa*psize */
+  ub4           sa;       /* data row start addr of hslab  sa*psize  sa = ss */
   ub4           hval;     /* hash value for key */
   ub4           hjval;     /* hash value for key */
   ub4           utime;    /* */
@@ -107,8 +107,8 @@ typedef  struct __haru  HARU;
 /* for select any proc */
 struct __hdr
 {
-  ub1           *sk;     /* sql that is hashed */
-  ub4           skl;     /* length of key */
+  ub1           *key;     /* sql that is hashed */
+  ub4           keyl;     /* length of key */
   ub4           stime;    /* select time */
   ssize_t       flag;     /* 0 is new, 1 is update */
   ub1           *dr;      /* db return data row */
@@ -154,16 +154,18 @@ struct __hsms{
 /* mem proc table list */
 typedef struct __hsms HSMS;
 
-HTAB *mem_htab;   /* stat record */
-int mem_hslab_stat[MAX_SLAB];
-ub4 mem_hitem_row[MAX_HITEM_LENGTH_8];
-HARU *mem_haru_POOL[MAX_HARU_POOL];    /* haru  */
+HTAB *pools_htab;   /* stat record */
+int pools_hslab_stat[MAX_SLAB];
+ub4 pools_hitem_row[MAX_HITEM_LENGTH_8];
+HARU *pools_haru_POOL[MAX_HARU_POOL];    /* haru  */
 
 HITEM *pools_hitem;
 HDR *pools_hdr;
 TLIST *pools_tlist;
 TLIST *pools_utist;
-HSLAB *pools_hsalb;
+HSLAB *pools_hslab;
+
+pthread_mutex_t work_lock_fslab;
 FSLAB *pools_fslab;
 
 HSMS slabclass[MAX_SLAB_CLASS];

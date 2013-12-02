@@ -69,36 +69,40 @@ htab *t;
 static void hgrow( t)
 htab  *t;    /* table */
 {
-  register ub4     newsize = (ub4)1<<(++t->logsize);
-  register ub4     newmask = newsize-1;
-  register ub4     i;
-  register hitem **oldtab = t->table;
+    ub4     newsize = (ub4)1<<(++pools_htab->logsize);
+    ub4     newmask = newsize-1;
+    ub4     i;
+    HITEM   *old_hitem = pools_hitem, *new_hitem;
   register hitem **newtab = (hitem **)malloc(newsize*sizeof(hitem *));
+ 
+    pools_hitem = (HITEM *)calloc(newsize, sizeof(HITEM));
+    /* pools_hitem head not store anything */
+    for (i=0; i<newsize; ++i) pools_hitem[i]->next = NULL;
+ 
+    pools_htab->logsize = newsize; 
+    pools_htab->mask = newmask;
+    
+    new_hitem = pools_hitem;
 
-  /* make sure newtab is cleared */
-  for (i=0; i<newsize; ++i) newtab[i] = (hitem *)0;
-  t->table = newtab;
-  t->mask = newmask;
-
-  /* Walk through old table putting entries in new table */
-  for (i=newsize>>1; i--;)
-  {
-    register hitem *this, *that, **newplace;
-    for (this = oldtab[i]; this;)
+    /* Walk through old table putting entries in new table */
+    for (i=newsize>>1; i--;)
     {
-      that = this;
-      this = this->next;
-      newplace = &newtab[(that->hval & newmask)];
-      that->next = *newplace;
-      *newplace = that;
+        HITEM *this, *that, **newplace;
+        for (this = old_hitem[i]; this;)
+        {
+            that = this;
+            this = this->next;
+            newplace = &new_hitem[(that->hval & newmask)];
+            that->next = *newplace;
+            *newplace = that;
+        }
     }
-  }
 
-  /* position the hash table on some existing item */
-  hfirst(t);
+  /* position the hash table on some existing item 
+  hfirst(t);*/
 
   /* free the old array */
-  free((char *)oldtab);
+  free(old_hitem);
 
 }
 
@@ -110,36 +114,38 @@ htab  *t;    /* table */
  */
 void hcreate ( work isize ){
     int i;
+    ub4 len;
+    len = ((ub4)1<<isize);
 
-    *mem_htab = (HTAB *)calloc(1, sizeof(HTAB));
-    if(mem_htab == NULL){
-        perror("mem_htab calloc error");
+    *pools_htab = (HTAB *)calloc(1, sizeof(HTAB));
+    if(pools_htab == NULL){
+        perror("pools_htab calloc error");
         exit(1);
     }
-    mem_htab->mask = MAX_HITEM_LENGTH_8 - 1;
-    mem_htab->logsize = MAX_HITEM_LENGTH_8;
-    mem_htab->count = 0;
-    mem_htab->bcount = 0;
-    mem_htab->lcount = 0;
-    mem_htab->hit = 0;
-    mem_htab->miss = 0;
-    mem_htab->set = 0;
-    mem_htab->get = 0;
-    mem_htab->bytes = 0;
-    bzero(mem_htab->hslab_stat, 0, sizeof(mem_htab->hslab_stat));
+    pools_htab->mask = len - 1;
+    pools_htab->logsize = len;
+    pools_htab->count = 0;
+    pools_htab->bcount = 0;
+    pools_htab->lcount = 0;
+    pools_htab->hit = 0;
+    pools_htab->miss = 0;
+    pools_htab->set = 0;
+    pools_htab->get = 0;
+    pools_htab->bytes = 0;
+    bzero(pools_htab->hslab_stat, 0, sizeof(pools_htab->hslab_stat));
 
     for(i=0; i < MAX_HARU_POOL; i++){
-        mem_haru_pool[i] = (HARU *)calloc(1, sizeof(HARU));
-        if(mem_haru_POOL[i] == NULL){
-            perror("mem_haru_POOL callo error ");
+        pools_haru_pool[i] = (HARU *)calloc(1, sizeof(HARU));
+        if(pools_haru_POOL[i] == NULL){
+            perror("pools_haru_POOL callo error ");
             exit(1);
         }
     
     }
-    len = ((ub4)1<<isize);
-    pools_hitem = (HITEM **)malloc(sizeof(HITEM *)*(ub4)len);
-
-    for (i=0; i<(ub4)len; ++i) pools_hitem[i] = (HITEM *)0;
+    
+    pools_hitem = (HITEM *)calloc((ub4)len, sizeof(HITEM));
+    /* pools_hitem head not store anything */
+    for (i=0; i<(ub4)len; ++i) pools_hitem[i]->next = NULL;
     
     pools_hdr = (HDR *) calloc(conn_global->process_num, sizeof(HDR));    
 
@@ -150,11 +156,16 @@ void hcreate ( work isize ){
     int max_slab = hslabclass();
 
     if(max_slab > 0){
-        pools_hsalb = (HSLAB *)calloc(max_slab, sizeof(HSLAB));        
+        pools_hslab = (HSLAB *)calloc(max_slab, sizeof(HSLAB));        
+        inithslab ( max_slab );
     }
 
+    pthread_mutex_init(&work_lock_fslab, NULL);
     pools_fslab = (FSLAB *)calloc(1, sizeof(FSLAB));
-        
+    pools_fslab->psize = 0;
+    pools_fslab->sid = 0;
+    pools_fslab->sa = 0;    
+    pools_fslab->next = NULL;
     return ;
 }		/* -----  end of function hcreate  ----- */
 
@@ -183,58 +194,83 @@ htab  *t;    /* the table */
  * =====================================================================================
  */
 word haddItem ( HDR *hdr ){   
-    HTAB *tab;
-    HITEM  *h,*hp, **hitempool;
-    ub4     y, x, hjval;
+    HITEM  *ph,*phtmp, *hp;
+    ub4     y, _new_hval, _new_hjval;
+    HSLAB *hs, *hsp;
+    int i, m;
 
-    if(hdr == NULL) return;
-    if(hdr->skl > LIMIT_SLAB_BYTE) return;
+    if(hdr == NULL) return -1;
+    if(hdr->skl > LIMIT_SLAB_BYTE) return -1;
 
-    x = lookup(hdr->sk,hdr->skl,0);
-    hjval = jenkins_one_at_a_time_hash(hdr->sk, hdr->skl);
+    _new_hval = lookup(hdr->key,hdr->keyl,0);
+    _new_hjval = jenkins_one_at_a_time_hash(hdr->key, hdr->keyl);
     
-    tab = mem_htab;
-
-    hitempool = (HITEM **)shmat(semid_hitem_pool, (void *)0, 0);
-
-    /* make sure the key is not already there 
-    for (h = table[(y=(x&t->mask))]; h; h = h->next)
-    {*/
-
-    h = hitempool[(y=(x&tab->mask))];    
+    ph = pools_hitem[(y=(_new_hval&pools_tab->mask))];    
     
-    while ( h ){
-        
-        if ((x == h->hval) && 
-            (keyl == h->keyl) && 
-            memcmp(key, h->key, keyl))
+    i = hsms(hdr->drl);
+    m = 0;
+    phtmp = ph;
+    ph = ph->next;  /* head is not store anything */
+    while ( ph ){
+        phtmp = ph; 
+        if ((_new_hval == ph->hval) && 
+            (hdr->keyl == ph->keyl) && 
+            (_new_hjval == ph->hjval))
         {
-          t->apos = y;
-          t->stuff = stuff;
-          return TRUE;
+            m = hsms(ph->psize);
+            
+            if(m != i){  /* old size != new size , free old slab */
+                addfslab(ph->psize, ph->sid, ph->sa);  /* free old slab */
+
+                ph->psize = slabclass[i].size;  /* update psize */
+                FSLAB *fslab = findslab(hp->psize);
+
+                hp->sid = fslab->sid;
+                hp->sa = fslab->sa;
+               
+            }
+
+            hsp = findhslab(i, ph->sid);    
+            if(hsp != NULL){
+                memcpy(hsp->sm+ph->sa*ph->psize, hdr->dr, hdr->drl);
+                return 0;
+            }else
+                perror("hsp error\n");
+            
         }
-        h = h->next;
-        if(!h->next)break;
+        ph = ph->next; 
+    } /* while */
+    
+    if(!phtmp->next){
+        hp = calloc(1, sizeof(HITEM));
+        hp->key   = hdr->sk;
+        hp->keyl  = hdr->skl;
+        hp->drl = hdr->drl;
+        hp->psize = slabclass[i].size;
+        hp->sid = ;
+        hp->sa = ;
+        hp->hval  = hval;
+        hp->hjval = hjval;
+        hp->utime = 0;
+        hp->ahit = 0;
+        hp->next = NULL;
+        
+
+        FSLAB *fslab = findslab(hp->psize);
+        HSLAB *hslab = findhslab(i, fslab->sid); 
+
+        hp->sid = fslab->sid;
+        hp->sa = fslab->sa;
+
+        memcpy(hslab->sm+fslab->sa*hp->psize, hdr->dr, hdr->drl);
+
+        phtmp->next = hp;
+        
     }
     
-    if(!h){        
-        h = malloc(sizeof(HITEM));
-        h->key   = key;
-        h->keyl  = keyl;
-        h->stuff = stuff;
-        h->hval  = x;   
-    }
-    else if(!h->next){
-        hp = malloc(sizeof(HITEM));
-        hp->key   = key;
-        hp->keyl  = keyl;
-        hp->stuff = stuff;
-        hp->hval  = x;
-        h->next = hp;
-    }
-    
-    if (++t->count > (ub4)1<<(t->logsize))
+    if (++pools_htab->count > (ub4)1<<(pools_htab->logsize))
     {
+
         y = (x&t->mask);
     }
     
@@ -291,7 +327,7 @@ HITEM *hfind ( ub1 *key, ub4 keyl ){
     if(!hitem_pool){
         perror("shmat hitem_pool");
     }
-    hp = hitem_pool[y=(hval&mem_htab->mask)];
+    hp = hitem_pool[y=(hval&pools_htab->mask)];
     if(!hp) return NULL;
      
     while ( hp ) {
@@ -310,28 +346,6 @@ HITEM *hfind ( ub1 *key, ub4 keyl ){
     return NULL;
 }		/* -----  end of function hfind  ----- */
 
-/* hfind - find an item with a given key in a hash table */
-word   hfind( t, key, keyl )
-htab  *t;     /* table */
-ub1   *key;   /* key to find */
-ub4    keyl;  /* key length */
-{
-  hitem *h;
-  ub4    x = lookup(key,keyl,0);
-  ub4    y;
-  for (h = t->table[y=(x&t->mask)]; h; h = h->next)
-  {
-    if ((x == h->hval) && 
-        (keyl == h->keyl) && 
-        !memcmp(key, h->key, keyl))
-    {
-      t->apos = y;
-      t->ipos = h;
-      return TRUE;
-    }
-  }
-  return FALSE;
-}
 
 /*
  * hadd - add an item to a hash table.
@@ -525,35 +539,66 @@ htab  *t;
     stat = walk;
   }
 }
+
+
 /* 
  * ===  FUNCTION  ======================================================================
- *         Name:  hslab
+ *         Name:  inithslab
  *  Description:  
  * =====================================================================================
  */
-char *gslab ( HITEM *hi ){
-    HITEM *hp = hi;
-    HSLAB **hslab_pool, *slab, *p;
-    int i;    
-    char *res;
-    **hslab_pool = (HSLAB**)(shmat(semid_hslab_pool, (void *) 0, 0));
-    if(!hslab_pool){
-        perror("shmat hitem_pool");
+static void inithslab ( int i ){
+    int m;
+    for(m=0; m<i; m++){ 
+        if(pools_hslab[m]){
+            pools_hslab[m]->sm = NULL;
+            pools_hslab[m]->ss = 0;
+            pools_hslab[m]->sf = 0;
+            pools_hslab[m]->id = 0;
+            pools_hslab[m]->next = NULL;
+        }
     }
+}		/* -----  end of static function inithslab  ----- */
 
-    i = hsms(hi->psize);
 
-    slab = hslab_pool[i];
+/* 
+ * ===  FUNCTION  ======================================================================
+ *         Name:  hslabcreate
+ *  Description:  
+ * =====================================================================================
+ */
+HSLAB *hslabcreate ( ssize_t chunk ){
+    HSLAB *h;
+    h = (HSLAB *)calloc(1, sizeof(HSLAB));
+    h->sm = (char *)calloc(MAX_SLAB_BYTE, sizeof(char));;
+    h->ss = 0;
+    h->sf = chunk;
+    h->id = 0;
+    h->next = NULL;
+    return h;
+}		/* -----  end of function hslabcreate  ----- */
+
+/* 
+ * ===  FUNCTION  ======================================================================
+ *         Name:  findhslab
+ *  Description:  
+ * =====================================================================================
+ */
+HSLAB *findhslab ( ssize_t i, sb2 _sid){
+    HITEM *hp = hi;
+    HSLAB *slab, *p;
+    char *res;
+
+    slab = pools_hslab[i];
 
     for(p=slab; p; p=p->next){
-        if(p->id == p->sid){
-            res = p->sm + p->id * hi->psize;  
-            return res;
+        if(p->id == _sid){             
+            return p;
         }
     }
 
     return NULL;
-}		/* -----  end of function hslab  ----- */
+}		/* -----  end of function findhslab  ----- */
 
 
 
@@ -612,6 +657,109 @@ int hsms ( ub4 bytes ){
 
     return -1;
 }		/* -----  end of function hsms  ----- */
+
+
+/* 
+ * ===  FUNCTION  ======================================================================
+ *         Name:  addfslab
+ *  Description:  
+ * =====================================================================================
+ */
+static void addfslab ( sb2 _psize, sb2 _sid, sb2 _sa ){
+    FSLAB  *f, *fslab;
+        
+    pthread_mutex_lock(&work_lock_fslab);
+    f = pools_fslab;
+
+    while ( f && f->next ) {
+        f = f->next;
+    }
+
+    fslab = (FSLAB *)calloc(1, sizeof(FSLAB));
+    fslab->psize = _psize;
+    fslab->sid = _sid;
+    fslab->sa = _sa;
+    fslab->next = NULL;
+    f->next = fslab;
+    pthread_mutex_unlock(&work_lock_fslab);
+    return;
+}		/* -----  end of static function addfslab  ----- */
+
+
+/* 
+ * ===  FUNCTION  ======================================================================
+ *         Name:  findfslab
+ *  Description:  
+ * =====================================================================================
+ */
+FSLAB *findfslab ( sb2 _psize ){
+    FSLAB *fslab, *res;
+
+    fslab = pools_fslab;
+
+    do {
+        res = fslab;
+        fslab = fslab->ext;
+        if(fslab == NULL) return NULL;
+        if(fslab->psize == _psize){
+            res->next = fslab->next;
+            return fslab;
+        }
+    } while ( 1 );				/* -----  end do-while  ----- */
+    
+    return NULL;
+}		/* -----  end of function findfslab  ----- */
+
+
+/* 
+ * ===  FUNCTION  ======================================================================
+ *         Name:  findslab
+ *  Description:  
+ * =====================================================================================
+ */
+FSLAB *findslab ( sb2 _psize ){
+    FSLAB *fslab, *fs_tmp;
+    HSLAB *hslab, *hs_tmp;
+    int i;
+
+    fslab = findfslab(_psize);
+    
+    if(fslab != NULL){
+        /* 1. find a slab from freeslab */
+        return fslab;
+    }else{
+        /* 2. find a slab from pools_hslab */
+        hslab = pools_hslab[i];
+        
+        loop:
+        
+            if(hslab->sm == NULL){
+                hslab->sm = (char *)calloc(MAX_SLAB_BYTE, sizeof(char));
+                hslab->ss = 0;
+                hslab->sf = slabclass[i].chunk;
+            }
+
+            if(hslab->sf > 0){
+                fs_tmp = (FSLAB *)calloc(1, sizeof(FSLAB));
+
+                memcpy(hslab->sm + hslab->ss*ph->psize, hdr->dr, hdr->drl);
+                fs_tmp->sid = hslab->id;
+                fs_tmp->sa = fslab->ss;
+                fs_tmp->psize = _psize;
+                hslab->ss++;
+                hslab->sf--;
+
+                return fs_tmp;
+            }else{
+                hs_tmp = hslabcreate(slabclass[i].chunk);
+                hs_tmp->id = hslab->id + 1;
+                hslab->next = hs_tmp;
+                hslab = hslab->next;
+                goto loop;
+            }
+    }
+    return NULL;
+}		/* -----  end of function findslab  ----- */
 
  /* vim: set ts=4 sw=4: */
 
