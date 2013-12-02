@@ -73,7 +73,6 @@ htab  *t;    /* table */
     ub4     newmask = newsize-1;
     ub4     i;
     HITEM   *old_hitem = pools_hitem, *new_hitem;
-  register hitem **newtab = (hitem **)malloc(newsize*sizeof(hitem *));
  
     pools_hitem = (HITEM *)calloc(newsize, sizeof(HITEM));
     /* pools_hitem head not store anything */
@@ -156,7 +155,7 @@ void hcreate ( work isize ){
     int max_slab = hslabclass();
 
     if(max_slab > 0){
-        pools_hslab = (HSLAB *)calloc(max_slab, sizeof(HSLAB));        
+                
         inithslab ( max_slab );
     }
 
@@ -549,8 +548,10 @@ htab  *t;
  */
 static void inithslab ( int i ){
     int m;
+    pools_hslab = (HSLAB *)calloc(i, sizeof(HSLAB));
     for(m=0; m<i; m++){ 
-        if(pools_hslab[m]){
+        pools_hslab[m] = (HSLAB *)calloc(1, sizeof(HSLAB));
+        if(pools_hslab[m] != NULL){
             pools_hslab[m]->sm = NULL;
             pools_hslab[m]->ss = 0;
             pools_hslab[m]->sf = 0;
@@ -558,6 +559,7 @@ static void inithslab ( int i ){
             pools_hslab[m]->next = NULL;
         }
     }
+
 }		/* -----  end of static function inithslab  ----- */
 
 

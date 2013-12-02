@@ -159,11 +159,11 @@ int pools_hslab_stat[MAX_SLAB];
 ub4 pools_hitem_row[MAX_HITEM_LENGTH_8];
 HARU *pools_haru_POOL[MAX_HARU_POOL];    /* haru  */
 
-HITEM *pools_hitem;
+HITEM **pools_hitem;
 HDR *pools_hdr;
 TLIST *pools_tlist;
 TLIST *pools_utist;
-HSLAB *pools_hslab;
+HSLAB **pools_hslab;
 
 pthread_mutex_t work_lock_fslab;
 FSLAB *pools_fslab;
