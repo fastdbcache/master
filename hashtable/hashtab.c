@@ -66,18 +66,15 @@ htab *t;
  * move everything from the old array to the new array,
  * then free the old array.
  */
-static void hgrow( t)
-htab  *t;    /* table */
+static void hgrow()
 {
     ub4     newsize = (ub4)1<<(++pools_htab->logsize);
     ub4     newmask = newsize-1;
     ub4     i;
     HITEM   *old_hitem = pools_hitem, *new_hitem;
  
-    pools_hitem = (HITEM *)calloc(newsize, sizeof(HITEM));
-    /* pools_hitem head not store anything */
-    for (i=0; i<newsize; ++i) pools_hitem[i]->next = NULL;
- 
+    pools_hitem = inithitem( newsize );
+     
     pools_htab->logsize = newsize; 
     pools_htab->mask = newmask;
     
@@ -141,7 +138,7 @@ void hcreate ( work isize ){
         }
     
     }
-    inithitem ( (ub4) len )
+    pools_hitem = inithitem ( (ub4) len )
     
     inithdr();
 
@@ -237,20 +234,14 @@ word haddItem ( HDR *hdr ){
     } /* while */
     
     if(!phtmp->next){
-        hp = calloc(1, sizeof(HITEM));
+        hp = hitemcreate();
         hp->key   = hdr->sk;
         hp->keyl  = hdr->skl;
         hp->drl = hdr->drl;
         hp->psize = slabclass[i].size;
-        hp->sid = ;
-        hp->sa = ;
         hp->hval  = hval;
         hp->hjval = hjval;
-        hp->utime = 0;
-        hp->ahit = 0;
-        hp->next = NULL;
         
-
         FSLAB *fslab = findslab(hp->psize);
         HSLAB *hslab = findhslab(i, fslab->sid); 
 
@@ -262,37 +253,13 @@ word haddItem ( HDR *hdr ){
         phtmp->next = hp;
         
     }
-    
+    /* make the hash table bigger if it is getting full */
     if (++pools_htab->count > (ub4)1<<(pools_htab->logsize))
     {
-
+        hgrow();
         y = (x&t->mask);
     }
     
-
-
-    /*}
-
-     find space for a new item */
-    h = (hitem *)renew(t->space);
-
-    /* make the hash table bigger if it is getting full */
-    if (++t->count > (ub4)1<<(t->logsize))
-    {
-        y = (x&t->mask);
-    }
-
-    /* add the new key to the table */
-    h->key   = key;
-    h->keyl  = keyl;
-    h->stuff = stuff;
-    h->hval  = x;
-    hp = &t->table[y];
-    h->next = *hp;
-    *hp = h;
-    t->ipos = h;
-    t->apos = y;
-
 #ifdef HSANITY
     hsanity(t);
 #endif  /* HSANITY */
@@ -566,30 +533,36 @@ static void inithslab ( int i ){
  *  Description:  
  * =====================================================================================
  */
-void inithitem ( ub4 len ){
+HITEM *inithitem ( ub4 len ){
     int i;
-
-    pools_hitem = (HITEM *)calloc(len, sizeof(HITEM));
+    HITEM *hitem
+    hitem = (HITEM *)calloc(len, sizeof(HITEM));
+    if(hitem == NULL) return NULL;
     /* pools_hitem head not store anything */
     for (i=0; i<len; ++i) {
-        pools_hitem[i] = (HITEM *)calloc(1, sizeof(HITEM));
-        if(pools_hitem[i]){
-            pools_hitem[i]->key = NULL;
-            pools_hitem[i]->keyl = 0;
-            pools_hitem[i]->drl = 0;
-            pools_hitem[i]->psize = 0;
-            pools_hitem[i]->sid = 0;
-            pools_hitem[i]->sa = 0;
-            pools_hitem[i]->hval = 0;
-            pools_hitem[i]->hjval = 0;
-            pools_hitem[i]->utime = 0;
-            pools_hitem[i]->ahit = 0;  
-            pools_hitem[i]->next = NULL;
-        }
+        hitem[i] = hitemcreate();
     }
-
+    return hitem;
 }		/* -----  end of function inithitem  ----- */
 
+HITEM *hitemcreate(){
+    HITEM *h
+    h = (HITEM *)calloc(1, sizeof(HITEM));
+    if(h){
+        h->key = NULL;
+        h->keyl = 0;
+        h->drl = 0;
+        h->psize = 0;
+        h->sid = 0;
+        h->sa = 0;
+        h->hval = 0;
+        h->hjval = 0;
+        h->utime = 0;
+        h->ahit = 0;  
+        h->next = NULL;
+    }
+    return h;
+}
 
 /* 
  * ===  FUNCTION  ======================================================================
