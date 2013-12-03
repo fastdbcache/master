@@ -162,7 +162,7 @@ HARU *pools_haru_POOL[MAX_HARU_POOL];    /* haru  */
 HITEM **pools_hitem;
 HDR **pools_hdr;
 TLIST *pools_tlist;
-TLIST *pools_utist;
+TLIST **pools_ulist;
 HSLAB **pools_hslab;
 
 pthread_mutex_t work_lock_fslab;

@@ -140,11 +140,11 @@ void hcreate ( work isize ){
     }
     pools_hitem = inithitem ( (ub4) len )
     
-    inithdr();
+    pools_hdr = inithdr();
 
     pools_tlist = (TLIST *)calloc(1, sizeof(TLIST));
 
-    pools_utist = (TLIST *)calloc(conn_global->process_num, sizeof(TLIST));
+    pools_ulist = initulist();
 
     int max_slab = hslabclass();
 
@@ -307,61 +307,6 @@ HITEM *hfind ( ub1 *key, ub4 keyl ){
     
     return NULL;
 }		/* -----  end of function hfind  ----- */
-
-
-/*
- * hadd - add an item to a hash table.
- * return FALSE if the key is already there, otherwise TRUE.
- */
-word hadd( t, key, keyl, stuff)
-htab  *t;      /* table */
-ub1   *key;    /* key to add to hash table */
-ub4    keyl;   /* key length */
-void  *stuff;  /* stuff to associate with this key */
-{
-  register hitem  *h,**hp;
-  register ub4     y, x = lookup(key,keyl,0);
-
-  /* make sure the key is not already there */
-  for (h = t->table[(y=(x&t->mask))]; h; h = h->next)
-  {
-    if ((x == h->hval) && 
-        (keyl == h->keyl) && 
-        !memcmp(key, h->key, keyl))
-    {
-      t->apos = y;
-      t->ipos = h;
-      return FALSE;
-    }
-  }
-
-  /* find space for a new item */
-  h = (hitem *)renew(t->space);
-
-  /* make the hash table bigger if it is getting full */
-  if (++t->count > (ub4)1<<(t->logsize))
-  {
-    hgrow(t);
-    y = (x&t->mask);
-  }
-
-  /* add the new key to the table */
-  h->key   = key;
-  h->keyl  = keyl;
-  h->stuff = stuff;
-  h->hval  = x;
-  hp = &t->table[y];
-  h->next = *hp;
-  *hp = h;
-  t->ipos = h;
-  t->apos = y;
-
-#ifdef HSANITY
-  hsanity(t);
-#endif  /* HSANITY */
-
-  return TRUE;
-}
 
 /* hdel - delete the item at the current position */
 word  hdel(t)
@@ -533,9 +478,9 @@ static void inithslab ( int i ){
  *  Description:  
  * =====================================================================================
  */
-HITEM *inithitem ( ub4 len ){
+HITEM **inithitem ( ub4 len ){
     int i;
-    HITEM *hitem
+    HITEM **hitem
     hitem = (HITEM *)calloc(len, sizeof(HITEM));
     if(hitem == NULL) return NULL;
     /* pools_hitem head not store anything */
@@ -570,25 +515,48 @@ HITEM *hitemcreate(){
  *  Description:  
  * =====================================================================================
  */
-void inithdr (  ){
+HDR **inithdr (  ){
     int i;
-    pools_hdr = (HDR *) calloc(conn_global->process_num, sizeof(HDR)); 
+    HDR **d;
+    d = (HDR *) calloc(conn_global->process_num, sizeof(HDR)); 
     
     for(i=0; i<conn_global->process_num; i++){
-        pools_hdr[i] = (HDR *)calloc(1, sizeof(HDR));
-        if(pools_hdr[i]){
-            pools_hdr[i]->key = NULL;
-            pools_hdr[i]->keyl = 0;
-            pools_hdr[i]->stime = 0;
-            pools_hdr[i]->flag = 0;
-            pools_hdr[i]->dr = NULL;
-            pools_hdr[i]->drl = 0;
-            pools_hdr[i]->next = NULL;
+        d[i] = (HDR *)calloc(1, sizeof(HDR));
+        if(d[i]){
+            d[i]->key = NULL;
+            d[i]->keyl = 0;
+            d[i]->stime = 0;
+            d[i]->flag = 0;
+            d[i]->dr = NULL;
+            d[i]->drl = 0;
+            d[i]->next = NULL;
         }
     }
-        
-    return <+return_value+>;
+    return d; 
 }		/* -----  end of function inithdr  ----- */
+
+
+/* 
+ * ===  FUNCTION  ======================================================================
+ *         Name:  initulist
+ *  Description:  
+ * =====================================================================================
+ */
+ULIST **initulist (  ){
+    ULIST **u;
+    int i;
+    u = (ULIST *)calloc(conn_global->process_num, sizeof(ULIST));
+    for(i=0; i<conn_global->process_num; i++){
+        u[i] = (TLIST *)calloc(1, sizeof(TLIST));
+        if(u[i]){
+            u[i]->name = NULL;
+            u[i]->utime = 0;
+            u[i]->flag = 0;
+            u[i]->next = NULL;
+        }
+    }
+    return u;
+}		/* -----  end of function initulist  ----- */
 
 /* 
  * ===  FUNCTION  ======================================================================
