@@ -1,4 +1,5 @@
 	/* symbolic tokens */
+    /* http://www.bottlecaps.de/rr/ui */
 %{
 #define YYDEBUG 1
 %}
