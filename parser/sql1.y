@@ -1,21 +1,18 @@
 	/* symbolic tokens */
 %{
+
+#include "da.h"
 #define YYDEBUG 1
-typedef struct conn conn;
-struct conn {
-    char *tab;
-};
-conn *_conn;
-void _save(char *s);
-void _get();
+
 %}
 %union {
 	int intval;
 	double floatval;
 	char *strval;
 	int subtok;
+    conn *ncons;
 }
-%token <strval> NAME
+%token <ncons> NAME
 %token STRING
 %token INTNUM APPROXNUM
 
@@ -46,8 +43,8 @@ void _get();
 %%
 
 sql_list:
-		sql ';' {_get();} 
-	|	sql_list sql ';'
+		sql ';' {return 0;} 
+	|	sql_list sql ';'  {}
 	;
 
 
@@ -221,26 +218,7 @@ cursor_def:
 		DECLARE cursor CURSOR FOR query_exp opt_order_by_clause
 	;
 
-opt_order_by_clause:
-		/* empty */
-	|	ORDER BY ordering_spec_commalist
-	;
 
-ordering_spec_commalist:
-		ordering_spec
-	|	ordering_spec_commalist ',' ordering_spec
-	;
-
-ordering_spec:
-		INTNUM opt_asc_desc
-	|	column_ref opt_asc_desc
-	;
-
-opt_asc_desc:
-		/* empty */
-	|	ASC
-	|	DESC
-	;
 
 procedure_def_list:
 		procedure_def
@@ -337,7 +315,7 @@ select_statement:
 		SELECT opt_all_distinct selection
 		INTO target_commalist
 		table_exp
-    | SELECT opt_all_distinct selection table_exp
+    | SELECT opt_all_distinct selection table_expe
 	;
 
 opt_all_distinct:
@@ -357,7 +335,8 @@ assignment_commalist:
 	;
 
 assignment:
-		column '=' scalar_exp
+        scalar_exp COMPARISON scalar_exp
+    |	column '=' scalar_exp
 	|	column '=' NULLX
 	;
 
@@ -402,10 +381,18 @@ selection:
 	;
 
 table_exp:
-		from_clause
-		opt_where_clause
-		opt_group_by_clause
-		opt_having_clause
+		from_clause 
+        opt_where_clause 
+        opt_group_by_clause
+        opt_having_clause
+	;
+
+table_expe:
+		from_clause 
+        opt_where_clause 
+        opt_group_by_clause
+        opt_order_by_clause
+        opt_having_clause
 	;
 
 from_clause:
@@ -524,10 +511,13 @@ scalar_exp:
 	|	scalar_exp '*' scalar_exp
 	|	scalar_exp '/' scalar_exp
 	|	'+' scalar_exp %prec UMINUS
-	|	'-' scalar_exp %prec UMINUS
+	|	'-' scalar_exp %prec UMINUS       
 	|	atom
+	|	atom AS NAME
     |	column_ref
+    |	column_ref AS NAME
 	|	function_ref
+	|	function_ref AS NAME
 	|	'(' scalar_exp ')'
 	;
 
@@ -564,8 +554,8 @@ literal:
 	/* miscellaneous */
 
 table:
-		NAME           {_save($1);}
-	|	NAME '.' NAME  {_save($1);}
+		NAME           {_save($1->tab, $1->len);}
+	|	NAME '.' NAME  {_save($1->tab, $1->len);}
 	;
 
 column_ref:
@@ -575,6 +565,27 @@ column_ref:
 	;
 
 		/* data types */
+
+opt_order_by_clause:
+		/* empty */
+	|	ORDER BY ordering_spec_commalist
+	;
+
+ordering_spec_commalist:
+		ordering_spec
+	|	ordering_spec_commalist ',' ordering_spec
+	;
+
+ordering_spec:
+		INTNUM opt_asc_desc
+	|	column_ref opt_asc_desc
+	;
+
+opt_asc_desc:
+		/* empty */
+	|	ASC
+	|	DESC
+	;
 
 data_type:
 		CHARACTER
@@ -611,7 +622,7 @@ parameter:
 procedure:	NAME
 	;
 
-range_variable:	NAME { _save($1);}
+range_variable:	NAME { _save($1->tab, $1->len);}
 	;
 
 user:		NAME
@@ -628,21 +639,5 @@ when_action:	GOTO NAME
 %%
 
 
-void _save(char *s){
-    _conn = calloc(1, sizeof(conn));        
-    if(_conn != NULL && s != NULL){
-        _conn->tab = strdup( s);
-    }else{
-        printf("ddd\n");
-    }
-
-}
-void _get(){
-    if(_conn != NULL && _conn->tab != NULL){
-        printf("tabis: %s\n", _conn->tab);
-    }else{
-        printf("null\n");
-    }
-}
 
 
