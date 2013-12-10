@@ -10,9 +10,9 @@
 	double floatval;
 	char *strval;
 	int subtok;
-    conn *ncons;
+    _ly *lys;
 }
-%token <ncons> NAME
+%token <lys> NAME
 %token STRING
 %token INTNUM APPROXNUM
 
@@ -407,6 +407,7 @@ table_ref_commalist:
 table_ref:
 		table 
 	|	table range_variable
+    |	'(' select_statement ')' AS NAME
 	;
 
 where_clause:    
@@ -541,6 +542,7 @@ parameter_ref:
 function_ref:
 		AMMSC '(' '*' ')'
 	|	AMMSC '(' DISTINCT column_ref ')'
+	|	AMMSC '(' DISTINCT '(' column_ref ')' ')'
 	|	AMMSC '(' ALL scalar_exp ')'
 	|	AMMSC '(' scalar_exp ')'
 	;

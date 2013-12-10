@@ -21,17 +21,18 @@
  extern "C"
  {
 #endif
-void parser_do (char *str, int len);
-void _init_con();
-void _len(int l);
-void _save(char *s, int len);
-void _get();
-typedef struct conns conn;
-struct conns {
+typedef struct __ly _ly;
+struct __ly {
     char *tab;
     int len;
 };
-conn *_conn;
+_ly *ly;
+_ly *parser_do (char *str, int len);
+void _init_ly();
+void _len(int l);
+void _save(char *s, int len);
+_ly *_get();
+
 
 #ifdef __cplusplus
  }

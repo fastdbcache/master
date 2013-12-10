@@ -125,18 +125,17 @@ WORK		{ return WORK; }
 
 	/* names */
 [A-Za-z][A-Za-z0-9_]*	{
-        conn *c = calloc(1, sizeof(conn));
+        _ly *c = calloc(1, sizeof(_ly));
         c->tab = yytext;
         c->len = yyleng;
-		yylval.ncons = c;
+		yylval.lys = c;
         return NAME; 
         }
 
 	/* numbers */
 
 [0-9]+	|
-[0-9]+"."[0-9]* |
-"."[0-9]*	{ return INTNUM; }
+[0-9]+"."[0-9]*	{ return INTNUM; }
 
 [0-9]+[eE][+-]?[0-9]+	|
 [0-9]+"."[0-9]*[eE][+-]?[0-9]+ |
@@ -169,12 +168,12 @@ yyerror(char *s)
 {
 	printf("%d: %s at %s\n", lineno, s, yytext);
 }
-
+/*
 main(int ac, char **av)
 {
     extern int yydebug ;
     yydebug = 1;
-    _init_con();
+    _init_ly();
 
 	if(ac > 1 && (yyin = fopen(av[1], "r")) == NULL) {
 		perror(av[1]);
@@ -186,7 +185,7 @@ main(int ac, char **av)
 	else
 		printf("SQL parse failed\n");
     _get();
-} /* main */
+}  main */
 
 /* 
  * ===  FUNCTION  ======================================================================
@@ -194,42 +193,41 @@ main(int ac, char **av)
  *  Description:  
  * =====================================================================================
  */
-void parser_do (char *str, int len){
-    _init_con();
+_ly *parser_do (char *str, int len){
+    _init_ly();
 
     YY_BUFFER_STATE state = yy_scan_bytes(str, len);
     yy_switch_to_buffer(state);
     yyparse();
     yy_delete_buffer(state);
 
-    _get();
-    return;
+    return _get();
 }		/* -----  end of function parser_do  ----- */
 
-void _init_con(){
-    _conn = calloc(1, sizeof(conn));
+void _init_ly(){
+    ly = calloc(1, sizeof(_ly));
 }
 
 void _len(int l){
-    if(_conn != NULL){
-       _conn->len = l;
+    if(ly != NULL){
+       ly->len = l;
     }
 }
 
 void _save(char *s, int len){
             
-    if(_conn != NULL && s != NULL && len > 0){
-        _conn->tab = calloc(1, len*sizeof(char));
-       memcpy(_conn->tab, s, len);
+    if(ly != NULL && s != NULL && len > 0){
+        ly->tab = calloc(1, len*sizeof(char));
+       memcpy(ly->tab, s, len);
     }else{
         printf("ddd\n");
     }
 
 }
-void _get(){
-    if(_conn != NULL && _conn->tab != NULL){
-        printf("tabis: %s\n", _conn->tab);
+_ly *_get(){
+    if(ly != NULL && ly->tab != NULL){
+        return ly;
     }else{
-        printf("null\n");
+        return NULL;
     }
 }
