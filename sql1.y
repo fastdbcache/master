@@ -1,7 +1,13 @@
 	/* symbolic tokens */
-    /* http://www.bottlecaps.de/rr/ui */
 %{
 #define YYDEBUG 1
+typedef struct conn conn;
+struct conn {
+    char *tab;
+};
+conn *_conn;
+void _save(char *s);
+void _get();
 %}
 %union {
 	int intval;
@@ -9,8 +15,7 @@
 	char *strval;
 	int subtok;
 }
-	
-%token NAME
+%token <strval> NAME
 %token STRING
 %token INTNUM APPROXNUM
 
@@ -41,7 +46,7 @@
 %%
 
 sql_list:
-		sql ';'
+		sql ';' {_get();} 
 	|	sql_list sql ';'
 	;
 
@@ -408,7 +413,7 @@ from_clause:
 	;
 
 table_ref_commalist:
-		table_ref
+		table_ref                           
 	|	table_ref_commalist ',' table_ref
 	;
 
@@ -559,8 +564,8 @@ literal:
 	/* miscellaneous */
 
 table:
-		NAME
-	|	NAME '.' NAME
+		NAME           {_save($1);}
+	|	NAME '.' NAME  {_save($1);}
 	;
 
 column_ref:
@@ -606,7 +611,7 @@ parameter:
 procedure:	NAME
 	;
 
-range_variable:	NAME
+range_variable:	NAME { _save($1);}
 	;
 
 user:		NAME
@@ -621,3 +626,23 @@ when_action:	GOTO NAME
 	|	CONTINUE
 	;
 %%
+
+
+void _save(char *s){
+    _conn = calloc(1, sizeof(conn));        
+    if(_conn != NULL && s != NULL){
+        _conn->tab = strdup( s);
+    }else{
+        printf("ddd\n");
+    }
+
+}
+void _get(){
+    if(_conn != NULL && _conn->tab != NULL){
+        printf("tabis: %s\n", _conn->tab);
+    }else{
+        printf("null\n");
+    }
+}
+
+
