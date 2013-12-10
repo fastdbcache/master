@@ -111,7 +111,7 @@ WORK		{ return WORK; }
 
 	/* punctuation */
 
-"=="	|
+"="	|
 "<>" 	|
 "<"	|
 ">"	|
@@ -121,7 +121,6 @@ WORK		{ return WORK; }
 [-+*/:(),.;]	{ return yytext[0]; }
 
 	/* names */
-
 [A-Za-z][A-Za-z0-9_]*	{ return NAME; }
 
 	/* numbers */
@@ -162,10 +161,15 @@ yyerror(char *s)
 	printf("%d: %s at %s\n", lineno, s, yytext);
 }
 
+
+extern void _svae(char *s);
+extern void _get();
+
 main(int ac, char **av)
 {
     extern int yydebug ;
     yydebug = 1;
+
 	if(ac > 1 && (yyin = fopen(av[1], "r")) == NULL) {
 		perror(av[1]);
 		exit(1);
@@ -175,4 +179,5 @@ main(int ac, char **av)
 		printf("SQL parse worked\n");
 	else
 		printf("SQL parse failed\n");
+    _get();
 } /* main */
