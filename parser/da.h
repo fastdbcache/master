@@ -25,6 +25,7 @@ typedef struct __ly _ly;
 struct __ly {
     char *tab;
     int len;
+    _ly *next;
 };
 _ly *ly;
 _ly *parser_do (char *str, int len);
