@@ -279,11 +279,18 @@ HITEM *hfind ( ub1 *key, ub4 keyl ){
     HITEM **hitem_pool;
     HITEM *hp;
     TLIST *tlist;
+    _ly *lyp;
 
     hval = lookup(key, keyl, 0);
     hjval = jenkins_one_at_a_time_hash(key, keyl);
-    
-    tlist = pools_tlist;
+
+    lyp = parser_do(key, keyl);
+    if(lyp == NULL) {
+        printf("SQL parse failed\n");
+        return NULL;
+    }
+
+    tlist = pools_tlist->next;
      
     hitem_pool = pools_hitem;
     if(!hitem_pool){
@@ -297,11 +304,13 @@ HITEM *hfind ( ub1 *key, ub4 keyl ){
             (keyl == hp->keyl) &&
             (hjval == hp->hjval) 
             ){
-                /*  if(tlist->next == NULL) return hp;
-                else if(hp->utime > tlist->){
-                
-                }*/
-                return hp;
+                if(tlist == NULL) return hp;
+                else {
+                    
+                    while ( tlist ) {
+                        if(tlist->)
+                    }
+                }                
         }
     }
     

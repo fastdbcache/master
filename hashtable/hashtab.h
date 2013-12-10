@@ -27,6 +27,8 @@
 
 #include "standard.h"
 #include "../config_global.h"
+#include "../parser/da.h"
+#include "../parser/sql1.h"
 
 #define MAX_HITEM_LENGTH 1024
 #define MAX_HITEM_LENGTH_8 (MAX_HITEM_LENGTH<<8)
