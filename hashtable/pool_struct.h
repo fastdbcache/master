@@ -162,8 +162,7 @@ struct __hsms{
 typedef struct __hsms HSMS;
 
 HTAB *pools_htab;   /* stat record */
-int pools_hslab_stat[MAX_SLAB_CLASS];
-ub4 pools_hitem_row[MAX_HITEM_LENGTH_8];
+ub4 *pools_hitem_row;
 
 HARU pools_haru_POOL[MAX_HARU_POOL];    /* haru  */
 

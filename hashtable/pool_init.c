@@ -54,6 +54,8 @@ void hcreate ( work isize ){
         }
     
     }
+    pools_hitem_row = calloc(len, sizeof(ub4));
+    
     pools_hitem = inithitem ( (ub4) len )
     
     pools_hdr = inithdr();

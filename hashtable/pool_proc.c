@@ -162,6 +162,7 @@ word haddHitem ( HDR *hdr ){
 
         phtmp->next = hp;
 
+        pools_hitem_row[i]++;
         
     }
     /* make the hash table bigger if it is getting full */

@@ -72,7 +72,10 @@ static void hgrow()
     ub4     newmask = newsize-1;
     ub4     i;
     HITEM   *old_hitem = pools_hitem, *new_hitem;
- 
+
+    free(pools_hitem_row);
+    pools_hitem_row = calloc(newsize, sizeof(ub4)) ;
+
     pools_hitem = inithitem( newsize );
      
     pools_htab->logsize = newsize; 
@@ -91,6 +94,8 @@ static void hgrow()
             newplace = &new_hitem[(that->hval & newmask)];
             that->next = *newplace;
             *newplace = that;
+
+            pools_hitem_row[i]++;
         }
     }
 
