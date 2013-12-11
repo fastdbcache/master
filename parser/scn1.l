@@ -218,7 +218,7 @@ void _save(char *s, int len){
             
     if(ly != NULL && s != NULL && len > 0){
         ly->tab = calloc(1, len*sizeof(char));
-       memcpy(ly->tab, s, len);
+        memcpy(ly->tab, s, len);
     }else{
         printf("ddd\n");
     }
