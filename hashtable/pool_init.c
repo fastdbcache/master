@@ -101,6 +101,34 @@ static void inithslab ( int i ){
 
 /* 
  * ===  FUNCTION  ======================================================================
+ *         Name:  hslabclass
+ *  Description:  
+ * =====================================================================================
+ */
+int hslabclass ( void ){
+    int size = SLAB_BEGIN;
+    int i=0;
+    
+    while (i++ < MAX_SLAB_CLASS && size <= MAX_SLAB_BYTE / conn_global->factor) {
+        if (size % CHUNK_ALIGN_BYTES)
+            size += CHUNK_ALIGN_BYTES - (size % CHUNK_ALIGN_BYTES);
+        /*if((item_size_max / size) < 2) break; 
+
+        printf("slab class  chunk size %9u perslab %7u\n",
+                     size, (MAX_SLAB_BYTE / size));*/
+        slabclass[i].size = size;
+        slabclass[i].chunk = (MAX_SLAB_BYTE / size);
+
+        size *= conn_global->factor;
+    } 
+    slabclass[i].size = MAX_SLAB_BYTE;
+    slabclass[i].chunk = 1;
+
+    return (++i);
+}		/* -----  end of function hslabclass  ----- */
+
+/* 
+ * ===  FUNCTION  ======================================================================
  *         Name:  inithitem
  *  Description:  
  * =====================================================================================
@@ -193,22 +221,7 @@ ULIST **initulist (  ){
     return u;
 }		/* -----  end of function initulist  ----- */
 
-/* 
- * ===  FUNCTION  ======================================================================
- *         Name:  hslabcreate
- *  Description:  
- * =====================================================================================
- */
-HSLAB *hslabcreate ( ssize_t chunk ){
-    HSLAB *h;
-    h = (HSLAB *)calloc(1, sizeof(HSLAB));
-    h->sm = (char *)calloc(MAX_SLAB_BYTE, sizeof(char));;
-    h->ss = 0;
-    h->sf = chunk;
-    h->id = 0;
-    h->next = NULL;
-    return h;
-}		/* -----  end of function hslabcreate  ----- */
+
 
  /* vim: set ts=4 sw=4: */
 

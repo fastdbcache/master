@@ -125,7 +125,7 @@ word haddHitem ( HDR *hdr ){
                 addfslab(ph->psize, ph->sid, ph->sa);  /* free old slab */
 
                 ph->psize = slabclass[i].size;  /* update psize */
-                FSLAB *fslab = findslab(hp->psize);
+                FSLAB *fslab = findslab(hp->psize, i);
 
                 hp->sid = fslab->sid;
                 hp->sa = fslab->sa;
@@ -152,7 +152,7 @@ word haddHitem ( HDR *hdr ){
         hp->hval  = hval;
         hp->hjval = hjval;
         
-        FSLAB *fslab = findslab(hp->psize);
+        FSLAB *fslab = findslab(hp->psize, i);
         HSLAB *hslab = findhslab(i, fslab->sid); 
 
         hp->sid = fslab->sid;
@@ -161,6 +161,7 @@ word haddHitem ( HDR *hdr ){
         memcpy(hslab->sm+fslab->sa*hp->psize, hdr->dr, hdr->drl);
 
         phtmp->next = hp;
+
         
     }
     /* make the hash table bigger if it is getting full */

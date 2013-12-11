@@ -136,7 +136,7 @@ struct __htab
   ub4            set;     /* total set */
   ub4            get;     /* total get */
   ub4            bytes;    /* total data size */
-  sb2            hslab_stat[MAX_SLAB];  /* hsalb pool length */
+  sb2            hslab_stat[MAX_SLAB_CLASS];  /* hsalb pool length */
 };
 typedef  struct __htab  HTAB;
 
@@ -162,7 +162,7 @@ struct __hsms{
 typedef struct __hsms HSMS;
 
 HTAB *pools_htab;   /* stat record */
-int pools_hslab_stat[MAX_SLAB];
+int pools_hslab_stat[MAX_SLAB_CLASS];
 ub4 pools_hitem_row[MAX_HITEM_LENGTH_8];
 
 HARU pools_haru_POOL[MAX_HARU_POOL];    /* haru  */
