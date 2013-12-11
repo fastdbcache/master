@@ -22,6 +22,8 @@
  {
 #endif
 
+#include <pthread.h>
+
 #include "standard.h"
 #include "../config_global.h"
 #include "../parser/da.h"
@@ -48,6 +50,10 @@
  * slab class  38: chunk size 391224 perslab     2  
  * slab class  39: chunk size 489032 perslab     2  
  * */
+typedef enum {
+    H_TRUE=0,  /* default 0 ,it's 1 has a job, 2 working */   
+    H_FALSE
+} H_STATE;
 
 struct __hslab
 {
@@ -109,9 +115,10 @@ struct __hdr
   ub1           *key;     /* sql that is hashed */
   ub4           keyl;     /* length of key */
   ub4           stime;    /* select time */
-  ssize_t       flag;     /* 0 is new, 1 is update */
+  H_STATE       flag;     /* 0 is new, 1 is update, HDR_FALSE worker delete, proc change */
   ub1           *dr;      /* db return data row */
   ub4           drl;      /* length of data row */
+  pthread_t     pid;
   struct __hdr   *next;  
 };
 typedef  struct __hdr  HDR;
@@ -134,9 +141,10 @@ struct __htab
 typedef  struct __htab  HTAB;
 
 struct __tlist{
-  char      *name;  /* name is table name */
+  char      *key;  /* key is table name or ulist  key sql */
+  ub4       keyl      /* length name */
   ub4       utime;  /* table the last update time */
-  ssize_t   flag;   /* 1.work set 1 , 2.mem set 0, 3.work free 0 */
+  H_STATE   flag;   /* 1.work set H_TRUE , 2.proc set H_FALSE, 3.work free H_FALSE */
   struct __tlist *next;  /* the next table */
 };
 /* mem proc table list */
@@ -156,7 +164,8 @@ typedef struct __hsms HSMS;
 HTAB *pools_htab;   /* stat record */
 int pools_hslab_stat[MAX_SLAB];
 ub4 pools_hitem_row[MAX_HITEM_LENGTH_8];
-HARU *pools_haru_POOL[MAX_HARU_POOL];    /* haru  */
+
+HARU pools_haru_POOL[MAX_HARU_POOL];    /* haru  */
 
 HITEM **pools_hitem;
 HDR **pools_hdr;

@@ -1,12 +1,12 @@
 /*
  * =====================================================================================
  *
- *       Filename:  hashtab.h
+ *       Filename:  pool_worker.h
  *
  *    Description:  
  *
  *        Version:  1.0
- *        Created:  11/25/2013 06:00:04 PM
+ *        Created:  12/11/2013 11:16:42 AM
  *       Revision:  none
  *       Compiler:  gcc
  *
@@ -15,30 +15,21 @@
  *
  * =====================================================================================
  */
-#ifndef HASHTAB_H
-#define HASHTAB_H
+#ifndef POOL_WORKER_H
+#define POOL_WORKER_H
 #ifdef __cplusplus
  extern "C"
  {
 #endif
 
-#include <stdio.h>
-#include <math.h>
-
 #include "pool_struct.h"
 
-
-word haddItem ( HDR *hdr );
-HSLAB *findhslab ( ssize_t i, sb2 _sid);
-int hslabclass ( void );
-int hsms ( ub4 bytes );
-static void addfslab ( sb2 _psize, sb2 _sid, sb2 _sa );
-FSLAB *findfslab ( sb2 _psize );
-FSLAB *findslab ( sb2 _psize );
-
+int addHdr();
+HITEM *hfind ( ub1 *key, ub4 keyl );
+char *getslab ( HITEM *hitem);
 #ifdef __cplusplus
  }
 #endif
-#endif /* --- #HASHTAB_H ---*/
+#endif /* --- #POOL_WORKER_H ---*/
  /* vim: set ts=4 sw=4: */
 

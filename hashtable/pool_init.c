@@ -48,7 +48,7 @@ void hcreate ( work isize ){
 
     for(i=0; i < MAX_HARU_POOL; i++){
         pools_haru_pool[i] = (HARU *)calloc(1, sizeof(HARU));
-        if(pools_haru_POOL[i] == NULL){
+        if(pools_haru_pool[i] == NULL){
             perror("pools_haru_POOL callo error ");
             exit(1);
         }
@@ -164,7 +164,8 @@ HDR **inithdr (  ){
             d[i]->flag = 0;
             d[i]->dr = NULL;
             d[i]->drl = 0;
-            d[i]->next = NULL;
+            d[i]->pid = 0;
+            d[i]->next = NULL;            
         }
     }
     return d; 
