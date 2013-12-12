@@ -26,21 +26,20 @@
  */
 HITEM *hfind ( ub1 *key, ub4 keyl ){
     ub4 hval,hjval, y;
-    HITEM **hitem_pool;
     HITEM *ph;
     TLIST *tlist;
+    int i;
 
     hval = lookup(key, keyl, 0);
     hjval = jenkins_one_at_a_time_hash(key, keyl);
 
     tlist = pools_tlist->next;
      
-    hitem_pool = pools_hitem;
-    if(!hitem_pool){
-        perror("shmat hitem_pool");
+    if(!pools_hitem){
+        perror("shmat pools_hitem");
         return NULL;
     }
-    ph = hitem_pool[(hval&pools_htab->mask)];
+    ph = pools_hitem[(hval&pools_htab->mask)];
     if(!ph) return NULL;
      
     while ( ph ) {
@@ -57,7 +56,18 @@ HITEM *hfind ( ub1 *key, ub4 keyl ){
                     }
                     tlist = tlist->next;
                 }
-                ph->ahit++;  /* do'not use the lock, so the result is not nicety  */
+
+                HIT_LOCK();
+                ph->ahit++;
+                pools_htab->hit++;
+                for(i=0; i<MAX_HARU_POOL; i++){
+                    if(pools_haru_pool[i].hval == hval){
+                        pools_haru_pool[i].hit++;
+                        break;
+                    }
+                }
+                HIT_UNLOCK();
+
                 return ph;            
         }
         ph = ph->next;

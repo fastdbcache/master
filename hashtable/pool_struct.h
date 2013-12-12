@@ -24,10 +24,10 @@
 
 #include <pthread.h>
 
-#include "standard.h"
 #include "../config_global.h"
 #include "../parser/da.h"
 #include "../parser/sql1.h"
+#include "../time_lib.h"
 
 #define MAX_HITEM_LENGTH 1024
 #define MAX_HITEM_LENGTH_8 (MAX_HITEM_LENGTH<<8)
@@ -164,7 +164,10 @@ typedef struct __hsms HSMS;
 HTAB *pools_htab;   /* stat record */
 ub4 *pools_hitem_row;
 
-HARU pools_haru_POOL[MAX_HARU_POOL];    /* haru  */
+pthread_mutex_t work_lock_hit;
+pthread_mutex_t work_lock_miss;
+
+HARU pools_haru_pool[MAX_HARU_POOL];    /* haru  */
 
 HITEM **pools_hitem;
 HDR **pools_hdr;
@@ -176,6 +179,22 @@ pthread_mutex_t work_lock_fslab;
 FSLAB *pools_fslab;
 
 HSMS slabclass[MAX_SLAB_CLASS];
+
+#define HIT_LOCK() do{\
+    pthread_mutex_lock(&work_lock_hit); \
+}while(0)
+
+#define HIT_UNLOCK() do{\
+    pthread_mutex_unlock(&work_lock_hit); \
+}while(0)
+
+#define MISS_LOCK() do{\
+    pthread_mutex_lock(&work_lock_miss); \
+}while(0)
+
+#define MISS_UNLOCK() do{\
+    pthread_mutex_unlock(&work_lock_miss); \
+}while(0)
 
 #ifdef __cplusplus
  }

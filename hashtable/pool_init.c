@@ -49,7 +49,7 @@ void hcreate ( work isize ){
     for(i=0; i < MAX_HARU_POOL; i++){
         pools_haru_pool[i] = (HARU *)calloc(1, sizeof(HARU));
         if(pools_haru_pool[i] == NULL){
-            perror("pools_haru_POOL callo error ");
+            perror("pools_haru_pool callo error ");
             exit(1);
         }
     
@@ -71,6 +71,9 @@ void hcreate ( work isize ){
     }
 
     pthread_mutex_init(&work_lock_fslab, NULL);
+    pthread_mutex_init(&work_lock_hit, NULL);
+    pthread_mutex_init(&work_lock_miss, NULL);
+
     pools_fslab = (FSLAB *)calloc(1, sizeof(FSLAB));
     pools_fslab->psize = 0;
     pools_fslab->sid = 0;
@@ -89,17 +92,44 @@ static void inithslab ( int i ){
     int m;
     pools_hslab = (HSLAB *)calloc(i, sizeof(HSLAB));
     for(m=0; m<i; m++){ 
-        pools_hslab[m] = (HSLAB *)calloc(1, sizeof(HSLAB));
-        if(pools_hslab[m] != NULL){
-            pools_hslab[m]->sm = NULL;
-            pools_hslab[m]->ss = 0;
-            pools_hslab[m]->sf = 0;
-            pools_hslab[m]->id = 0;
-            pools_hslab[m]->next = NULL;
-        }
+        pools_hslab[m] = hslabnull();
     }
-
 }		/* -----  end of static function inithslab  ----- */
+
+/* 
+ * ===  FUNCTION  ======================================================================
+ *         Name:  hslabnull
+ *  Description:  
+ * =====================================================================================
+ */
+HSLAB *hslabnull (  ){
+    HSLAB *_h;
+    _h = (HSLAB *)calloc(1, sizeof(HSLAB));
+    if(_h != NULL){
+        _h->sm = NULL;
+        _h->ss = 0;
+        _h->sf = 0;
+        _h->id = 0;
+        _h->next = NULL;
+    }
+    return _h;
+}		/* -----  end of function hslabnull  ----- */
+
+/* 
+ * ===  FUNCTION  ======================================================================
+ *         Name:  hslabcreate
+ *  Description:  
+ * =====================================================================================
+ */
+HSLAB *hslabcreate ( ssize_t chunk ){
+    HSLAB *h;
+
+    h = hslabnull();
+    h->sm = (char *)calloc(MAX_SLAB_BYTE, sizeof(char));
+    h->sf = chunk;
+    
+    return h;
+}		/* -----  end of function hslabcreate  ----- */
 
 /* 
  * ===  FUNCTION  ======================================================================

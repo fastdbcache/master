@@ -19,6 +19,22 @@
 
 /* 
  * ===  FUNCTION  ======================================================================
+ *         Name:  hproc
+ *  Description:  
+ * =====================================================================================
+ */
+void hproc ( ){
+
+    /* update table tlist */
+    htlist();
+
+    /*  */
+
+    return <+return_value+>;
+}		/* -----  end of function hproc  ----- */
+
+/* 
+ * ===  FUNCTION  ======================================================================
  *         Name:  htlist
  *  Description:  update table list utime 
  * =====================================================================================
@@ -75,16 +91,48 @@ void htlist (  ){
  * =====================================================================================
  */
 void fetchdti (  ){
-    HITEM *ph;
+    HITEM *ph, *phtmp;
+    HSLAB *ps, *pstmp;
     HARU *pa;
     HDR *pd;
-    
-    
+    int i, size;
+    ub4 hval, hjval;
 
-    if(pools_htab->count < pools_htab->logsize){
-        
-    }else{
+    pa = pools_haru_pool;    
+    
+    if(pools_htab->count > MAX_HARU_POOL){
+        if(pools_htab->count < pools_htab->logsize){
+            /* MRU */    
 
+        }else{
+
+        }
+    }
+
+    for(i=0; i<conn_global->process_num; i++){
+        pd = pools_hdr[i];
+        while(pd->next){
+            size = hsms(pd->drl);
+            
+            hval = lookup(pd->key, pd->keyl, 0);
+            hjval = jenkins_one_at_a_time_hash(pd->key, pd->keyl);
+            ph = pools_hitem[(hval&pools_htab->mask)];
+            /* header is not user */
+            for(; ph->next; ph=ph->next){
+                if(hval == ph->hval &&
+                    (pd->keyl == ph->keyl) &&
+                    (hjval == ph->hjval) 
+                    ){
+                    MISS_LOCK();
+                    pools_htab->miss++;
+                    MISS_UNLOCK(); 
+                    break;
+                }
+            }
+             
+            pd = pd->next;
+            haddHitem(pd);
+        }
     }
 
 }		/* -----  end of function fetchdti  ----- */
@@ -165,6 +213,9 @@ word haddHitem ( HDR *hdr ){
         pools_hitem_row[i]++;
         
     }
+
+    hdr->flag = H_FALSE;
+
     /* make the hash table bigger if it is getting full */
     if (++pools_htab->count > (ub4)1<<(pools_htab->logsize))
     {

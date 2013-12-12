@@ -30,8 +30,8 @@ HITEM **inithitem ( ub4 len );
 HITEM *hitemcreate();
 HDR **inithdr ();
 ULIST **initulist ();
-HSLAB *hslabcreate ( ssize_t chunk );
-
+HSLAB *hslabcreate(ssize_t chunk );
+HSLAB *hslabnull();
 #ifdef __cplusplus
  }
 #endif

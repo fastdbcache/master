@@ -422,23 +422,6 @@ FSLAB *findslab ( sb2 _psize ,int i){
     return NULL;
 }		/* -----  end of function findslab  ----- */
 
-/* 
- * ===  FUNCTION  ======================================================================
- *         Name:  hslabcreate
- *  Description:  
- * =====================================================================================
- */
-HSLAB *hslabcreate ( ssize_t chunk ){
-    HSLAB *h;
-    h = (HSLAB *)calloc(1, sizeof(HSLAB));
-    h->sm = (char *)calloc(MAX_SLAB_BYTE, sizeof(char));;
-    h->ss = 0;
-    h->sf = chunk;
-    h->id = 0;
-    h->next = NULL;
-    
-    return h;
-}		/* -----  end of function hslabcreate  ----- */
 
  /* vim: set ts=4 sw=4: */
 
