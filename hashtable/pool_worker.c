@@ -39,13 +39,14 @@ HITEM *hfind ( ub1 *key, ub4 keyl ){
         perror("shmat pools_hitem");
         return NULL;
     }
-    ph = pools_hitem[(hval&pools_htab->mask)];
+    ph = hitem_pool[(hval&pools_htab->mask)];
     if(!ph) return NULL;
      
     while ( ph ) {
         if(hval == ph->hval &&
             (keyl == ph->keyl) &&
-            (hjval == ph->hjval) 
+            (hjval == ph->hjval) &&
+            (ph->drl > 0) 
             ){
                 
                 while ( tlist ) {
@@ -88,6 +89,8 @@ char *getslab ( HITEM *hitem){
     HSLAB *_ps;
     int i;
     char *res;
+
+    if(!_ph) return NULL;
 
     i = hsms(_ph->psize);
     _ps = pools_hslab[i];

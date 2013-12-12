@@ -28,8 +28,9 @@ void hproc ( ){
     /* update table tlist */
     htlist();
 
-    /*  */
-
+    /* hdr to hitem  */
+    fetchdti(); 
+   
     return <+return_value+>;
 }		/* -----  end of function hproc  ----- */
 
@@ -103,7 +104,7 @@ void fetchdti (  ){
     if(pools_htab->count > MAX_HARU_POOL){
         if(pools_htab->count < pools_htab->logsize){
             /* MRU */    
-
+        
         }else{
 
         }
@@ -172,12 +173,10 @@ word haddHitem ( HDR *hdr ){
             if(m != i){  /* old size != new size , free old slab */
                 addfslab(ph->psize, ph->sid, ph->sa);  /* free old slab */
 
+                FSLAB *fslab = findslab(slabclass[i].size, i);
                 ph->psize = slabclass[i].size;  /* update psize */
-                FSLAB *fslab = findslab(hp->psize, i);
-
                 hp->sid = fslab->sid;
                 hp->sa = fslab->sa;
-               
             }
 
             hsp = findhslab(i, ph->sid);    

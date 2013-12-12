@@ -91,6 +91,7 @@ static void hgrow()
         {
             that = this;
             this = this->next;
+            if(that->drl == 0) continue;  /* del the hitem */
             newplace = &new_hitem[(that->hval & newmask)];
             that->next = *newplace;
             *newplace = that;
@@ -327,7 +328,7 @@ int hsms ( ub4 bytes ){
 static void addfslab ( sb2 _psize, sb2 _sid, sb2 _sa ){
     FSLAB  *f, *fslab;
         
-    pthread_mutex_lock(&work_lock_fslab);
+   /* pthread_mutex_lock(&work_lock_fslab);  */
     f = pools_fslab;
 
     while ( f && f->next ) {
@@ -340,7 +341,7 @@ static void addfslab ( sb2 _psize, sb2 _sid, sb2 _sa ){
     fslab->sa = _sa;
     fslab->next = NULL;
     f->next = fslab;
-    pthread_mutex_unlock(&work_lock_fslab);
+   /*  pthread_mutex_unlock(&work_lock_fslab);  */
     return;
 }		/* -----  end of static function addfslab  ----- */
 

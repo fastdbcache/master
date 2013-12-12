@@ -70,9 +70,10 @@ void hcreate ( work isize ){
         inithslab ( max_slab );
     }
 
-    pthread_mutex_init(&work_lock_fslab, NULL);
+    /*pthread_mutex_init(&work_lock_fslab, NULL);  */
     pthread_mutex_init(&work_lock_hit, NULL);
     pthread_mutex_init(&work_lock_miss, NULL);
+    pthread_mutex_init(&work_lock_bytes, NULL);
 
     pools_fslab = (FSLAB *)calloc(1, sizeof(FSLAB));
     pools_fslab->psize = 0;
@@ -127,7 +128,11 @@ HSLAB *hslabcreate ( ssize_t chunk ){
     h = hslabnull();
     h->sm = (char *)calloc(MAX_SLAB_BYTE, sizeof(char));
     h->sf = chunk;
-    
+   
+    BYTES_LOCK();
+    pools_htab->bytes += MAX_SLAB_BYTE;
+    BYTES_UNLOCK();
+     
     return h;
 }		/* -----  end of function hslabcreate  ----- */
 

@@ -77,7 +77,7 @@ struct __fslab
 typedef  struct __fslab  FSLAB;
 
 //HSLAB  HPOOL[MAX__POOL];
-
+/* dont del hitem only set drl is 0 */
 struct __hitem
 {
   ub1          *key;      /* key that is hashed */
@@ -105,6 +105,8 @@ typedef  struct __hitem  HITEM;
 struct __haru
 {
   ub4           hval;     /* hash value */
+  ub4           hjval;     /* hash value */
+  ub4           keyl;     /* length of key */
   ub4           hit;    /* haru hit */
 };
 typedef  struct __haru  HARU;
@@ -166,6 +168,7 @@ ub4 *pools_hitem_row;
 
 pthread_mutex_t work_lock_hit;
 pthread_mutex_t work_lock_miss;
+pthread_mutex_t work_lock_bytes;
 
 HARU pools_haru_pool[MAX_HARU_POOL];    /* haru  */
 
@@ -194,6 +197,14 @@ HSMS slabclass[MAX_SLAB_CLASS];
 
 #define MISS_UNLOCK() do{\
     pthread_mutex_unlock(&work_lock_miss); \
+}while(0)
+
+#define BYTES_LOCK() do{\
+    pthread_mutex_lock(&work_lock_bytes); \
+}while(0)
+
+#define BYTES_UNLOCK() do{\
+    pthread_mutex_unlock(&work_lock_bytes); \
 }while(0)
 
 #ifdef __cplusplus
