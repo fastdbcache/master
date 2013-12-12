@@ -98,6 +98,7 @@ struct __conn{
     ssize_t max_link;
 
     float factor;
+    size_t maxbytes;
 };
 
 _conn *conn_global;

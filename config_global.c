@@ -39,7 +39,9 @@ void conn_init_global ( void ){
 
     conn_global->process_num = atoi(conf_get("process_num"));
     conn_global->max_link = 2;
+
     conn_global->factor = 1.25;
+    conn_global->maxbytes = 64 * 1024 * 1024
 }		/* -----  end of function conn_init_global  ----- */
 
  /* vim: set ts=4 sw=4: */
