@@ -11,7 +11,8 @@
 
 char *get_logname(void);
 char *get_tm_format(const char *tm_format);
-double get_sec(void);
+double get_usec(void);
+long get_sec(void);
 #endif /* TIME_LIB_H_ */
 /* vim: set ts=4 sw=4: */
 

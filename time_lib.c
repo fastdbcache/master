@@ -47,7 +47,7 @@ char *get_tm_format(const char *tm_format){
 	return p;
 }
 
-double get_sec(void){
+double get_usec(void){
 
 	struct timeval tv; 
     struct timezone tz; 
@@ -61,5 +61,17 @@ double get_sec(void){
     return res;
 }
 
+long get_sec(void){
+
+	struct timeval tv; 
+    struct timezone tz; 
+
+    memset(&tv, 0, sizeof(&tv));
+    memset(&tz, 0, sizeof(&tz));
+
+    gettimeofday (&tv , &tz);
+
+    return tv.tv_sec; 
+}
 /* vim: set ts=4 sw=4: */
 
