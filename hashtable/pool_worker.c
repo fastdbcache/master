@@ -34,12 +34,10 @@ HITEM *hfind ( ub1 *key, ub4 keyl ){
     hjval = jenkins_one_at_a_time_hash(key, keyl);
 
     tlist = pools_tlist->next;
+
+    HITEM_SWITCH((y=(hval&pools_htab->mask)));
+    ph = pools_hitem[y];
      
-    if(!pools_hitem){
-        perror("shmat pools_hitem");
-        return NULL;
-    }
-    ph = hitem_pool[(hval&pools_htab->mask)];
     if(!ph) return NULL;
      
     while ( ph ) {

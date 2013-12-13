@@ -94,6 +94,15 @@ struct __hitem
 };
 typedef  struct __hitem  HITEM;
 
+struct __hitem_group
+{
+    HITEM        **usable;
+    HITEM        **move;
+    ub4          bucket;
+    ub4           comp;    /*  */
+};
+typedef  struct __hitem_group  HG;
+
 /* algorithm Recently Used 
  * array use this struct 
  * if(htab->count < htab->logsize) MRU
@@ -104,9 +113,7 @@ typedef  struct __hitem  HITEM;
  * */
 struct __haru
 {
-  ub4           hval;     /* hash value */
-  ub4           hjval;     /* hash value */
-  ub4           keyl;     /* length of key */
+  HITEM         *phitem;  /* point to hitem */
   ub4           hit;    /* haru hit */
 };
 typedef  struct __haru  HARU;
@@ -172,6 +179,7 @@ pthread_mutex_t work_lock_bytes;
 
 HARU pools_haru_pool[MAX_HARU_POOL];    /* haru  */
 
+HG *hitem_group;
 HITEM **pools_hitem;
 HDR **pools_hdr;
 TLIST *pools_tlist;
@@ -205,6 +213,13 @@ HSMS slabclass[MAX_SLAB_CLASS];
 
 #define BYTES_UNLOCK() do{\
     pthread_mutex_unlock(&work_lock_bytes); \
+}while(0)
+
+#define HITEM_SWITCH(y) do{\
+    if(hitem_group->bucket < (y)){            \
+        pools_hitem = hitem_group->move; \
+    }else                               \
+        pools_hitem = hitem_group->usable; \
 }while(0)
 
 #ifdef __cplusplus

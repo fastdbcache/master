@@ -76,7 +76,7 @@ static void hgrow()
     free(pools_hitem_row);
     pools_hitem_row = calloc(newsize, sizeof(ub4)) ;
 
-    pools_hitem = inithitem( newsize );
+    hitem_group->move = inithitem( newsize );
      
     pools_htab->logsize = newsize; 
     pools_htab->mask = newmask;

@@ -52,12 +52,16 @@ void hcreate ( work isize ){
             perror("pools_haru_pool callo error ");
             exit(1);
         }
+        pools_haru_pool[i].phitem = NULL;
     
     }
     pools_hitem_row = calloc(len, sizeof(ub4));
     
-    pools_hitem = inithitem ( (ub4) len )
-    
+    hitem_group = (HG *)calloc(1, sizeof(HG));
+    hitem_group->bucket = pools_htab->logsize;
+    hitem_group->usable = inithitem ( (ub4) len )
+    hitem_group->move = NULL;
+
     pools_hdr = inithdr();
 
     pools_tlist = (TLIST *)calloc(1, sizeof(TLIST));

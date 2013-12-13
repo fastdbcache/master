@@ -96,19 +96,12 @@ void fetchdti (  ){
     HSLAB *ps, *pstmp;
     HARU *pa;
     HDR *pd;
-    int i, size;
+    int i, size, y;
     ub4 hval, hjval;
 
     pa = pools_haru_pool;    
     
-    if(pools_htab->count > MAX_HARU_POOL){
-        if(pools_htab->count < pools_htab->logsize){
-            /* MRU */    
-        
-        }else{
-
-        }
-    }
+    
 
     for(i=0; i<conn_global->process_num; i++){
         pd = pools_hdr[i];
@@ -117,7 +110,10 @@ void fetchdti (  ){
             
             hval = lookup(pd->key, pd->keyl, 0);
             hjval = jenkins_one_at_a_time_hash(pd->key, pd->keyl);
-            ph = pools_hitem[(hval&pools_htab->mask)];
+
+            HITEM_SWITCH((y=(hval&pools_htab->mask)));
+            ph = pools_hitem[y];
+
             /* header is not user */
             for(; ph->next; ph=ph->next){
                 if(hval == ph->hval &&
@@ -155,8 +151,9 @@ word haddHitem ( HDR *hdr ){
 
     _new_hval = lookup(hdr->key,hdr->keyl,0);
     _new_hjval = jenkins_one_at_a_time_hash(hdr->key, hdr->keyl);
-    
-    ph = pools_hitem[(y=(_new_hval&pools_tab->mask))];    
+    HITEM_SWITCH((y=(_new_hval&pools_tab->mask)));
+
+    ph = pools_hitem[y];    
     
     i = hsms(hdr->drl);
     m = 0;
@@ -229,6 +226,41 @@ word haddHitem ( HDR *hdr ){
     return TRUE;
 }		/* -----  end of function haddHitem  ----- */
 
+
+/* 
+ * ===  FUNCTION  ======================================================================
+ *         Name:  hrule
+ *  Description:  
+ * =====================================================================================
+ */
+void hrule ( HITEM *hitem ){
+    int i
+
+    if(pools_htab->bytes < conn_global->bytes){
+            
+        
+        
+
+        if(pools_htab->count < MAX_HARU_POOL){
+            pools_haru_pool[pools_htab->count].hit = 0;
+            pools_haru_pool[pools_htab->count].phitem = hitem;
+            return;
+        }else{
+
+            if(pools_htab->count < pools_htab->logsize){
+                /* MRU */    
+                for (i=0 ; i<MAX_HARU_POOL && pools_haru_pool[i]!=NULL ; i++ ) {
+                    if(pools_haru_pool[i].hit > hitem->ahit){
+
+                    }
+                }     
+            }else{
+
+            }
+        }
+
+    }
+}		/* -----  end of function hrule  ----- */
 
  /* vim: set ts=4 sw=4: */
 
