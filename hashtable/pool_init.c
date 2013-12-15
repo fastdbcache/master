@@ -46,13 +46,15 @@ void hcreate ( work isize ){
     pools_htab->bytes = 0;
     bzero(pools_htab->hslab_stat, 0, sizeof(pools_htab->hslab_stat));
 
+    pools_harug = (HARUG *)calloc(1, sizeof(HARUG));
+    pools_harug->step = 0;
     for(i=0; i < MAX_HARU_POOL; i++){
-        pools_haru_pool[i] = (HARU *)calloc(1, sizeof(HARU));
-        if(pools_haru_pool[i] == NULL){
+        pools_harug->pools_haru_pool[i] = (HARU *)calloc(1, sizeof(HARU));
+        if(pools_harug->pools_haru_pool[i] == NULL){
             perror("pools_haru_pool callo error ");
             exit(1);
         }
-        pools_haru_pool[i].phitem = NULL;
+        pools_harug->pools_haru_pool[i].phitem = NULL;
     
     }
     pools_hitem_row = calloc(len, sizeof(ub4));

@@ -31,7 +31,6 @@ void hproc ( ){
     /* hdr to hitem  */
     fetchdti(); 
    
-    return <+return_value+>;
 }		/* -----  end of function hproc  ----- */
 
 /* 
@@ -101,8 +100,6 @@ void fetchdti (  ){
 
     pa = pools_haru_pool;    
     
-    
-
     for(i=0; i<conn_global->process_num; i++){
         pd = pools_hdr[i];
         while(pd->next){
@@ -226,7 +223,6 @@ word haddHitem ( HDR *hdr ){
     return TRUE;
 }		/* -----  end of function haddHitem  ----- */
 
-
 /* 
  * ===  FUNCTION  ======================================================================
  *         Name:  hrule
@@ -236,31 +232,54 @@ word haddHitem ( HDR *hdr ){
 void hrule ( HITEM *hitem ){
     int i
 
-    if(pools_htab->bytes < conn_global->bytes){
-            
-        
-        
-
-        if(pools_htab->count < MAX_HARU_POOL){
-            pools_haru_pool[pools_htab->count].hit = 0;
-            pools_haru_pool[pools_htab->count].phitem = hitem;
-            return;
-        }else{
-
-            if(pools_htab->count < pools_htab->logsize){
-                /* MRU */    
-                for (i=0 ; i<MAX_HARU_POOL && pools_haru_pool[i]!=NULL ; i++ ) {
-                    if(pools_haru_pool[i].hit > hitem->ahit){
-
-                    }
-                }     
-            }else{
-
-            }
-        }
-
+    if(pools_htab->bytes == conn_global->bytes &&
+        pools_harug->step == MAX_HARU_POOL){
+       /* for ( i=0; i<MAX_HARU_POOL; i++ ) {
+            pools_harug->pools_haru_pool[i].hit = 0;
+            pools_harug->pools_haru_pool[i].phitem = NULL;
+        } */  
+        pools_harug->step = 0;
     }
+
+    if(pools_harug->step < MAX_HARU_POOL){
+        pools_harug->pools_haru_pool[pools_harug->step].hit = 0;
+        pools_harug->pools_haru_pool[pools_harug->step++].phitem = hitem;
+        return;
+    } else{
+
+        /* MRU */    
+        i = hsort();
+        if(pools_harug->pools_haru_pool[i].hit > hitem.ahit){
+            pools_harug->pools_haru_pool[i].hit = 0;
+            pools_harug->pools_haru_pool[i].phitem = hitem;
+        }
+    } 
 }		/* -----  end of function hrule  ----- */
+
+
+/* 
+ * ===  FUNCTION  ======================================================================
+ *         Name:  hsort
+ *  Description:  
+ * =====================================================================================
+ */
+int hsort (  ){
+    int i, m;
+    HARU *haru, *t;
+
+    haru = pools_harug->pools_haru_pool;
+ 
+    t = haru[0];
+
+    for ( i=1; i<MAX_HARU_POOL-1; i++ ) {
+        if(t.hit < haru[i].hit) {
+            t = haru[i];
+            m = i;
+        }
+    }
+
+    return m;
+}		/* -----  end of function hsort  ----- */
 
  /* vim: set ts=4 sw=4: */
 

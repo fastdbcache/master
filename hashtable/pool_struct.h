@@ -118,6 +118,13 @@ struct __haru
 };
 typedef  struct __haru  HARU;
 
+struct __haru_group
+{
+  HARU pools_haru_pool[MAX_HARU_POOL];    /* haru  */
+  ssize_t       step;
+};
+typedef  struct __haru_group  HARUG;
+
 /* for select any proc */
 struct __hdr
 {
@@ -177,8 +184,6 @@ pthread_mutex_t work_lock_hit;
 pthread_mutex_t work_lock_miss;
 pthread_mutex_t work_lock_bytes;
 
-HARU pools_haru_pool[MAX_HARU_POOL];    /* haru  */
-
 HG *hitem_group;
 HITEM **pools_hitem;
 HDR **pools_hdr;
@@ -190,6 +195,8 @@ pthread_mutex_t work_lock_fslab;
 FSLAB *pools_fslab;
 
 HSMS slabclass[MAX_SLAB_CLASS];
+
+HARUG *pools_harug;
 
 #define HIT_LOCK() do{\
     pthread_mutex_lock(&work_lock_hit); \
