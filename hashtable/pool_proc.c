@@ -165,17 +165,26 @@ word haddHitem ( HDR *hdr ){
             m = hsms(ph->psize);
             
             if(m != i){  /* old size != new size , free old slab */
-                addfslab(ph->psize, ph->sid, ph->sa);  /* free old slab */
+                addfslab(ph);  /* free old slab */
 
                 FSLAB *fslab = findslab(slabclass[i].size, i);
                 ph->psize = slabclass[i].size;  /* update psize */
-                hp->sid = fslab->sid;
-                hp->sa = fslab->sa;
+                ph->sid = fslab->sid;
+                ph->sa = fslab->sa;
+                ph->drl = hdr->drl;
             }
+            /* 
+            if((ph->amiss / ph->ahit) > LIMIT_PERCENT){
+                ph->drl = 0;
+                break;
+            }*/
 
             hsp = findhslab(i, ph->sid);    
             if(hsp != NULL){
                 memcpy(hsp->sm+ph->sa*ph->psize, hdr->dr, hdr->drl);
+                ph->amiss++;
+                pools_tab->miss++;
+                hrule(ph, H_UPDATE);
                 return 0;
             }else
                 perror("hsp error\n");
@@ -204,7 +213,8 @@ word haddHitem ( HDR *hdr ){
         phtmp->next = hp;
 
         pools_hitem_row[i]++;
-        
+       
+        hrule(hp, H_INSERT); 
     }
 
     hdr->flag = H_FALSE;
@@ -229,29 +239,50 @@ word haddHitem ( HDR *hdr ){
  *  Description:  
  * =====================================================================================
  */
-void hrule ( HITEM *hitem ){
+void hrule ( HITEM *hitem, H_CHANGE stat ){
     int i
+    HITEM *ph;
+
+    if(!hitem) return;
 
     if(pools_htab->bytes == conn_global->bytes &&
         pools_harug->step == MAX_HARU_POOL){
-       /* for ( i=0; i<MAX_HARU_POOL; i++ ) {
-            pools_harug->pools_haru_pool[i].hit = 0;
-            pools_harug->pools_haru_pool[i].phitem = NULL;
-        } */  
+        for ( i=0; i<MAX_HARU_POOL; i++ ) {
+            ph = pools_haru_pool[i].phitem;
+            addfslab(ph);  /* free old slab */
+        }   
         pools_harug->step = 0;
     }
 
+    for(i=0; i<pools_harug->step; i++){
+        ph = pools_haru_pool[i].phitem;
+        if(hitem->hval == ph->hval &&
+            (hitem->keyl == ph->keyl) &&
+            (hitem->hjval == ph->hjval) 
+            ){
+            return;
+        } 
+    }
+
     if(pools_harug->step < MAX_HARU_POOL){
-        pools_harug->pools_haru_pool[pools_harug->step].hit = 0;
-        pools_harug->pools_haru_pool[pools_harug->step++].phitem = hitem;
+        pools_haru_pool[pools_harug->step].hit = 0;
+        pools_haru_pool[pools_harug->step++].phitem = hitem;
         return;
     } else{
 
         /* MRU */    
-        i = hsort();
-        if(pools_harug->pools_haru_pool[i].hit > hitem.ahit){
-            pools_harug->pools_haru_pool[i].hit = 0;
-            pools_harug->pools_haru_pool[i].phitem = hitem;
+        
+        if( stat == H_UPDATE ){
+            pools_haru_pool[pools_harug->max].hit = 0;
+            pools_haru_pool[pools_harug->max].phitem = hitem;
+        }
+        else{
+            /* LRU */
+            ph = pools_haru_pool[pools_harug->mix].phitem;
+            pools_haru_pool[pools_harug->mix].phitem = hitem;
+            pools_haru_pool[pools_harug->mix].hit = 0;
+
+            addfslab(ph);  /* clear hit very limit */
         }
     } 
 }		/* -----  end of function hrule  ----- */

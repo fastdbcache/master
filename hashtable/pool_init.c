@@ -49,14 +49,16 @@ void hcreate ( work isize ){
     pools_harug = (HARUG *)calloc(1, sizeof(HARUG));
     pools_harug->step = 0;
     for(i=0; i < MAX_HARU_POOL; i++){
-        pools_harug->pools_haru_pool[i] = (HARU *)calloc(1, sizeof(HARU));
+        /*pools_harug->pools_haru_pool[i] = (HARU *)calloc(1, sizeof(HARU));
         if(pools_harug->pools_haru_pool[i] == NULL){
             perror("pools_haru_pool callo error ");
             exit(1);
-        }
+        }*/
         pools_harug->pools_haru_pool[i].phitem = NULL;
     
     }
+    pools_haru_pool = pools_harug->haru_pool;
+    
     pools_hitem_row = calloc(len, sizeof(ub4));
     
     hitem_group = (HG *)calloc(1, sizeof(HG));
@@ -210,6 +212,7 @@ HITEM *hitemcreate(){
         h->hjval = 0;
         h->utime = 0;
         h->ahit = 0;  
+        h->amiss = 0;
         h->next = NULL;
     }
     return h;

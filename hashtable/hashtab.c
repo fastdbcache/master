@@ -71,18 +71,21 @@ static void hgrow()
     ub4     newsize = (ub4)1<<(++pools_htab->logsize);
     ub4     newmask = newsize-1;
     ub4     i;
-    HITEM   *old_hitem = pools_hitem, *new_hitem;
+    HITEM   **old_hitem, **new_hitem;
 
     free(pools_hitem_row);
     pools_hitem_row = calloc(newsize, sizeof(ub4)) ;
 
     hitem_group->move = inithitem( newsize );
-     
+    hitem_group->bucket = 1; 
+
     pools_htab->logsize = newsize; 
     pools_htab->mask = newmask;
+    pools_htab->count = 0;
     
-    new_hitem = pools_hitem;
-
+    old_hitem = hitem_group->usable;
+    new_hitem = hitem_group->move;
+    
     /* Walk through old table putting entries in new table */
     for (i=newsize>>1; i--;)
     {
@@ -97,8 +100,11 @@ static void hgrow()
             *newplace = that;
 
             pools_hitem_row[i]++;
+            pools_htab->count++;
         }
     }
+
+    
 
   /* position the hash table on some existing item 
   hfirst(t);*/
@@ -325,7 +331,7 @@ int hsms ( ub4 bytes ){
  *  Description:  
  * =====================================================================================
  */
-static void addfslab ( sb2 _psize, sb2 _sid, sb2 _sa ){
+static void addfslab ( HITEM *_ph){
     FSLAB  *f, *fslab;
         
    /* pthread_mutex_lock(&work_lock_fslab);  */
@@ -336,11 +342,13 @@ static void addfslab ( sb2 _psize, sb2 _sid, sb2 _sa ){
     }
 
     fslab = (FSLAB *)calloc(1, sizeof(FSLAB));
-    fslab->psize = _psize;
-    fslab->sid = _sid;
-    fslab->sa = _sa;
+    fslab->psize = _ph->psize;
+    fslab->sid = _ph->sid;
+    fslab->sa = _ph->sa;
     fslab->next = NULL;
     f->next = fslab;
+
+    _ph->drl = 0;
    /*  pthread_mutex_unlock(&work_lock_fslab);  */
     return;
 }		/* -----  end of static function addfslab  ----- */

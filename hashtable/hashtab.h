@@ -32,7 +32,7 @@ word haddItem ( HDR *hdr );
 HSLAB *findhslab ( ssize_t i, sb2 _sid);
 int hslabclass ( void );
 int hsms ( ub4 bytes );
-static void addfslab ( sb2 _psize, sb2 _sid, sb2 _sa );
+static void addfslab ( HITEM *_ph);
 FSLAB *findfslab ( sb2 _psize );
 FSLAB *findslab ( sb2 _psize );
 

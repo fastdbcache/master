@@ -37,6 +37,7 @@
 #define MAX_SLAB_BYTE 1024 * 1024
 #define LIMIT_SLAB_BYTE 1024 * 1024
 #define SLAB_BEGIN 88
+#define LIMIT_PERCENT 0.1
 /* 
  * f=1.25
  * slab class   1: chunk size     88 perslab 11915
@@ -54,6 +55,11 @@ typedef enum {
     H_TRUE=0,  /* default 0 ,it's 1 has a job, 2 working */   
     H_FALSE
 } H_STATE;
+
+typedef enum {
+    H_INSERT=0,  /* default 0 ,it's 1 has a job, 2 working */   
+    H_UPDATE
+} H_CHANGE;
 
 struct __hslab
 {
@@ -90,6 +96,7 @@ struct __hitem
   ub4           hjval;     /* hash value for key */
   ub4           utime;    /* */
   ub4           ahit;     /* all hit */
+  ub4           amiss;    /* all update */
   struct __hitem *next;     /* next hitem in list */
 };
 typedef  struct __hitem  HITEM;
@@ -120,8 +127,10 @@ typedef  struct __haru  HARU;
 
 struct __haru_group
 {
-  HARU pools_haru_pool[MAX_HARU_POOL];    /* haru  */
+  HARU haru_pool[MAX_HARU_POOL];    /* haru  */
   ssize_t       step;
+  ssize_t       max;
+  ssize_t       mix;
 };
 typedef  struct __haru_group  HARUG;
 
@@ -197,6 +206,7 @@ FSLAB *pools_fslab;
 HSMS slabclass[MAX_SLAB_CLASS];
 
 HARUG *pools_harug;
+HARU *pools_haru_pool;
 
 #define HIT_LOCK() do{\
     pthread_mutex_lock(&work_lock_hit); \

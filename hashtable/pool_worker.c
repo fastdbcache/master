@@ -29,7 +29,7 @@ HITEM *hfind ( ub1 *key, ub4 keyl ){
     HITEM *ph;
     TLIST *tlist;
     int i;
-
+    
     hval = lookup(key, keyl, 0);
     hjval = jenkins_one_at_a_time_hash(key, keyl);
 
@@ -60,10 +60,16 @@ HITEM *hfind ( ub1 *key, ub4 keyl ){
                 ph->ahit++;
                 pools_htab->hit++;
                 for(i=0; i<MAX_HARU_POOL; i++){
-                    if(pools_haru_pool[i].hval == hval){
-                        pools_haru_pool[i].hit++;
+                    if( pools_haru_pool[i].phitem == ph ){
+                        pools_haru_pool[i].hit++;                        
                         break;
                     }
+                }
+                if(pools_haru_pool[pools_harug->max].hit < pools_haru_pool[i].hit){
+                    pools_harug->max = i;
+                }
+                if(pools_haru_pool[pools_harug->mix].hit > pools_haru_pool[i].hit){
+                    pools_harug->mix = i;
                 }
                 HIT_UNLOCK();
 
@@ -82,7 +88,7 @@ HITEM *hfind ( ub1 *key, ub4 keyl ){
  *  Description:  
  * =====================================================================================
  */
-char *getslab ( HITEM *hitem){
+char *getslab ( HITEM * hitem){
     HITEM *_ph = hitem;
     HSLAB *_ps;
     int i;
