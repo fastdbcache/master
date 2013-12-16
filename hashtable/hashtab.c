@@ -78,33 +78,30 @@ static void hgrow()
 
     hitem_group->move = inithitem( newsize );
     hitem_group->bucket = 1; 
-
-    pools_htab->logsize = newsize; 
-    pools_htab->mask = newmask;
-    pools_htab->count = 0;
     
     old_hitem = hitem_group->usable;
     new_hitem = hitem_group->move;
-    
-    /* Walk through old table putting entries in new table */
-    for (i=newsize>>1; i--;)
-    {
-        HITEM *this, *that, **newplace;
-        for (this = old_hitem[i]; this;)
-        {
-            that = this;
-            this = this->next;
-            if(that->drl == 0) continue;  /* del the hitem */
-            newplace = &new_hitem[(that->hval & newmask)];
-            that->next = *newplace;
-            *newplace = that;
+   
+    for(i=0; i<pools_htab->logsize; i++){
+        HITEM *this, *that, *new;
+        this = old_hitem[i];
+        
+        while(this && this->next){
+            that = this->next;
+            this = that->next;
 
-            pools_hitem_row[i]++;
+            if(that->drl == 0) continue;  /* clear the empty drl  */
+
+            new = new_hitem[(that->hval & newmask)];                
+            that->next = new->next;
+            new->next = that;
             pools_htab->count++;
         }
+        hitem_group->bucket++;
     }
 
-    
+    pools_htab->logsize = newsize; 
+    pools_htab->mask = newmask;
 
   /* position the hash table on some existing item 
   hfirst(t);*/
