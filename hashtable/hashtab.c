@@ -84,10 +84,10 @@ static void hgrow()
    
     for(i=0; i<pools_htab->logsize; i++){
         HITEM *this, *that, *new;
-        this = old_hitem[i];
+        this = old_hitem[i]->next;
         
-        while(this && this->next){
-            that = this->next;
+        while( this ){
+            that = this;
             this = that->next;
 
             if(that->drl == 0) continue;  /* clear the empty drl  */
