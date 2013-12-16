@@ -100,15 +100,12 @@ static void hgrow()
         hitem_group->bucket++;
     }
 
+    free(hitem_group->usable);
+    hitem_group->usable = hitem_group->move;
+    hitem_group->move = NULL;
+
     pools_htab->logsize = newsize; 
     pools_htab->mask = newmask;
-
-  /* position the hash table on some existing item 
-  hfirst(t);*/
-
-  /* free the old array */
-  free(old_hitem);
-
 }
 
 /* hdestroy - destroy the hash table and free all its memory */
