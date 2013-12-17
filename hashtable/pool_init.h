@@ -24,14 +24,17 @@
 
 #include "pool_struct.h"
 
-void hcreate ( work isize );
-static void inithslab ( int i );
+void hcreate (int isize);
+void inithslab ( int i );
+HSLAB *hslabnull (  );
+HSLAB *hslabcreate ( int i );
+int hslabclass ( void );
 HITEM **inithitem ( ub4 len );
 HITEM *hitemcreate();
-HDR **inithdr ();
-ULIST **initulist ();
-HSLAB *hslabcreate(ssize_t chunk );
-HSLAB *hslabnull();
+void freehitem ( HITEM **_h, ub4 len );
+HDR **inithdr (  );
+ULIST **initulist (  );
+
 #ifdef __cplusplus
  }
 #endif

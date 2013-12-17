@@ -5,9 +5,6 @@ Use this code however you wish.  Public Domain.  No warranty.
 Source is http://burtleburtle.net/bob/c/lookupa.c
 --------------------------------------------------------------------
 */
-#ifndef STANDARD
-#include "standard.h"
-#endif
 #ifndef LOOKUPA
 #include "lookupa.h"
 #endif
@@ -240,7 +237,7 @@ register ub4 *state;
 }
 
 
-ub4 jenkins_one_at_a_time_hash(char *key, size_t len)
+ub4 jenkins_one_at_a_time_hash(ub1 *key, size_t len)
 {
     ub4 hash, i;
     for(hash = i = 0; i < len; ++i)

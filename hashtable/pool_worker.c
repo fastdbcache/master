@@ -16,7 +16,23 @@
  * =====================================================================================
  */
 
+#include "pool_worker.h"
 /* select  start */
+
+
+/* 
+ * ===  FUNCTION  ======================================================================
+ *         Name:  hkey
+ *  Description:  
+ * =====================================================================================
+ */
+char *hkey ( char *key, ub4 keyl){
+    HITEM *_h;
+
+    _h = hfind(key, keyl);
+
+    return getslab(_h);
+}		/* -----  end of function hkey  ----- */
 
 /* 
  * ===  FUNCTION  ======================================================================
@@ -24,14 +40,14 @@
  *  Description: 
  * =====================================================================================
  */
-HITEM *hfind ( ub1 *key, ub4 keyl ){
+HITEM *hfind ( char *key, ub4 keyl ){
     ub4 hval,hjval, y;
     HITEM *ph;
     TLIST *tlist;
     int i;
     
-    hval = lookup(key, keyl, 0);
-    hjval = jenkins_one_at_a_time_hash(key, keyl);
+    hval = lookup((ub1 *)key, keyl, 0);
+    hjval = jenkins_one_at_a_time_hash((ub1 *)key, keyl);
 
     tlist = pools_tlist->next;
 
@@ -49,7 +65,7 @@ HITEM *hfind ( ub1 *key, ub4 keyl ){
                 
                 while ( tlist ) {
                     /*  has a bug */
-                    if(strstr(key, tlist->name)){
+                    if(strstr(key, tlist->key)){
                         /* over time */
                         if(tlist->utime > ph->utime) return NULL; 
                     }
@@ -99,7 +115,7 @@ char *getslab ( HITEM * hitem){
     i = hsms(_ph->psize);
     _ps = pools_hslab[i];
 
-    for(; _ps; _ps=ps->next){
+    for(; _ps; _ps=_ps->next){
         if(_ps->id == _ph->sid){
             res = calloc(_ph->drl, sizeof(char));
             if(!res) return NULL;
@@ -116,12 +132,12 @@ char *getslab ( HITEM * hitem){
  *  Description:  
  * =====================================================================================
  */
-int addHdr ( HDR *myhdr; int m ){
+int addHdr ( HDR *myhdr, int m ){
     HDR *_hdr, *_t;
 
     _hdr = pools_hdr[m];
-    if(_hdr->pid != myhdr->pid) return -1;
-    if(myhdr->skl > LIMIT_SLAB_BYTE) return -1;
+    /* if(_hdr->pid != myhdr->pid) return -1;*/
+    if(myhdr->drl > LIMIT_SLAB_BYTE) return -1;
 
     /* clear nasty hdr */
     for(;_hdr->next;_hdr=_hdr->next){
@@ -150,11 +166,11 @@ int addHdr ( HDR *myhdr; int m ){
  *  Description:  
  * =====================================================================================
  */
-int addulist ( ULIST *mlist, int m ){
+int addUlist ( ULIST *mlist, int m ){
     ULIST *_ulist, *_t;
     
     _ulist = pools_ulist[m];
-    if(_ulist->pid != mlist->pid) return -1; 
+    /*if(_ulist->pid != mlist->pid) return -1; */
 
     /* clear nasty ulist */
     for(; _ulist->next; _ulist=_ulist->next){

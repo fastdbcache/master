@@ -22,6 +22,15 @@
  {
 #endif
 
+#include "pool_struct.h"
+#include "hashtab.h"
+
+void hproc ( );
+void htlist (  );
+void fetchdti (  );
+word haddHitem ( HDR *hdr );
+void hrule ( HITEM *hitem, H_CHANGE stat );
+int hsort (  );
 
 #ifdef __cplusplus
  }

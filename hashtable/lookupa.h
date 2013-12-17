@@ -8,7 +8,7 @@ Source is http://burtleburtle.net/bob/c/lookupa.h
 */
 
 #ifndef STANDARD
-#include "standard.h"
+#include "pool_struct.h"
 #endif
 
 #ifndef LOOKUPA
@@ -20,5 +20,5 @@ Source is http://burtleburtle.net/bob/c/lookupa.h
 
 ub4  lookup(/*_ ub1 *k, ub4 length, ub4 level _*/);
 void checksum(/*_ ub1 *k, ub4 length, ub4 *state _*/);
-ub4 jenkins_one_at_a_time_hash(char *key, size_t len);
+ub4 jenkins_one_at_a_time_hash(ub1 *key, size_t len);
 #endif /* LOOKUPA */

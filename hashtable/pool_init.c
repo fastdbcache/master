@@ -24,9 +24,11 @@
  *  Description:  
  * =====================================================================================
  */
-void hcreate ( work isize ){
+void hcreate ( int isize ){
     int i;
     ub4 len;
+    int max_slab;
+
     len = ((ub4)1<<isize);
 
     pools_htab = (HTAB *)calloc(1, sizeof(HTAB));
@@ -44,7 +46,7 @@ void hcreate ( work isize ){
     pools_htab->set = 0;
     pools_htab->get = 0;
     pools_htab->bytes = 0;
-    bzero(pools_htab->hslab_stat, 0, sizeof(pools_htab->hslab_stat));
+    bzero(pools_htab->hslab_stat,  sizeof(pools_htab->hslab_stat));
 
     pools_harug = (HARUG *)calloc(1, sizeof(HARUG));
     pools_harug->step = 0;
@@ -54,7 +56,7 @@ void hcreate ( work isize ){
             perror("pools_haru_pool callo error ");
             exit(1);
         }*/
-        pools_harug->pools_haru_pool[i].phitem = NULL;
+        pools_harug->haru_pool[i].phitem = NULL;
     
     }
     pools_haru_pool = pools_harug->haru_pool;
@@ -63,7 +65,7 @@ void hcreate ( work isize ){
     
     hitem_group = (HG *)calloc(1, sizeof(HG));
     hitem_group->bucket = pools_htab->logsize;
-    hitem_group->usable = inithitem ( (ub4) len )
+    hitem_group->usable = inithitem ( (ub4) len );
     hitem_group->move = NULL;
 
     pools_hdr = inithdr();
@@ -72,7 +74,7 @@ void hcreate ( work isize ){
 
     pools_ulist = initulist();
 
-    int max_slab = hslabclass();
+    max_slab = hslabclass();
 
     if(max_slab > 0){
         inithslab ( max_slab );
@@ -97,9 +99,9 @@ void hcreate ( work isize ){
  *  Description:  
  * =====================================================================================
  */
-static void inithslab ( int i ){
+void inithslab ( int i ){
     int m;
-    pools_hslab = (HSLAB *)calloc(i, sizeof(HSLAB));
+    pools_hslab = (HSLAB **)calloc(i, sizeof(HSLAB));
     for(m=0; m<i; m++){ 
         pools_hslab[m] = hslabnull();
     }
@@ -134,7 +136,7 @@ HSLAB *hslabcreate ( int i ){
     HSLAB *h;
 
     h = hslabnull();
-    h->sm = (char *)calloc(MAX_SLAB_BYTE, sizeof(char));
+    h->sm = (ub1 *)calloc(MAX_SLAB_BYTE, sizeof(ub1));
     if(!h->sm)perror("h sm calloc error\n"); 
     h->sf = slabclass[i].chunk;
    
@@ -156,7 +158,7 @@ int hslabclass ( void ){
     int size = SLAB_BEGIN;
     int i=0;
     
-    while (i++ < MAX_SLAB_CLASS && size <= MAX_SLAB_BYTE / conn_global->factor) {
+    while (i < MAX_SLAB_CLASS && size <= MAX_SLAB_BYTE / conn_global->factor) {
         if (size % CHUNK_ALIGN_BYTES)
             size += CHUNK_ALIGN_BYTES - (size % CHUNK_ALIGN_BYTES);
         /*if((item_size_max / size) < 2) break; 
@@ -165,7 +167,8 @@ int hslabclass ( void ){
                      size, (MAX_SLAB_BYTE / size));*/
         slabclass[i].size = size;
         slabclass[i].chunk = (MAX_SLAB_BYTE / size);
-
+        /*printf("slabclass: size:%d, chunk:%d\n", slabclass[i].size, slabclass[i].chunk);*/
+        i++;
         size *= conn_global->factor;
     } 
     slabclass[i].size = MAX_SLAB_BYTE;
@@ -182,8 +185,8 @@ int hslabclass ( void ){
  */
 HITEM **inithitem ( ub4 len ){
     int i;
-    HITEM **hitem
-    hitem = (HITEM *)calloc(len, sizeof(HITEM));
+    HITEM **hitem;
+    hitem = (HITEM **)calloc(len, sizeof(HITEM));
     if(hitem == NULL) return NULL;
     /* pools_hitem head not store anything */
     for (i=0; i<len; ++i) {
@@ -200,7 +203,7 @@ HITEM **inithitem ( ub4 len ){
  */
 
 HITEM *hitemcreate(){
-    HITEM *h
+    HITEM *h;
     h = (HITEM *)calloc(1, sizeof(HITEM));
     if(h){
         h->key = NULL;
@@ -249,7 +252,7 @@ void freehitem ( HITEM **_h, ub4 len ){
 HDR **inithdr (  ){
     int i;
     HDR **d;
-    d = (HDR *) calloc(conn_global->process_num, sizeof(HDR)); 
+    d = (HDR **) calloc(conn_global->process_num, sizeof(HDR)); 
     
     for(i=0; i<conn_global->process_num; i++){
         d[i] = (HDR *)calloc(1, sizeof(HDR));
@@ -276,11 +279,12 @@ HDR **inithdr (  ){
 ULIST **initulist (  ){
     ULIST **u;
     int i;
-    u = (ULIST *)calloc(conn_global->process_num, sizeof(ULIST));
+    u = (ULIST **)calloc(conn_global->process_num, sizeof(ULIST));
     for(i=0; i<conn_global->process_num; i++){
-        u[i] = (TLIST *)calloc(1, sizeof(TLIST));
+        u[i] = (ULIST *)calloc(1, sizeof(ULIST));
         if(u[i]){
-            u[i]->name = NULL;
+            u[i]->key = NULL;
+            u[i]->keyl = 0;
             u[i]->utime = 0;
             u[i]->flag = 0;
             u[i]->next = NULL;

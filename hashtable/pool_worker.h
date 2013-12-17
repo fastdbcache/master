@@ -23,10 +23,16 @@
 #endif
 
 #include "pool_struct.h"
+#include "hashtab.h"
 
-int addHdr();
-HITEM *hfind ( ub1 *key, ub4 keyl );
-char *getslab ( HITEM *hitem);
+char *hkey(char *key, ub4 keyl);
+HITEM *hfind ( char *key, ub4 keyl );
+char *getslab ( HITEM * hitem);
+int addHdr ( HDR *myhdr, int m );
+int addUlist ( ULIST *mlist, int m );
+void freeHdr ( HDR *fhdr );
+void freeUList ( ULIST *flist );
+
 #ifdef __cplusplus
  }
 #endif

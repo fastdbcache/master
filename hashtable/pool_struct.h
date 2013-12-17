@@ -29,6 +29,8 @@
 #include "../parser/sql1.h"
 #include "../time_lib.h"
 
+#include "lookupa.h"
+
 #define MAX_HITEM_LENGTH 1024
 #define MAX_HITEM_LENGTH_8 (MAX_HITEM_LENGTH<<8)
 #define MAX_HARU_POOL 1024
@@ -82,8 +84,10 @@ struct __fslab
 };
 typedef  struct __fslab  FSLAB;
 
-//HSLAB  HPOOL[MAX__POOL];
-/* dont del hitem only set drl is 0 */
+/*
+HSLAB  HPOOL[MAX__POOL];
+dont del hitem only set drl is 0 
+*/
 struct __hitem
 {
   ub1          *key;      /* key that is hashed */
@@ -147,7 +151,7 @@ struct __hdr
 };
 typedef  struct __hdr  HDR;
 
-//https://github.com/troydhanson/uthash
+/* https://github.com/troydhanson/uthash */
 struct __htab
 {
   word           logsize; /* log of size of table */
@@ -166,7 +170,7 @@ typedef  struct __htab  HTAB;
 
 struct __tlist{
   char      *key;  /* key is table name or ulist  key sql */
-  ub4       keyl      /* length name */
+  ub4       keyl;      /* length name */
   ub4       utime;  /* table the last update time */
   H_STATE   flag;   /* 1.work set H_TRUE , 2.proc set H_FALSE, 3.work free H_FALSE */
   struct __tlist *next;  /* the next table */
@@ -196,7 +200,7 @@ HG *hitem_group;
 HITEM **pools_hitem;
 HDR **pools_hdr;
 TLIST *pools_tlist;
-TLIST **pools_ulist;
+ULIST **pools_ulist;
 HSLAB **pools_hslab;
 
 pthread_mutex_t work_lock_fslab;

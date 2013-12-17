@@ -15,7 +15,7 @@
  *
  * =====================================================================================
  */
-
+#include "pool_proc.h"
 
 /* 
  * ===  FUNCTION  ======================================================================
@@ -41,12 +41,11 @@ void hproc ( ){
  */
 void htlist (  ){
     TLIST *_tlist, *_t;
-    ULIST *_ulist, *_u;
-    char *table;
+    ULIST **_ulist, *_u;
     _ly *ply;
     int i;
     
-    _ulist = pools_utist;
+    _ulist = pools_ulist;
 
     for(i=0; i<conn_global->process_num; i++){
         _u = _ulist[i];
@@ -60,8 +59,8 @@ void htlist (  ){
                 _tlist = _tlist->next;
                 if(!memcmp(_tlist->key,ply->tab, ply->len)&&
                     _tlist->keyl == ply->len){
-                    if(_tlist->utime < u->utime){
-                        _tlist->utime = u->utime;                        
+                    if(_tlist->utime < _u->utime){
+                        _tlist->utime = _u->utime;                        
                         _u->flag = H_FALSE;
                     }        
                     break;
@@ -69,11 +68,18 @@ void htlist (  ){
             }
             
             if(!_tlist->next && _u->flag == H_TRUE){
+                _u->flag = H_FALSE;
+
                 _t = calloc(1, sizeof(TLIST));
-                _t->key = calloc(ply->len, sizeof(char));
-                memcpy(_t->key, ply->tab, ply->len);
-                _t->keyl = ply->len;
-                _u->flag = H_FALSE;  
+                if(_t){
+                    _t->key = calloc(ply->len, sizeof(char));
+                    if(_t->key){
+                        memcpy(_t->key, ply->tab, ply->len);
+                        _t->keyl = ply->len;
+                        _tlist->next = _t;
+                        _tlist = _t;
+                    }
+                }
             }
             free(ply->tab);
             free(ply);
@@ -91,8 +97,7 @@ void htlist (  ){
  * =====================================================================================
  */
 void fetchdti (  ){
-    HITEM *ph, *phtmp;
-    HSLAB *ps, *pstmp;
+    HITEM *ph ;
     HARU *pa;
     HDR *pd;
     int i, size, y;
@@ -140,15 +145,17 @@ void fetchdti (  ){
 word haddHitem ( HDR *hdr ){   
     HITEM  *ph,*phtmp, *hp;
     ub4     y, _new_hval, _new_hjval;
-    HSLAB *hs, *hsp;
+    HSLAB  *hsp;
+    FSLAB *fslab;
+    HSLAB *hslab;
     int i, m;
 
     if(hdr == NULL) return -1;
-    if(hdr->skl > LIMIT_SLAB_BYTE) return -1;
+    if(hdr->drl > LIMIT_SLAB_BYTE) return -1;
 
     _new_hval = lookup(hdr->key,hdr->keyl,0);
     _new_hjval = jenkins_one_at_a_time_hash(hdr->key, hdr->keyl);
-    HITEM_SWITCH((y=(_new_hval&pools_tab->mask)));
+    HITEM_SWITCH((y=(_new_hval&pools_htab->mask)));
 
     ph = pools_hitem[y];    
     
@@ -167,11 +174,13 @@ word haddHitem ( HDR *hdr ){
             if(m != i){  /* old size != new size , free old slab */
                 addfslab(ph);  /* free old slab */
 
-                FSLAB *fslab = findslab(slabclass[i].size, i);
+                fslab = findslab(slabclass[i].size, i);
+                if(!fslab) return -1;
                 ph->psize = slabclass[i].size;  /* update psize */
                 ph->sid = fslab->sid;
                 ph->sa = fslab->sa;
                 ph->drl = hdr->drl;
+                free(fslab);
             }
             /* 
             if((ph->amiss / ph->ahit) > LIMIT_PERCENT){
@@ -183,7 +192,7 @@ word haddHitem ( HDR *hdr ){
             if(hsp != NULL){
                 memcpy(hsp->sm+ph->sa*ph->psize, hdr->dr, hdr->drl);
                 ph->amiss++;
-                pools_tab->miss++;
+                pools_htab->miss++;
                 hrule(ph, H_UPDATE);
                 return 0;
             }else
@@ -195,21 +204,21 @@ word haddHitem ( HDR *hdr ){
     
     if(!phtmp->next){
         hp = hitemcreate();
-        hp->key   = hdr->sk;
-        hp->keyl  = hdr->skl;
+        hp->key   = hdr->key;
+        hp->keyl  = hdr->keyl;
         hp->drl = hdr->drl;
         hp->psize = slabclass[i].size;
-        hp->hval  = hval;
-        hp->hjval = hjval;
-        
-        FSLAB *fslab = findslab(hp->psize, i);
-        HSLAB *hslab = findhslab(i, fslab->sid); 
+        hp->hval  = _new_hval;
+        hp->hjval = _new_hjval;
+         
+        fslab = findslab(hp->psize, i);
+        hslab = findhslab(i, fslab->sid); 
 
         hp->sid = fslab->sid;
         hp->sa = fslab->sa;
 
         memcpy(hslab->sm+fslab->sa*hp->psize, hdr->dr, hdr->drl);
-
+        free(fslab);
         phtmp->next = hp;
 
         pools_hitem_row[i]++;
@@ -234,12 +243,12 @@ word haddHitem ( HDR *hdr ){
  * =====================================================================================
  */
 void hrule ( HITEM *hitem, H_CHANGE stat ){
-    int i
+    int i;
     HITEM *ph;
 
     if(!hitem) return;
 
-    if(pools_htab->bytes == conn_global->bytes &&
+    if(pools_htab->bytes == conn_global->maxbytes &&
         pools_harug->step == MAX_HARU_POOL){
         for ( i=0; i<MAX_HARU_POOL; i++ ) {
             ph = pools_haru_pool[i].phitem;
@@ -289,21 +298,20 @@ void hrule ( HITEM *hitem, H_CHANGE stat ){
  * =====================================================================================
  */
 int hsort (  ){
-    int i, m;
-    HARU *haru, *t;
+   /*  int i, m;
+    HARU  *t;
 
-    haru = pools_harug->pools_haru_pool;
- 
-    t = haru[0];
-
+    t = pools_harug->haru_pool[0];
+    m = 0;
     for ( i=1; i<MAX_HARU_POOL-1; i++ ) {
-        if(t.hit < haru[i].hit) {
-            t = haru[i];
+        if(t->hit < pools_harug->haru_pool[i].hit) {
+            t = pools_harug->haru_pool[i];
             m = i;
         }
     }
 
-    return m;
+    return m;*/
+    return 0;
 }		/* -----  end of function hsort  ----- */
 
  /* vim: set ts=4 sw=4: */

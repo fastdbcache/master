@@ -26,15 +26,14 @@
 #include <math.h>
 
 #include "pool_struct.h"
+#include "pool_init.h"
 
-
-word haddItem ( HDR *hdr );
+void hgrow();
 HSLAB *findhslab ( ssize_t i, sb2 _sid);
-int hslabclass ( void );
 int hsms ( ub4 bytes );
-static void addfslab ( HITEM *_ph);
+void addfslab ( HITEM *_ph);
 FSLAB *findfslab ( sb2 _psize );
-FSLAB *findslab ( sb2 _psize );
+FSLAB *findslab ( sb2 _psize ,int i);
 
 #ifdef __cplusplus
  }

@@ -16,49 +16,10 @@
  * =====================================================================================
  */
 
-#ifndef STANDARD
-#include "standard.h"
-#endif
-#ifndef LOOKUPA
-#include "lookupa.h"
-#endif
+
 #ifndef HASHTAB
 #include "hashtab.h"
 #endif
-#ifndef RECYCLE
-#include "recycle.h"
-#endif
-
-/* sanity check -- make sure ipos, apos, and count make sense */
-static void  hsanity(t)
-htab *t;
-{
-  ub4    i, end, counter;
-  hitem *h;
-
-  /* test that apos makes sense */
-  end = (ub4)1<<(t->logsize);
-  if (end < t->apos)
-    printf("error:  end %ld  apos %ld\n", end, t->apos);
-
-  /* test that ipos is in bucket apos */
-  if (t->ipos)
-  {
-    for (h=t->table[t->apos];  h && h != t->ipos;  h = h->next)
-      ;
-    if (h != t->ipos)
-      printf("error:ipos not in apos, apos is %ld\n", t->apos);
-  }
-
-  /* test that t->count is the number of elements in the table */
-  counter=0;
-  for (counter=0, i=0;  i<end;  ++i)
-    for (h=t->table[i];  h;  h=h->next)
-      ++counter;
-  if (counter != t->count)
-    printf("error: counter %ld  t->count %ld\n", counter, t->count);
-}
-
 
 /*
  * hgrow - Double the size of a hash table.
@@ -66,7 +27,7 @@ htab *t;
  * move everything from the old array to the new array,
  * then free the old array.
  */
-static void hgrow()
+void hgrow()
 {
     ub4     newsize = (ub4)1<<(++pools_htab->logsize);
     ub4     newmask = newsize-1;
@@ -109,162 +70,7 @@ static void hgrow()
     pools_htab->mask = newmask;
 }
 
-/* hdestroy - destroy the hash table and free all its memory */
-void hdestroy( t)
-htab  *t;    /* the table */
-{
-  hitem *h;
-  refree(t->space);
-  free((char *)t->table);
-  free((char *)t);
-}
 
-/* hcount() is a macro, see hashtab.h */
-/* hkey() is a macro, see hashtab.h */
-/* hkeyl() is a macro, see hashtab.h */
-/* hstuff() is a macro, see hashtab.h */
-
-
-
-
-/* hdel - delete the item at the current position */
-word  hdel(t)
-htab *t;      /* the hash table */
-{
-  hitem  *h;    /* item being deleted */
-  hitem **ip;   /* a counter */
-
-  /* check for item not existing */
-  if (!(h = t->ipos)) return FALSE;
-
-  /* remove item from its list */
-  for (ip = &t->table[t->apos]; *ip != h; ip = &(*ip)->next)
-    ;
-  *ip = (*ip)->next;
-  --(t->count);
-
-  /* adjust position to something that exists */
-  if (!(t->ipos = h->next)) hnbucket(t);
-
-  /* recycle the deleted hitem node */
-  redel(t->space, h);
-
-#ifdef HSANITY
-  hsanity(t);
-#endif  /* HSANITY */
-
-  return TRUE;
-}
-
-/* hfirst - position on the first element in the table */
-word hfirst(t)
-htab  *t;    /* the hash table */
-{
-  t->apos = t->mask;
-  (void)hnbucket(t);
-  return (t->ipos != (hitem *)0);
-}
-
-/* hnext() is a macro, see hashtab.h */
-
-/*
- * hnbucket - Move position to the first item in the next bucket.
- * Return TRUE if we did not wrap around to the beginning of the table
- */
-word hnbucket(t)
-htab *t;
-{
-  ub4  oldapos = t->apos;
-  ub4  end = (ub4)1<<(t->logsize);
-  ub4  i;
-
-  /* see if the element can be found without wrapping around */
-  for (i=oldapos+1; i<end; ++i)
-  {
-    if (t->table[i&t->mask])
-    {
-      t->apos = i;
-      t->ipos = t->table[i];
-      return TRUE;
-    }
-  }
-
-  /* must have to wrap around to find the last element */
-  for (i=0; i<=oldapos; ++i)
-  {
-    if (t->table[i])
-    {
-      t->apos = i;
-      t->ipos = t->table[i];
-      return FALSE;
-    }
-  }
-
-  return FALSE;
-}
-
-void hstat(t)
-htab  *t;
-{
-  ub4     i,j;
-  double  total = 0.0;
-  hitem  *h;
-  hitem  *walk, *walk2, *stat = (hitem *)0;
-
-  /* in stat, keyl will store length of list, hval the number of buckets */
-  for (i=0; i<=t->mask; ++i)
-  {
-    for (h=t->table[i], j=0; h; ++j, h=h->next)
-      ;
-    for (walk=stat; walk && (walk->keyl != j); walk=walk->next)
-      ;
-    if (walk)
-    {
-      ++(walk->hval);
-    }
-    else
-    {
-      walk = (hitem *)renew(t->space);
-      walk->keyl = j;
-      walk->hval = 1;
-      if (!stat || stat->keyl > j) {walk->next=stat; stat=walk;}
-      else
-      {
-        for (walk2=stat;
-             walk2->next && (walk2->next->keyl<j);
-             walk2=walk2->next)
-          ;
-        walk->next = walk2->next;
-        walk2->next = walk;
-      }
-    }
-  }
-
-  /* figure out average list length for existing elements */
-  for (walk=stat; walk; walk=walk->next)
-  {
-    total+=(double)walk->hval*(double)walk->keyl*(double)walk->keyl;
-  }
-  if (t->count) total /= (double)t->count;
-  else          total  = (double)0;
-
-  /* print statistics */
-  printf("\n");
-  for (walk=stat; walk; walk=walk->next)
-  {
-    printf("items %ld:  %ld buckets\n", walk->keyl, walk->hval);
-  }
-  printf("\nbuckets: %ld  items: %ld  existing: %g\n\n",
-         ((ub4)1<<t->logsize), t->count, total);
-
-  /* clean up */
-  while (stat)
-  {
-    walk = stat->next;
-    redel(t->space, stat);
-    stat = walk;
-  }
-}
 
 /* 
  * ===  FUNCTION  ======================================================================
@@ -273,9 +79,7 @@ htab  *t;
  * =====================================================================================
  */
 HSLAB *findhslab ( ssize_t i, sb2 _sid){
-    HITEM *hp = hi;
     HSLAB *slab, *p;
-    char *res;
 
     slab = pools_hslab[i];
 
@@ -302,20 +106,23 @@ int hsms ( ub4 bytes ){
     int i;
     float l;
 
-    if(bytes > MAX_SLAB_BYTE) return -1;
+    if(bytes > MAX_SLAB_BYTE){
+        printf("big bytes\n");
+        return -1;
+    }
 
     i = 0;
-    l = (bytes / SLAB_BEGIN);
+    /*  l = (bytes / SLAB_BEGIN);
     while( l >= conn_global->factor ){
         l = l / conn_global->factor;
         i++;
     }
     if( i>0 ) --i;
-
+    */
     for ( ; slabclass[i].chunk > 0; i++ ) {
         if(slabclass[i].size >= bytes) return i;
     }
-
+    printf("not found size\n");
     return -1;
 }		/* -----  end of function hsms  ----- */
 
@@ -326,7 +133,7 @@ int hsms ( ub4 bytes ){
  *  Description:  
  * =====================================================================================
  */
-static void addfslab ( HITEM *_ph){
+void addfslab ( HITEM *_ph){
     FSLAB  *f, *fslab;
         
    /* pthread_mutex_lock(&work_lock_fslab);  */
@@ -362,7 +169,7 @@ FSLAB *findfslab ( sb2 _psize ){
 
     do {
         res = fslab;
-        fslab = fslab->ext;
+        fslab = fslab->next;
         if(fslab == NULL) return NULL;
         if(fslab->psize == _psize){
             res->next = fslab->next;
@@ -392,11 +199,14 @@ FSLAB *findslab ( sb2 _psize ,int i){
     }else{
         /* 2. find a slab from pools_hslab */
         hslab = pools_hslab[i];
-        
+        if(!hslab){
+            printf("hslab error\n");
+            return NULL;
+        } 
         loop:
         
             if(hslab->sm == NULL){
-                hslab->sm = (char *)calloc(MAX_SLAB_BYTE, sizeof(char));
+                hslab->sm = (ub1 *)calloc(MAX_SLAB_BYTE, sizeof(ub1));
                 hslab->ss = 0;
                 hslab->sf = slabclass[i].chunk;
                 
@@ -405,22 +215,21 @@ FSLAB *findslab ( sb2 _psize ,int i){
             if(hslab->sf > 0){
                 fs_tmp = (FSLAB *)calloc(1, sizeof(FSLAB));
 
-                memcpy(hslab->sm + hslab->ss*ph->psize, hdr->dr, hdr->drl);
+                /*memcpy(hslab->sm + hslab->ss*_psize, hdr->dr, hdr->drl);*/
                 fs_tmp->sid = hslab->id;
-                fs_tmp->sa = fslab->ss;
+                fs_tmp->sa =  hslab->ss;
                 fs_tmp->psize = _psize;
                 hslab->ss++;
                 hslab->sf--;
 
                 return fs_tmp;
             }else{
-                if(pools_htab->bytes <= conn_global->bytes){
+                if(pools_htab->bytes <= conn_global->maxbytes){
                     hs_tmp = hslabcreate(i);
                     hs_tmp->id = hslab->id + 1;
                     hslab->next = hs_tmp;
                     hslab = hslab->next;
 
-                    pools_htab->hslab_stat[i]++;
                     goto loop;
                 }else {
                     perror("bytes is eq conn_global->bytes\n");
