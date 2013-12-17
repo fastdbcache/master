@@ -36,11 +36,12 @@
 #include <unistd.h>
 #include <malloc.h>
 #include <string.h>
+#include <stdlib.h>
 
-typedef  unsigned long long  ub8;
+typedef  unsigned long  ub8;
 #define UB8MAXVAL 0xffffffffffffffffLL
 #define UB8BITS 64
-typedef    signed long long  sb8;
+typedef    signed long  sb8;
 #define SB8MAXVAL 0x7fffffffffffffffLL
 typedef  unsigned long  int  ub4;   /* unsigned 4-byte quantities */
 #define UB4MAXVAL 0xffffffff
@@ -104,7 +105,7 @@ struct __conn{
 _conn *conn_global;
 
 void conn_init_global();
-
+void conn_get_global ();
 #ifdef __cplusplus
  }
 #endif
