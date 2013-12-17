@@ -130,15 +130,17 @@ HSLAB *hslabnull (  ){
  *  Description:  
  * =====================================================================================
  */
-HSLAB *hslabcreate ( ssize_t chunk ){
+HSLAB *hslabcreate ( int i ){
     HSLAB *h;
 
     h = hslabnull();
     h->sm = (char *)calloc(MAX_SLAB_BYTE, sizeof(char));
-    h->sf = chunk;
+    if(!h->sm)perror("h sm calloc error\n"); 
+    h->sf = slabclass[i].chunk;
    
     BYTES_LOCK();
-    pools_htab->bytes += MAX_SLAB_BYTE;
+    pools_htab->bytes += MAX_SLAB_BYTE;    
+    pools_htab->hslab_stat[i]++;
     BYTES_UNLOCK();
      
     return h;
@@ -190,7 +192,6 @@ HITEM **inithitem ( ub4 len ){
     return hitem;
 }		/* -----  end of function inithitem  ----- */
 
-
 /* 
  * ===  FUNCTION  ======================================================================
  *         Name:  hitemcreate
@@ -217,6 +218,27 @@ HITEM *hitemcreate(){
     }
     return h;
 }		/* -----  end of function hitemcreate  ----- */
+
+
+/* 
+ * ===  FUNCTION  ======================================================================
+ *         Name:  freehitem
+ *  Description:  
+ * =====================================================================================
+ */
+void freehitem ( HITEM **_h, ub4 len ){
+    int i;
+
+    if(!*_h) return;
+    if(!_h) return;
+
+    for(i=0; i<len; i++){
+        if(!_h[i]) free(_h[i]);
+    }
+
+    free(*_h);
+
+}		/* -----  end of function freehitem  ----- */
 
 /* 
  * ===  FUNCTION  ======================================================================

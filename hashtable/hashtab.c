@@ -77,12 +77,11 @@ static void hgrow()
     pools_hitem_row = calloc(newsize, sizeof(ub4)) ;
 
     hitem_group->move = inithitem( newsize );
-    hitem_group->bucket = 1; 
     
     old_hitem = hitem_group->usable;
     new_hitem = hitem_group->move;
    
-    for(i=0; i<pools_htab->logsize; i++){
+    for(i=pools_htab->logsize; i--;){
         HITEM *this, *that, *new;
         this = old_hitem[i]->next;
         
@@ -97,13 +96,15 @@ static void hgrow()
             new->next = that;
             pools_htab->count++;
         }
-        hitem_group->bucket++;
+        hitem_group->bucket--;
     }
 
-    free(hitem_group->usable);
+    freehitem(hitem_group->usable, pools_htab->logsize);
+    
     hitem_group->usable = hitem_group->move;
     hitem_group->move = NULL;
-
+    hitem_group->bucket = newsize;
+    
     pools_htab->logsize = newsize; 
     pools_htab->mask = newmask;
 }
@@ -413,13 +414,18 @@ FSLAB *findslab ( sb2 _psize ,int i){
 
                 return fs_tmp;
             }else{
-                hs_tmp = hslabcreate(slabclass[i].chunk);
-                hs_tmp->id = hslab->id + 1;
-                hslab->next = hs_tmp;
-                hslab = hslab->next;
+                if(pools_htab->bytes <= conn_global->bytes){
+                    hs_tmp = hslabcreate(i);
+                    hs_tmp->id = hslab->id + 1;
+                    hslab->next = hs_tmp;
+                    hslab = hslab->next;
 
-                pools_htab->hslab_stat[i]++;
-                goto loop;
+                    pools_htab->hslab_stat[i]++;
+                    goto loop;
+                }else {
+                    perror("bytes is eq conn_global->bytes\n");
+                    return NULL;
+                }
             }
     }
     return NULL;

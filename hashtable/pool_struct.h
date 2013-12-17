@@ -106,13 +106,12 @@ struct __hitem_group
     HITEM        **usable;
     HITEM        **move;
     ub4          bucket;
-    ub4           comp;    /*  */
 };
 typedef  struct __hitem_group  HG;
 
 /* algorithm Recently Used 
  * array use this struct 
- * if(htab->count < htab->logsize) MRU
+ * if(htab->step < htab->logsize) add
  * else{
  *  if(insert ) LRU 
  *  if(update) MRU 

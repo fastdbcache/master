@@ -223,13 +223,7 @@ word haddHitem ( HDR *hdr ){
     if (++pools_htab->count > (ub4)1<<(pools_htab->logsize))
     {
         hgrow();
-        y = (x&t->mask);
     }
-    
-#ifdef HSANITY
-    hsanity(t);
-#endif  /* HSANITY */
-
     return TRUE;
 }		/* -----  end of function haddHitem  ----- */
 
