@@ -220,6 +220,9 @@ int AuthPG(const int bfd,const int ffd, SESSION_SLOTS *slot){
                 slot->head = _mf;
             }   
         }
+        if(*_apack == 'Q'){
+            
+        }
         switch ( *_apack ) {
             case 'R':	
 

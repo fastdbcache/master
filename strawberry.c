@@ -37,7 +37,7 @@ int main(int argc, char* argv[]){
         printf("%s%s\n", argv[0], help);
         exit(-1);
     }
-
+    c = NULL;
 	while((h = getopt(argc, argv, "c:d")) != -1){
 		switch(h){
 			case 'c':
@@ -52,8 +52,13 @@ int main(int argc, char* argv[]){
 		}
 	}
 
-	conf_init(c);
     conn_init_global();
+
+    if(c){
+	    conf_init(c);
+        conn_get_global();
+    }
+    
 
 	d_log("snooker:0.0.1 start ...");
 
