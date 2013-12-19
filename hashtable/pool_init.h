@@ -33,6 +33,7 @@ HITEM **inithitem ( ub4 len );
 HITEM *hitemcreate();
 void freehitem ( HITEM **_h, ub4 len );
 HDR **inithdr (  );
+HDR *hdrcreate (  );
 ULIST **initulist (  );
 
 #ifdef __cplusplus

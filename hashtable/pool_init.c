@@ -255,20 +255,32 @@ HDR **inithdr (  ){
     d = (HDR **) calloc(conn_global->process_num, sizeof(HDR)); 
     
     for(i=0; i<conn_global->process_num; i++){
-        d[i] = (HDR *)calloc(1, sizeof(HDR));
-        if(d[i]){
-            d[i]->key = NULL;
-            d[i]->keyl = 0;
-            d[i]->stime = 0;
-            d[i]->flag = 0;
-            d[i]->dr = NULL;
-            d[i]->drl = 0;
-            d[i]->pid = 0;
-            d[i]->next = NULL;            
-        }
+        d[i] = hdrcreate();
     }
     return d; 
 }		/* -----  end of function inithdr  ----- */
+
+
+/* 
+ * ===  FUNCTION  ======================================================================
+ *         Name:  hdrcreate
+ *  Description:  
+ * =====================================================================================
+ */
+HDR *hdrcreate (  ){
+    HDR *d;
+    d = (HDR *)calloc(1, sizeof(HDR));
+    if(d){
+        d->key = NULL;
+        d->keyl = 0;
+        d->stime = 0;
+        d->flag = 0;
+        d->dr = NULL;
+        d->drl = 0;
+        d->next = NULL;            
+    }
+    return d;
+}		/* -----  end of function hdrcreate  ----- */
 
 /* 
  * ===  FUNCTION  ======================================================================

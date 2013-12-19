@@ -146,7 +146,6 @@ struct __hdr
   H_STATE       flag;     /* 0 is new, 1 is update, HDR_FALSE worker delete, proc change */
   ub1           *dr;      /* db return data row */
   ub4           drl;      /* length of data row */
-  pthread_t     pid;
   struct __hdr   *next;  
 };
 typedef  struct __hdr  HDR;
