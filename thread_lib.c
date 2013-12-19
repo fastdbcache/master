@@ -67,7 +67,7 @@ void libevent_work_thread(int fd, short ev, void *arg){
     _slot = resolve_slot(start_pack->pack);
     
    if(_slot->backend_fd == 0){
-        pg_fds = Client_Init(conf_get("pg_host"), atoi(conf_get("pg_port")));
+       /*  pg_fds = Client_Init(conf_get("pg_host"), atoi(conf_get("pg_port")));
         if(pg_fds == -1){
             if(start_pack->pack != NULL)free(start_pack->pack);
             start_pack->pack = NULL;
@@ -75,9 +75,9 @@ void libevent_work_thread(int fd, short ev, void *arg){
         }
         pg_len = Socket_Send(pg_fds, start_pack->pack, pack_len);
 
-
+         */
         if(pg_len != pack_len) goto bad;
-        if(AuthPG(pg_fds, ffd, _slot)==-1){
+        if(AuthPG(pg_fds, ffd, _slot, work_child->no)==-1){
             //printf("auth error\n");
             //            goto bad;
             //                    }else{
@@ -280,7 +280,7 @@ void libevent_token_thread( int fd, short ev,void *arg){
     if (s != sizeof(uint64_t)){
         printf("s is error\n");
     }
-    printf("1\n");
+
     notify_token_thread = NT_WORKING;
     do{
         RQ *rq_item = rq_pop();

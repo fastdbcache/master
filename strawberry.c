@@ -16,6 +16,7 @@
 #include "signal_lib.h"
 #include "config_global.h"
 #include "./modules/modules.h"
+#include "./hashtable/pool_init.h"
 
 int main(int argc, char* argv[]){
     int listen_fd, unix_sock;
@@ -84,12 +85,9 @@ int main(int argc, char* argv[]){
 		exit(-1);
 	}
 
-    /*if(-1 == SetNonBlocking(listen_fd)){
-        printf("noblock error\n");
-        close(listen_fd);
-        return (-1);
-    }*/
-    rq_init(conn_global->max_link);
+    hcreate(8);
+    //rq_init(MAXCONN);
+    rq_init(2);
 
     work_thread_init(conn_global->process_num);
 

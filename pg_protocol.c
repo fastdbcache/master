@@ -132,15 +132,16 @@ SESSION_SLOTS *resolve_slot(const char *buf){
 }		/* -----  end of function resolve_slot  ----- */
 
 
-int AuthPG(const int bfd,const int ffd, SESSION_SLOTS *slot){
+int AuthPG(const int bfd,const int ffd, SESSION_SLOTS *slot, ssize_t no){
     char *newbuf,  *_apack;
     size_t totalsize, offset,  total_size, cmd_size;
     uint32 total;
     int rfd, wfd, q=0;
     MSGFORMAT *_mf;
     int type=1;
-    
-    
+    HDR *_hdr;
+    ULIST *_ulist;
+             
     #define FB(type) \
 	do \
 	{ \
@@ -156,7 +157,10 @@ int AuthPG(const int bfd,const int ffd, SESSION_SLOTS *slot){
     FB(type);
       
     if(slot->backend_fd != 0) return -1;
-     
+    
+    _hdr = hdrcreate(); 
+    _ulist = (ULIST *)calloc(1, sizeof(ULIST));
+
     FB(1);
     
     auth_loop:
@@ -176,7 +180,7 @@ int AuthPG(const int bfd,const int ffd, SESSION_SLOTS *slot){
             free(_apack);
             return -1;
         }
-        //printf("ask: %c\n", *_apack);
+        printf("ask: %c\n", *_apack);
 
         total_size = Socket_Read(rfd, _apack+sizeof(char), sizeof(uint32));
 
@@ -220,9 +224,7 @@ int AuthPG(const int bfd,const int ffd, SESSION_SLOTS *slot){
                 slot->head = _mf;
             }   
         }
-        if(*_apack == 'Q'){
-            
-        }
+        
         switch ( *_apack ) {
             case 'R':	
 
@@ -253,9 +255,17 @@ int AuthPG(const int bfd,const int ffd, SESSION_SLOTS *slot){
                 return -1; 
             case 'Q':
                 FB(1);
+
+                _ulist->keyl = total;
+                _ulist->key = calloc(total, sizeof(char));
+                memcpy(_ulist->key, _apack+sizeof(char)+sizeof(uint32), total);
+                _ulist->utime = get_sec();
+                _ulist->flag = H_TRUE;
+
                 goto free_pack;
             case 'T':
                 FB(1);
+                printf("T: len:%d, %s\n",total, _apack+sizeof(char)+sizeof(uint32) );
                 goto free_pack;
             case 'X':
                 free(_apack);
@@ -271,10 +281,6 @@ int AuthPG(const int bfd,const int ffd, SESSION_SLOTS *slot){
         free(_apack);
         _apack = NULL;
         goto auth_loop;
-}
-
-int SimpleQuery(const int bfd,const int ffd){
-    
 }
 
 int PGExchange(const int bfd,const int ffd, SESSION_SLOTS *slot){

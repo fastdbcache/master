@@ -38,7 +38,6 @@ void conn_init_global ( void ){
     conn_global->pid_file = "/var/run/server.pid";
 
     conn_global->process_num = 2;
-    conn_global->max_link = 2;
 
     conn_global->factor = 1.25;
     conn_global->maxbytes = 64 * 1024 * 1024 ;
@@ -66,7 +65,6 @@ void conn_get_global (  ){
     conn_global->pid_file = conf_get("pid_file");
 
     conn_global->process_num = atoi(conf_get("process_num"));
-    conn_global->max_link = atoi(conf_get("max_link"));
 
     conn_global->factor = 1.25;
     conn_global->maxbytes = 64 * 1024 * 1024;
