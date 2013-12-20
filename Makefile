@@ -2,6 +2,7 @@
 CC := gcc
 OK := server
 MAKE	:= make
+LIBS	:=	-ll -ly 
 #LIBS := -L/usr/local/mysql/lib/mysql -I/usr/local/mysql/include/mysql -DUNIV_LINUX
 CFLAGS := $(LIBS) -Wall -O -g -pedantic -Wshadow -Wunused -Wstrict-aliasing  
 
@@ -13,24 +14,22 @@ EXECUTABLE := -o server $(CXXFLAGS)
 SOURCE := $(wildcard *.c)
 OBJS := $(patsubst %.c,%.o,$(SOURCE))
 
-#UBDIRS := ./modules/
-#MODSOUR :=  $(wildcard $(SUBDIRS)*.c)
-#MODPROG := $(patsubst $(SUBDIRS)%.c,$(SUBDIRS)%.o, $(MODSOUR))
-
 HASHDIR := ./hashtable/
-HASHSOUR :=  $(wildcard $(HASHDIR)*.c)
+FILTER  := $(HASHDIR)test_hashtable.c
+HASHSOUR :=  $(filter-out $(FILTER),$(wildcard $(HASHDIR)*.c))
 HASHPROG := $(patsubst $(HASHDIR)%.c,$(HASHDIR)%.o, $(HASHSOUR))
 
 PARDIR := ./parser/
-PARSOUR :=  $(wildcard $(PARDIR)*.c)
-#PARPROG := $(patsubst $(PARDIR)%.c,$(PARDIR)%.o, $(PARSOUR))
-PARPROG	:=	$(PARDIR)ly.o
+LEXSOUR :=  $(wildcard $(PARDIR)*.l)
+LEXPROG := $(patsubst $(PARDIR)%.l,$(PARDIR)%.o, $(LEXSOUR))
+YACCSOUR :=  $(wildcard $(PARDIR)*.y)
+YACCPROG := $(patsubst $(PARDIR)%.y,$(PARDIR)%.o, $(YACCSOUR))
 
 .PHONY : deps everything objs clean 
 
 $(OK) : $(OBJS) hashtables parsers 
 	@echo "======== ok ========="
-	$(CC)  $(EXECUTABLE) $(OBJS) $(PARPROG) $(HASHPROG) $(LEXYACC)  $(HASHROG) $(LIBS) $(CFLAGS) 
+	$(CC)  $(OBJS) $(PARPROG) $(HASHPROG) $(LEXPROG) $(YACCPROG)  $(HASHROG)  $(EXECUTABLE)
 
 hashtables :  
 	@echo "======= hashtable ========="
@@ -41,7 +40,7 @@ parsers :
 	$(foreach c,$(PARDIR),$(MAKE) -C $(c) || ) true
 
 deps : $(OBJS)
-		$(CC) $(OBJS) $(CFLAGS) $(LIBS) $(CXXFLAGS)
+		$(CC) $(OBJS) $(CFLAGS)  $(CXXFLAGS)
 
 objs : $(OBJS)
 

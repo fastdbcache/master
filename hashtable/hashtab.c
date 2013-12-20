@@ -104,7 +104,7 @@ HSLAB *findhslab ( ssize_t i, sb2 _sid){
  */
 int hsms ( ub4 bytes ){
     int i;
-    float l;
+    /*float l;*/
 
     if(bytes > MAX_SLAB_BYTE){
         printf("big bytes\n");
