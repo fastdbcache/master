@@ -292,7 +292,7 @@ int AuthPG(const int bfd,const int ffd, SESSION_SLOTS *slot, ssize_t no){
                     hkey(_drtmp, total, mem_pack);
                     
                     if(mem_pack->len > 0){                        
-                        printf("FOUND KEY mem_pack len %d, sql:%s\n", mem_pack->len, _drtmp);
+                        DEBUG("FOUND KEY mem_pack len %d, sql:%s", mem_pack->len, _drtmp)
                         Socket_Send(wfd, mem_pack->pack, mem_pack->len);
                         free(mem_pack->pack);
                         
@@ -349,7 +349,6 @@ int AuthPG(const int bfd,const int ffd, SESSION_SLOTS *slot, ssize_t no){
                 if(isSELECT == 0){
                     if(_hdr && _ulist){
                         addHdr(_hdr, no);
-                        printf("add hdr len: %d\n", _hdr->drl);                        
                     }
                 }
                 if(_ulist)

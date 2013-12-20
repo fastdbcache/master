@@ -57,11 +57,11 @@ void htlist (  ){
             ply = parser_do (_u->key, _u->keyl);
 
             if(!ply){ 
-                printf("ply is null %s\n", __FILE__);
+                printf("ply is null %s", __FILE__);
                 _u->flag = H_FALSE;
                 continue;
             }
-            printf("name:%s\n", ply->tab);
+            DEBUG("name:%s\n", ply->tab);
             while ( _tlist->next ) {
                 _tlist = _tlist->next;
                 if(!memcmp(_tlist->key,ply->tab, ply->len)&&

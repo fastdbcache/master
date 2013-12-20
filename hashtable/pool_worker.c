@@ -65,8 +65,8 @@ HITEM *hfind ( char *key, ub4 keyl ){
                 if(!tlist)printf("tlist is null\n");
                 while ( tlist ) {
                     /*  has a bug */
-                    if(strstr(key, tlist->key)){
-                        printf("key:%s utime:%llu \n", tlist->key, tlist->utime);
+                    if(tlist->keyl >0 && strstr(key, tlist->key)){
+                        DEBUG("key:%s utime:%llu ", tlist->key, tlist->utime);
                         /* over time */
                         if(tlist->utime > ph->utime) return NULL; 
                     }
