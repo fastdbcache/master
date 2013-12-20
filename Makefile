@@ -33,11 +33,11 @@ $(OK) : $(OBJS) hashtables parsers
 
 hashtables :  
 	@echo "======= hashtable ========="
-	$(foreach c,$(HASHDIR),$(MAKE) -C $(c) || ) true
+	$(foreach c,$(HASHDIR),$(MAKE) -C $(c) && ) true
 
 parsers :  
 	@echo "======= parser ========="
-	$(foreach c,$(PARDIR),$(MAKE) -C $(c) || ) true
+	$(foreach c,$(PARDIR),$(MAKE) -C $(c) && ) true
 
 deps : $(OBJS)
 		$(CC) $(OBJS) $(CFLAGS)  $(CXXFLAGS)
@@ -52,6 +52,7 @@ clean :
 	$(RM-F) hashtable/*.o	
 	$(RM-F) hashtable/*.gch
 	$(RM-F) parser/*.o
+	$(RM-F) parser/*.c
 	$(RM-F) parser/*.gch
 	$(RM-F) $(OK)
 	$(RM-F) core.*
