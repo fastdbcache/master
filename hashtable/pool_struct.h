@@ -63,6 +63,14 @@ typedef enum {
     H_UPDATE
 } H_CHANGE;
 
+
+struct __slabpack {
+    char *pack;
+    int  len;
+};				/* ----------  end of struct __slabpack  ---------- */
+
+typedef struct __slabpack SLABPACK;
+
 struct __hslab
 {
   ub1           *sm;      /* slab malloc 1M */

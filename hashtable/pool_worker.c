@@ -26,12 +26,12 @@
  *  Description:  
  * =====================================================================================
  */
-char *hkey ( char *key, ub4 keyl){
+int hkey ( char *key, ub4 keyl, SLABPACK *dest){
     HITEM *_h;
 
     _h = hfind(key, keyl);
-
-    return getslab(_h);
+    
+    return getslab(_h, dest);
 }		/* -----  end of function hkey  ----- */
 
 /* 
@@ -104,26 +104,27 @@ HITEM *hfind ( char *key, ub4 keyl ){
  *  Description:  
  * =====================================================================================
  */
-char *getslab ( HITEM * hitem){
+int getslab ( HITEM * hitem, SLABPACK *dest){
     HITEM *_ph = hitem;
     HSLAB *_ps;
     int i;
-    char *res;
 
-    if(!_ph) return NULL;
+    if(!_ph) return -1;
 
     i = hsms(_ph->psize);
     _ps = pools_hslab[i];
 
     for(; _ps; _ps=_ps->next){
         if(_ps->id == _ph->sid){
-            res = calloc(_ph->drl, sizeof(char));
-            if(!res) return NULL;
-            memcpy(res, _ps->sm+_ph->sa*_ph->psize, _ph->drl);
-            return res;
+            dest->pack = calloc(_ph->drl, sizeof(char));
+            if(!dest->pack) return -1;
+            memcpy(dest->pack, _ps->sm+_ph->sa*_ph->psize, _ph->drl);
+            dest->len = _ph->drl;
+            printf("_ph->drl: %d\n", _ph->drl);
+            return 0;
         }
     }
-    return NULL;
+    return -1;
 }		/* -----  end of function getslab  ----- */
 
 /* 
@@ -198,9 +199,10 @@ int addUlist ( ULIST *mlist, int m ){
  */
 void freeHdr ( HDR *fhdr ){
     if(!fhdr)return;
-
-    free(fhdr->key);
-    free(fhdr->dr);
+    if(fhdr->key)
+        free(fhdr->key);
+    if(fhdr->dr)
+        free(fhdr->dr);
     free(fhdr);
 }		/* -----  end of function freeHdr  ----- */
 
@@ -214,7 +216,8 @@ void freeHdr ( HDR *fhdr ){
 void freeUList ( ULIST *flist ){
     if(!flist) return;
 
-    free(flist->key);
+    if(flist->key)
+        free(flist->key);
     free(flist);
 }		/* -----  end of function freeUList  ----- */
  /* vim: set ts=4 sw=4: */

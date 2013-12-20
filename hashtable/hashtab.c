@@ -44,6 +44,8 @@ void hgrow()
    
     for(i=pools_htab->logsize; i--;){
         HITEM *this, *that, *new;
+
+        if(!old_hitem[i]) continue;
         this = old_hitem[i]->next;
         
         while( this ){

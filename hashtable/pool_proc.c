@@ -54,7 +54,11 @@ void htlist (  ){
             _u = _u->next;
             if(_u->flag == H_FALSE) continue;
             ply = parser_do (_u->key, _u->keyl);
-                        
+
+            if(!ply){ 
+                _u->flag = H_FALSE;
+                continue;
+            }
             while ( _tlist->next ) {
                 _tlist = _tlist->next;
                 if(!memcmp(_tlist->key,ply->tab, ply->len)&&

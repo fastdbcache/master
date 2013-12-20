@@ -54,6 +54,10 @@ void on_accept(int fd, short ev, void *arg){
         close(client_fd);
         d_log("RQ is full");
     }
+
+    if(proc_status == NT_FREE){
+        procThread();
+    }
 }
 
 void conn_new(int sfd, struct event_base *base){
@@ -65,5 +69,41 @@ void conn_new(int sfd, struct event_base *base){
 	event_add(&conns->event, 0);
 
 }
+
+
+/* 
+ * ===  FUNCTION  ======================================================================
+ *         Name:  procThread
+ *  Description:  
+ * =====================================================================================
+ */
+void procThread (  ){
+    pthread_t       thread;
+    pthread_attr_t  attr;
+    int ret;
+    pthread_attr_init(&attr);
+    
+    proc_status = NT_HAS;
+            
+    if ((ret = pthread_create(&thread, &attr, fproc, NULL)) != 0) {
+        d_log("Can't create thread");
+        printf("here---\n");
+        exit(1);
+    }   
+}		/* -----  end of function procThread  ----- */
+
+
+/* 
+ * ===  FUNCTION  ======================================================================
+ *         Name:  fproc
+ *  Description:  
+ * =====================================================================================
+ */
+void *fproc ( void *arg){
+    proc_status = NT_WORKING;
+    printf("add hdr for proc thread\n");
+    hproc();
+    proc_status = NT_FREE;
+}		/* -----  end of function fproc  ----- */
 /* vim: set ts=4 sw=4: */
 

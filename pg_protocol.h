@@ -26,6 +26,7 @@
 #include "log_lib.h"
 #include "socket_lib.h"
 #include "./hashtable/pool_init.h"
+#include "./hashtable/pool_worker.h"
 
 #define MAX_BACKEND_SESSION 128
 
@@ -91,6 +92,7 @@ int PGExchange2(const int bfd,const int ffd);
 int PGExchange(const int bfd,const int ffd, SESSION_SLOTS *slot);
 SESSION_SLOTS *resolve_slot(const char *buf);
 int AuthPG(const int bfd,const int ffd, SESSION_SLOTS *slot, ssize_t no);
+int findSQL (  const char *sql , int len);
 #endif   /* PG_PROTOCOL_H_*/
 /* vim: set ts=4 sw=4: */
 

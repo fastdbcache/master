@@ -34,9 +34,10 @@ int main ( int argc, char *argv[] ) {
     char sql[]="SELECT option_value FROM wp_options WHERE option_name = 'widget_pages' LIMIT 1";
     char sql1[]="SELECT * FROM wp_posts WHERE ID = 2 LIMIT 1";
     char data[]="test data for hashtable";
-    char *res;
+    int len;
     HDR *_hdr;
     ULIST *_ulist;
+    SLABPACK *packs;
 
     conn_init_global();
     hcreate(8);
@@ -68,26 +69,30 @@ int main ( int argc, char *argv[] ) {
 
     /* proc thread */
 
+    packs = (SLABPACK *)calloc(1, sizeof(SLABPACK));
     /* worker thread */
-    res = hkey(sql, strlen(sql));
+    len = hkey(sql, strlen(sql), packs);
     
-    printf("res:%s\n", res);
+    printf("res:%s\n", packs->pack);
 
-    free(res);
-    res = NULL;
+    
+    free(packs->pack);
+    packs->pack = NULL;
     /* worker thread */
 
 
     /* worker thread */
-    res = hkey(sql1, strlen(sql1));
-    if(res){
-        printf("res2:%s\n", res);
 
-        free(res);
+    len = hkey(sql1, strlen(sql1), packs);
+    if(packs->pack){
+        printf("res2:%s\n", packs->pack);
+
+        free(packs->pack);
     }else{
         printf("res2 is: NULL\n");
     }
-        
+
+    free(packs);
     /* worker thread */
     return 0;
 }				/* ----------  end of function main  ---------- */

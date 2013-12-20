@@ -35,7 +35,7 @@ void libevent_work_thread(int fd, short ev, void *arg){
     work_child = wtq_queue_tail;
     wtq_queue_tail = wtq_queue_tail->next;
 
-    printf("thread_id:%llu\n", me->thread_id);
+   // printf("thread_id:%llu\n", me->thread_id);
 
     FIND_WTQPID(work_child, me->thread_id);
     if(work_child->isjob == JOB_HAS)
@@ -106,7 +106,7 @@ void libevent_work_thread(int fd, short ev, void *arg){
         if(s != sizeof(uint64_t)){
             printf("write error s:%d\n", s);
         }
-        printf("token_efd\n");
+        //printf("token_efd\n");
     }
 
 
