@@ -25,9 +25,9 @@
 #include "pool_struct.h"
 #include "hashtab.h"
 
-int hkey ( char *key, ub4 keyl, SLABPACK *dest);
+void hkey ( char *key, ub4 keyl, SLABPACK *dest);
 HITEM *hfind ( char *key, ub4 keyl );
-int getslab ( HITEM * hitem, SLABPACK *dest);
+void getslab ( HITEM * hitem, SLABPACK *dest);
 int addHdr ( HDR *myhdr, int m );
 int addUlist ( ULIST *mlist, int m );
 void freeHdr ( HDR *fhdr );

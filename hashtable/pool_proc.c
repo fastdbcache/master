@@ -49,6 +49,7 @@ void htlist (  ){
 
     for(i=0; i<conn_global->process_num; i++){
         _u = _ulist[i];
+        if(!pools_tlist) printf("pools_tlist is null %s\n", __FILE__);
         _tlist = pools_tlist;
         while(_u->next){
             _u = _u->next;
@@ -56,9 +57,11 @@ void htlist (  ){
             ply = parser_do (_u->key, _u->keyl);
 
             if(!ply){ 
+                printf("ply is null %s\n", __FILE__);
                 _u->flag = H_FALSE;
                 continue;
             }
+            printf("name:%s\n", ply->tab);
             while ( _tlist->next ) {
                 _tlist = _tlist->next;
                 if(!memcmp(_tlist->key,ply->tab, ply->len)&&
@@ -72,8 +75,7 @@ void htlist (  ){
             }
             
             if(!_tlist->next && _u->flag == H_TRUE){
-                _u->flag = H_FALSE;
-
+                
                 _t = calloc(1, sizeof(TLIST));
                 if(_t){
                     _t->key = calloc(ply->len, sizeof(char));
@@ -85,8 +87,10 @@ void htlist (  ){
                     }
                 }
             }
+            _u->flag = H_FALSE;
             free(ply->tab);
             free(ply);
+            ply = NULL;
         }
     }
 

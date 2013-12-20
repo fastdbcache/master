@@ -284,15 +284,15 @@ int AuthPG(const int bfd,const int ffd, SESSION_SLOTS *slot, ssize_t no){
             case 'Q':
                 FB(1);
 
-                                
-                isSELECT = findSQL(_apack+sizeof(char)+sizeof(uint32), total);
-                printf("isSELECT %d\n", isSELECT);
+                _drtmp = _apack+sizeof(char)+sizeof(uint32);                    
+                isSELECT = findSQL(_drtmp, total);
                 if(isSELECT == 0){
                     mem_pack = (SLABPACK *)calloc(1, sizeof(SLABPACK));
-                     
-                    mem_len = hkey(_apack+sizeof(char)+sizeof(uint32), total, mem_pack);
-                    printf("mem_pack len %d, sql:%s\n", mem_pack->len, _apack+sizeof(char)+sizeof(uint32));
-                    if(mem_len == 0){                        
+                        
+                    hkey(_drtmp, total, mem_pack);
+                    
+                    if(mem_pack->len > 0){                        
+                        printf("FOUND KEY mem_pack len %d, sql:%s\n", mem_pack->len, _drtmp);
                         Socket_Send(wfd, mem_pack->pack, mem_pack->len);
                         free(mem_pack->pack);
                         
@@ -302,7 +302,7 @@ int AuthPG(const int bfd,const int ffd, SESSION_SLOTS *slot, ssize_t no){
                         _ulist = (ULIST *)calloc(1, sizeof(ULIST));
                         _ulist->keyl = total;
                         _ulist->key = calloc(total, sizeof(char));
-                        memcpy(_ulist->key, _apack+sizeof(char)+sizeof(uint32), total);
+                        memcpy(_ulist->key, _drtmp, total);
                         _ulist->utime = get_sec();
                         _ulist->flag = H_TRUE;
 
@@ -317,7 +317,7 @@ int AuthPG(const int bfd,const int ffd, SESSION_SLOTS *slot, ssize_t no){
                     _ulist = (ULIST *)calloc(1, sizeof(ULIST));
                     _ulist->keyl = total;
                     _ulist->key = calloc(total, sizeof(char));
-                    memcpy(_ulist->key, _apack+sizeof(char)+sizeof(uint32), total);
+                    memcpy(_ulist->key, _drtmp, total);
                     _ulist->utime = get_sec();
                     _ulist->flag = H_TRUE;
 

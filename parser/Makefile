@@ -1,7 +1,7 @@
-
+OK := lex
 CC := gcc
 CFLAGS :=  -Wall -O -g -pedantic -Wshadow -Wunused -Wstrict-aliasing -ll -ly -lm  
-
+DEBUG := n
 LEX := flex
 YACC := yacc
 
@@ -23,7 +23,9 @@ ly :  oy ol
 	@echo "+++ build lex and yacc +++"
 	$(CC) -c -o  $(OJY) $(OY)
 	$(CC) -c -o  $(OJL) $(OL)
-#
+ifeq ($(DEBUG),y)
+	$(CC) -o $(OK) $(OJL) $(OJY) $(CFLAGS)
+endif	
 
 oy	:	$(SY) 
 	$(YACC) -d -o  $(OY) $(SY)
@@ -32,8 +34,6 @@ oy	:	$(SY)
 ol	: $(SL)
 	$(LEX) -o $(OL) $(SL)
 	
-
-
 clean :
 	$(RM-F) *.o
 	$(RM-F) *.c

@@ -34,6 +34,7 @@ AS		{ return AS; }
 ASC		{ return ASC; }
 AUTHORIZATION	{ return AUTHORIZATION; }
 BETWEEN		{ return BETWEEN; }
+by      |
 BY		{ return BY; }
 C		{ return C; }
 CHAR(ACTER)?	{ return CHARACTER; }
@@ -48,6 +49,7 @@ CURSOR		{ return CURSOR; }
 DECIMAL		{ return DECIMAL; }
 DECLARE		{ return DECLARE; }
 DEFAULT		{ return DEFAULT; }
+delete  |
 DELETE		{ return DELETE; }
 DESC		{ return DESC; }
 DISTINCT	{ return DISTINCT; }
@@ -60,6 +62,7 @@ FOR		{ return FOR; }
 FOREIGN		{ return FOREIGN; }
 FORTRAN		{ return FORTRAN; }
 FOUND		{ return FOUND; }
+from    |
 FROM		{ return FROM; }
 GO[ \t]*TO	{ return GOTO; }
 GRANT		{ return GRANT; }
@@ -83,6 +86,7 @@ ON		{ return ON; }
 OPEN		{ return OPEN; }
 OPTION		{ return OPTION; }
 OR		{ return OR; }
+order   |
 ORDER		{ return ORDER; }
 PASCAL		{ return PASCAL; }
 PLI		{ return PLI; }
@@ -95,6 +99,7 @@ REAL		{ return REAL; }
 REFERENCES	{ return REFERENCES; }
 ROLLBACK	{ return ROLLBACK; }
 SCHEMA		{ return SCHEMA; }
+select |
 SELECT		{ return SELECT; }
 SET		{ return SET; }
 SMALLINT	{ return SMALLINT; }
@@ -109,9 +114,14 @@ USER		{ return USER; }
 VALUES		{ return VALUES; }
 VIEW		{ return VIEW; }
 WHENEVER	{ return WHENEVER; }
+where   |
 WHERE		{ return WHERE; }
 WITH		{ return WITH; }
 WORK		{ return WORK; }
+limit   |
+LIMIT       { return LIMIT; }
+offset  |
+OFFSET      { return OFFSET; }
 	/* punctuation */
 
 "="	|
@@ -174,6 +184,7 @@ main(int ac, char **av)
     extern int yydebug ;
     yydebug = 1;
     _init_ly();
+    _ly *tly;
 
 	if(ac > 1 && (yyin = fopen(av[1], "r")) == NULL) {
 		perror(av[1]);
@@ -184,7 +195,10 @@ main(int ac, char **av)
 		printf("SQL parse worked\n");
 	else
 		printf("SQL parse failed\n");
-    _get();
+    tly = _get();
+    if(tly){
+        printf("tab: %s\n", tly->tab);
+    }
 }  main */
 
 /* 
@@ -194,9 +208,10 @@ main(int ac, char **av)
  * =====================================================================================
  */
 _ly *parser_do (char *str, int len){
+    char *p = str;
     _init_ly();
 
-    YY_BUFFER_STATE state = yy_scan_bytes(str, len);
+    YY_BUFFER_STATE state = yy_scan_bytes(p, len);
     yy_switch_to_buffer(state);
     yyparse();
     yy_delete_buffer(state);

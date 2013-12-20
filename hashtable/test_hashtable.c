@@ -71,7 +71,7 @@ int main ( int argc, char *argv[] ) {
 
     packs = (SLABPACK *)calloc(1, sizeof(SLABPACK));
     /* worker thread */
-    len = hkey(sql, strlen(sql), packs);
+    hkey(sql, strlen(sql), packs);
     
     printf("res:%s\n", packs->pack);
 
@@ -83,7 +83,7 @@ int main ( int argc, char *argv[] ) {
 
     /* worker thread */
 
-    len = hkey(sql1, strlen(sql1), packs);
+    hkey(sql1, strlen(sql1), packs);
     if(packs->pack){
         printf("res2:%s\n", packs->pack);
 

@@ -38,7 +38,7 @@
 %token PUBLIC REAL REFERENCES ROLLBACK SCHEMA SELECT SET
 %token SMALLINT SOME SQLCODE SQLERROR TABLE TO UNION
 %token UNIQUE UPDATE USER VALUES VIEW WHENEVER WHERE WITH WORK
-%token COBOL FORTRAN PASCAL PLI C ADA
+%token COBOL FORTRAN PASCAL PLI C ADA LIMIT OFFSET
 
 %%
 
@@ -385,6 +385,7 @@ table_exp:
         opt_where_clause 
         opt_group_by_clause
         opt_having_clause
+        opt_limit
 	;
 
 table_expe:
@@ -393,6 +394,7 @@ table_expe:
         opt_group_by_clause
         opt_order_by_clause
         opt_having_clause
+        opt_limit       
 	;
 
 from_clause:
@@ -438,6 +440,13 @@ search_condition:
 	|	'(' search_condition ')'
 	|	predicate
 	;
+
+opt_limit:
+    /* empty */
+    |   LIMIT data_type
+    |   LIMIT data_type OFFSET data_type
+    |   LIMIT data_type ',' data_type 
+    ;
 
 predicate:
 		comparison_predicate

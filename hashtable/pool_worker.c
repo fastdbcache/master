@@ -26,12 +26,12 @@
  *  Description:  
  * =====================================================================================
  */
-int hkey ( char *key, ub4 keyl, SLABPACK *dest){
+void hkey ( char *key, ub4 keyl, SLABPACK *dest){
     HITEM *_h;
 
     _h = hfind(key, keyl);
     
-    return getslab(_h, dest);
+    getslab(_h, dest);
 }		/* -----  end of function hkey  ----- */
 
 /* 
@@ -62,10 +62,11 @@ HITEM *hfind ( char *key, ub4 keyl ){
             (hjval == ph->hjval) &&
             (ph->drl > 0) 
             ){
-                
+                if(!tlist)printf("tlist is null\n");
                 while ( tlist ) {
                     /*  has a bug */
                     if(strstr(key, tlist->key)){
+                        printf("key:%s utime:%llu \n", tlist->key, tlist->utime);
                         /* over time */
                         if(tlist->utime > ph->utime) return NULL; 
                     }
@@ -104,12 +105,12 @@ HITEM *hfind ( char *key, ub4 keyl ){
  *  Description:  
  * =====================================================================================
  */
-int getslab ( HITEM * hitem, SLABPACK *dest){
+void getslab ( HITEM * hitem, SLABPACK *dest){
     HITEM *_ph = hitem;
     HSLAB *_ps;
     int i;
 
-    if(!_ph) return -1;
+    if(!_ph) return;
 
     i = hsms(_ph->psize);
     _ps = pools_hslab[i];
@@ -117,14 +118,12 @@ int getslab ( HITEM * hitem, SLABPACK *dest){
     for(; _ps; _ps=_ps->next){
         if(_ps->id == _ph->sid){
             dest->pack = calloc(_ph->drl, sizeof(char));
-            if(!dest->pack) return -1;
+            if(!dest->pack) return;
             memcpy(dest->pack, _ps->sm+_ph->sa*_ph->psize, _ph->drl);
             dest->len = _ph->drl;
-            printf("_ph->drl: %d\n", _ph->drl);
-            return 0;
+            return;
         }
     }
-    return -1;
 }		/* -----  end of function getslab  ----- */
 
 /* 

@@ -101,7 +101,6 @@ void procThread (  ){
  */
 void *fproc ( void *arg){
     proc_status = NT_WORKING;
-    printf("add hdr for proc thread\n");
     hproc();
     proc_status = NT_FREE;
 }		/* -----  end of function fproc  ----- */
