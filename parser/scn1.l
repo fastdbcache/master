@@ -24,12 +24,14 @@ AND		{ return AND; }
 AVG		{ return AMMSC; }
 MIN		{ return AMMSC; }
 MAX		{ return AMMSC; }
+sum |
 SUM		{ return AMMSC; }
 COUNT		{ return AMMSC; }
 MONTH       { return AMMSC;}
 YEAR        { return AMMSC;}
 
 ANY		{ return ANY; }
+as  |
 AS		{ return AS; }
 ASC		{ return ASC; }
 AUTHORIZATION	{ return AUTHORIZATION; }
@@ -66,6 +68,7 @@ from    |
 FROM		{ return FROM; }
 GO[ \t]*TO	{ return GOTO; }
 GRANT		{ return GRANT; }
+group   |
 GROUP		{ return GROUP; }
 HAVING		{ return HAVING; }
 IN		{ return IN; }
@@ -178,12 +181,13 @@ yyerror(char *s)
 {
 	printf("%d: %s at %s\n", lineno, s, yytext);
 }
-/*
+
 main(int ac, char **av)
 {
     extern int yydebug ;
     yydebug = 1;
-    _init_ly();
+    ly = _init_ly();
+    tail = ly;
     _ly *tly;
 
 	if(ac > 1 && (yyin = fopen(av[1], "r")) == NULL) {
@@ -196,10 +200,9 @@ main(int ac, char **av)
 	else
 		printf("SQL parse failed\n");
     tly = _get();
-    if(tly){
+    for(;tly; tly=tly->next)
         printf("tab: %s\n", tly->tab);
-    }
-}  main */
+} /* main */
 
 /* 
  * ===  FUNCTION  ======================================================================
@@ -209,7 +212,8 @@ main(int ac, char **av)
  */
 _ly *parser_do (char *str, int len){
     char *p = str;
-    _init_ly();
+    ly = _init_ly();
+    tail = ly;
 
     YY_BUFFER_STATE state = yy_scan_bytes(p, len);
     yy_switch_to_buffer(state);
@@ -219,8 +223,13 @@ _ly *parser_do (char *str, int len){
     return _get();
 }		/* -----  end of function parser_do  ----- */
 
-void _init_ly(){
-    ly = calloc(1, sizeof(_ly));
+_ly *_init_ly(){
+    _ly *_l;
+    _l = calloc(1, sizeof(_ly));
+    _l->tab = NULL;
+    _l->next = NULL;
+    _l->len = 0;
+    return _l;
 }
 
 void _len(int l){
@@ -230,15 +239,24 @@ void _len(int l){
 }
 
 void _save(char *s, int len){
-            
-    if(ly != NULL && s != NULL && len > 0){
-        ly->tab = calloc(1, len*sizeof(char));
-        memcpy(ly->tab, s, len);
-    }else{
-        printf("ddd\n");
-    }
+    _ly *_l;
 
+    if( s == NULL || len < 0) return;
+
+    if(tail->tab == NULL){
+        tail->tab = calloc(1, len*sizeof(char));
+        memcpy(tail->tab, s, len);
+        tail->len = len;
+    }else{
+        _l = _init_ly(); 
+        _l->tab = calloc(1, len*sizeof(char));
+        memcpy(_l->tab, s, len);
+        _l->len = len;
+        tail->next = _l;
+        tail = _l;
+    }
 }
+
 _ly *_get(){
     if(ly != NULL && ly->tab != NULL){
         return ly;

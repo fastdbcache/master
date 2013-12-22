@@ -27,9 +27,9 @@ struct __ly {
     int len;
     _ly *next;
 };
-_ly *ly;
+_ly *ly, *tail;
 _ly *parser_do (char *str, int len);
-void _init_ly();
+_ly  *_init_ly();
 void _len(int l);
 void _save(char *s, int len);
 _ly *_get();
