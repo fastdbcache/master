@@ -1,0 +1,13 @@
+<map id="G" name="G">
+<area shape="rect" id="node3" href="$action__lib_8c.html" title="action_lib.c" alt="" coords="9,315,105,344"/>
+<area shape="rect" id="node5" href="$daemon__lib_8h.html" title="daemon_lib.h" alt="" coords="387,83,497,112"/>
+<area shape="rect" id="node9" href="$strawberry_8c.html" title="strawberry.c" alt="" coords="159,315,263,344"/>
+<area shape="rect" id="node11" href="$log__lib_8c.html" title="log_lib.c" alt="" coords="521,83,595,112"/>
+<area shape="rect" id="node13" href="$pg__protocol_8h.html" title="pg_protocol.h" alt="" coords="150,83,262,112"/>
+<area shape="rect" id="node24" href="$thread__lib_8c.html" title="thread_lib.c" alt="" coords="214,237,313,267"/>
+<area shape="rect" id="node26" href="$socket__lib_8c.html" title="socket_lib.c" alt="" coords="619,83,721,112"/>
+<area shape="rect" id="node7" href="$daemon__lib_8c.html" title="daemon_lib.c" alt="" coords="387,160,497,189"/>
+<area shape="rect" id="node15" href="$pg__protocol_8c.html" title="pg_protocol.c" alt="" coords="27,160,139,189"/>
+<area shape="rect" id="node17" href="$thread__lib_8h.html" title="thread_lib.h" alt="" coords="163,160,262,189"/>
+<area shape="rect" id="node19" href="$action__lib_8h.html" title="action_lib.h" alt="" coords="43,237,139,267"/>
+</map>
