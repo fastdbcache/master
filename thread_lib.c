@@ -8,11 +8,10 @@
  */
 
 #include "thread_lib.h"
-#include "command.h"
+#include "config_global.h"
 #include "func.h"
 #include "log_lib.h"
 #include "error_lib.h"
-#include "parse_cmd.h"
 #include "time_lib.h"
 
 /* work thread start */

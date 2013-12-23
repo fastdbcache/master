@@ -27,7 +27,7 @@
 #include "socket_lib.h"
 #include "conf_lib.h"
 #include "log_lib.h"
-#include "command.h"
+#include "config_global.h"
 
 int SetNonBlocking(int s){
     int opts;

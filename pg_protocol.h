@@ -22,11 +22,10 @@
 
 #include <sys/types.h>
 
-#include "command.h"
-#include "log_lib.h"
 #include "socket_lib.h"
 #include "./hashtable/pool_init.h"
 #include "./hashtable/pool_worker.h"
+#include "pg_system_atalogs.h"
 
 #define MAX_BACKEND_SESSION 128
 

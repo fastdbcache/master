@@ -306,7 +306,7 @@ int AuthPG(const int bfd,const int ffd, SESSION_SLOTS *slot, ssize_t no){
                     }
 
                     free(mem_pack);
-                }else{
+                }else if(isSELECT == -1){
                     _ulist = (ULIST *)calloc(1, sizeof(ULIST));
                     _ulist->keyl = total;
                     _ulist->key = calloc(total, sizeof(char));
@@ -314,6 +314,8 @@ int AuthPG(const int bfd,const int ffd, SESSION_SLOTS *slot, ssize_t no){
                     _ulist->utime = get_sec();
                     _ulist->flag = H_TRUE;
 
+                }else{
+                    DEBUG("system table");
                 }
 
                 goto free_pack;
@@ -384,6 +386,10 @@ int findSQL (  const char *sql, int len ){
         if(*p != u[i] && *p != l[i]){
             return -1;
         }       
+    }
+    
+    for(i=0; Query_for_list[i]!=NULL; i++){
+        if(strstr(sql, Query_for_list[i])!=NULL)return -2;
     }
 
     return 0;

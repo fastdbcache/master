@@ -38,6 +38,7 @@
 #include <string.h>
 #include <stdlib.h>
 
+typedef unsigned int uint32;
 typedef  unsigned long  ub8;
 #define UB8MAXVAL 0xffffffffffffffffLL
 #define UB8BITS 64
