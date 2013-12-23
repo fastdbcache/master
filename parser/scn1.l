@@ -247,14 +247,16 @@ void _save(char *s, int len){
         tail->tab = calloc(1, len*sizeof(char));
         memcpy(tail->tab, s, len);
         tail->len = len;
-    }else{
+    }
+    /* because only parser change sql
+    else{
         _l = _init_ly(); 
         _l->tab = calloc(1, len*sizeof(char));
         memcpy(_l->tab, s, len);
         _l->len = len;
         tail->next = _l;
         tail = _l;
-    }
+    }*/
 }
 
 _ly *_get(){
