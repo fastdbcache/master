@@ -133,7 +133,7 @@ SESSION_SLOTS *resolve_slot(const char *buf){
 
 
 int AuthPG(const int bfd,const int ffd, SESSION_SLOTS *slot, ssize_t no){
-    char *newbuf,  *_apack, *_drtmp;
+    char *newbuf,  *_apack, *_drtmp, *_hdrtmp;
     size_t totalsize, offset,  total_size, cmd_size;
     uint32 total;
     int rfd, wfd, q=0;
@@ -158,7 +158,7 @@ int AuthPG(const int bfd,const int ffd, SESSION_SLOTS *slot, ssize_t no){
     #define STORE()         \
     do                      \
     {                                           \ 
-        if(isSELECT == 0){                    \
+        if(isSELECT == 0 && _hdr){                    \
             _drtmp = realloc(_hdr->dr, _hdr->drl+totalsize);    \
             if(_drtmp){                                         \
                 _hdr->dr = _drtmp;                              \
@@ -166,7 +166,6 @@ int AuthPG(const int bfd,const int ffd, SESSION_SLOTS *slot, ssize_t no){
                 _hdr->drl += totalsize;                         \
             }else{                                              \
                 freeHdr(_hdr);                                  \
-                freeUList(_ulist);                              \
                 return -1;                                      \
             }                                                   \
         }                                                       \
@@ -277,37 +276,31 @@ int AuthPG(const int bfd,const int ffd, SESSION_SLOTS *slot, ssize_t no){
                 }
                 if(_ulist){
                     freeUList(_ulist);
-                    _hdr = NULL;
+                    _ulist = NULL;
                 }
 
                 return -1; 
             case 'Q':
                 FB(1);
 
-                _drtmp = _apack+sizeof(char)+sizeof(uint32);                    
-                isSELECT = findSQL(_drtmp, total);
+                _hdrtmp = _apack+sizeof(char)+sizeof(uint32);                    
+                isSELECT = findSQL(_hdrtmp, total);
                 if(isSELECT == 0){
                     mem_pack = (SLABPACK *)calloc(1, sizeof(SLABPACK));
                         
-                    hkey(_drtmp, total, mem_pack);
+                    hkey(_hdrtmp, total, mem_pack);
                     
                     if(mem_pack->len > 0){                        
-                        DEBUG("FOUND KEY mem_pack len %d, sql:%s", mem_pack->len, _drtmp)
                         Socket_Send(wfd, mem_pack->pack, mem_pack->len);
                         free(mem_pack->pack);
                         
                         FB(0);
                     }else{
                         _hdr = hdrcreate(); 
-                        _ulist = (ULIST *)calloc(1, sizeof(ULIST));
-                        _ulist->keyl = total;
-                        _ulist->key = calloc(total, sizeof(char));
-                        memcpy(_ulist->key, _drtmp, total);
-                        _ulist->utime = get_sec();
-                        _ulist->flag = H_TRUE;
-
-                        _hdr->key = _ulist->key;
-                        _hdr->keyl = _ulist->keyl;
+                        
+                        _hdr->keyl = total;
+                        _hdr->key = (char *)calloc(total, sizeof(char));
+                        memcpy(_hdr->key, _hdrtmp, total);
                         _hdr->stime = get_sec(); 
                         _hdr->flag = H_TRUE;                    
                     }
@@ -317,7 +310,7 @@ int AuthPG(const int bfd,const int ffd, SESSION_SLOTS *slot, ssize_t no){
                     _ulist = (ULIST *)calloc(1, sizeof(ULIST));
                     _ulist->keyl = total;
                     _ulist->key = calloc(total, sizeof(char));
-                    memcpy(_ulist->key, _drtmp, total);
+                    memcpy(_ulist->key, _hdrtmp, total);
                     _ulist->utime = get_sec();
                     _ulist->flag = H_TRUE;
 
@@ -326,7 +319,7 @@ int AuthPG(const int bfd,const int ffd, SESSION_SLOTS *slot, ssize_t no){
                 goto free_pack;
             case 'T':
                 FB(1);
-                if(isSELECT == 0){
+                if(isSELECT == 0 && _hdr){
                     _hdr->dr = (char *)calloc(totalsize, sizeof(char));
                     memcpy(_hdr->dr, _apack, totalsize);
                     _hdr->drl = totalsize;
@@ -346,10 +339,8 @@ int AuthPG(const int bfd,const int ffd, SESSION_SLOTS *slot, ssize_t no){
                 FB(0);
                 STORE();
 
-                if(isSELECT == 0){
-                    if(_hdr && _ulist){
-                        addHdr(_hdr, no);
-                    }
+                if(isSELECT == 0 && _hdr){
+                    addHdr(_hdr, no);
                 }
                 if(_ulist)
                     addUlist(_ulist, no);
