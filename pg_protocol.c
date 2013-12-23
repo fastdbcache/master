@@ -297,7 +297,6 @@ int AuthPG(const int bfd,const int ffd, SESSION_SLOTS *slot, ssize_t no){
                         FB(0);
                     }else{
                         _hdr = hdrcreate(); 
-                        
                         _hdr->keyl = total;
                         _hdr->key = (char *)calloc(total, sizeof(char));
                         memcpy(_hdr->key, _hdrtmp, total);
@@ -314,9 +313,10 @@ int AuthPG(const int bfd,const int ffd, SESSION_SLOTS *slot, ssize_t no){
                     _ulist->utime = get_sec();
                     _ulist->flag = H_TRUE;
 
-                }else{
-                    DEBUG("system table");
                 }
+                /*else{
+                    DEBUG("system table");
+                }*/
 
                 goto free_pack;
             case 'T':

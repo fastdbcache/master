@@ -20,12 +20,9 @@
 
 int main(int argc, char* argv[]){
     int listen_fd, unix_sock;
-    pid_t pid;
-    int fds[2];
-	int h, max_ring_queue;
-	char *c, pid_file[500], buf[1];
+	int h;
+	char *c, pid_file[500];
 	ssize_t do_daemonize = 0;
-    extern int process_num;
     char help[]=" -c etc/suning.cnf\n \
                 Usage: \n \
                 -c which loading suning.cnf \n \
