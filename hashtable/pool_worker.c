@@ -66,7 +66,6 @@ HITEM *hfind ( char *key, ub4 keyl ){
                 while ( tlist ) {
                     /*  has a bug */
                     if(tlist->keyl >0 && strstr(key, tlist->key)){
-                        DEBUG("key:%s utime:%llu ", tlist->key, tlist->utime);
                         /* over time */
                         if(tlist->utime > ph->utime) return NULL; 
                     }

@@ -46,7 +46,7 @@ void htlist (  ){
     int i;
     
     _ulist = pools_ulist;
-
+  
     for(i=0; i<conn_global->process_num; i++){
         _u = _ulist[i];
         if(!pools_tlist) printf("pools_tlist is null %s\n", __FILE__);
@@ -61,11 +61,11 @@ void htlist (  ){
                 _u->flag = H_FALSE;
                 continue;
             }
-            DEBUG("name:%s\n", ply->tab);
             while ( _tlist->next ) {
                 _tlist = _tlist->next;
-                if(!memcmp(_tlist->key,ply->tab, ply->len)&&
-                    _tlist->keyl == ply->len){
+                if( _tlist->keyl == ply->len &&
+                    !memcmp(_tlist->key,ply->tab, ply->len)
+                    ){
                     if(_tlist->utime < _u->utime){
                         _tlist->utime = _u->utime;                        
                         _u->flag = H_FALSE;
@@ -82,6 +82,7 @@ void htlist (  ){
                     if(_t->key){
                         memcpy(_t->key, ply->tab, ply->len);
                         _t->keyl = ply->len;
+                        _t->utime = _u->utime;
                         _tlist->next = _t;
                         _tlist = _t;
                     }
@@ -188,6 +189,7 @@ word haddHitem ( HDR *hdr ){
                 ph->sid = fslab->sid;
                 ph->sa = fslab->sa;
                 ph->drl = hdr->drl;
+                
                 free(fslab);
             }
             /* 
@@ -195,9 +197,11 @@ word haddHitem ( HDR *hdr ){
                 ph->drl = 0;
                 break;
             }*/
-
+            
             hsp = findhslab(i, ph->sid);    
             if(hsp != NULL){
+                hdr->flag = H_FALSE;
+                ph->utime = hdr->stime;
                 memcpy(hsp->sm+ph->sa*ph->psize, hdr->dr, hdr->drl);
                 ph->amiss++;
                 pools_htab->miss++;
@@ -212,16 +216,17 @@ word haddHitem ( HDR *hdr ){
     
     if(!phtmp->next){
         hp = hitemcreate();
-        hp->key   = hdr->key;
+        hp->key   = (ub1 *)calloc(hdr->keyl, sizeof(ub1));
+        memcpy(hp->key, hdr->key, hdr->keyl);
         hp->keyl  = hdr->keyl;
         hp->drl = hdr->drl;
         hp->psize = slabclass[i].size;
         hp->hval  = _new_hval;
         hp->hjval = _new_hjval;
-         
+        hp->utime = hdr->stime; 
         fslab = findslab(hp->psize, i);
         hslab = findhslab(i, fslab->sid); 
-
+        
         hp->sid = fslab->sid;
         hp->sa = fslab->sa;
 
@@ -230,12 +235,12 @@ word haddHitem ( HDR *hdr ){
         phtmp->next = hp;
 
         pools_hitem_row[i]++;
-       
+
+        hdr->flag = H_FALSE;
+
         hrule(hp, H_INSERT); 
     }
-
-    hdr->flag = H_FALSE;
-
+ 
     /* make the hash table bigger if it is getting full */
     if (++pools_htab->count > (ub4)1<<(pools_htab->logsize))
     {
