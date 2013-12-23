@@ -26,6 +26,7 @@
 #include "./hashtable/pool_init.h"
 #include "./hashtable/pool_worker.h"
 #include "pg_system_atalogs.h"
+#include "log_lib.h"
 
 #define MAX_BACKEND_SESSION 128
 
@@ -80,15 +81,6 @@ typedef struct pg_conn Pg_conn;
 SESSION_SLOTS *bs_slots[MAX_BACKEND_SESSION];
 
 int PGStartupPacket3(int fd, PACK *pa); /* 1. F -> B */
-int PGAuthenticationMD5Password(int fd, char *pack);/* 2. B -> F */
-int PGPasswordMessage(int fd, char *pack);/* 3. F -> B */
-int PGAuthenticationOk(int fd, char *pack);/* 4.  B -> F */
-int PGParameterStatus(int fd, char *pack);/* 5. B -> F */
-int PGBackendKeyData(int fd, char *pack);/* 6. B -> F */
-int PGReadyForQuery(int fd, char *pack);/* 7. B -> F */
-int PGSimpleQuery(int fd, char *pack); /* 8. F -> B */
-int PGExchange2(const int bfd,const int ffd);
-int PGExchange(const int bfd,const int ffd, SESSION_SLOTS *slot);
 SESSION_SLOTS *resolve_slot(const char *buf);
 int AuthPG(const int bfd,const int ffd, SESSION_SLOTS *slot, ssize_t no);
 int findSQL (  const char *sql , int len);

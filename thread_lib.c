@@ -76,7 +76,7 @@ void libevent_work_thread(int fd, short ev, void *arg){
 
          */
         if(pg_len != pack_len) goto bad;
-        if(AuthPG(pg_fds, ffd, _slot, work_child->no)==-1){
+        if(AuthPG(pg_fds, ffd, _slot, me->no)==-1){
             //printf("auth error\n");
             //            goto bad;
             //                    }else{
