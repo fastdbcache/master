@@ -36,6 +36,7 @@ void hcreate ( int isize ){
         perror("pools_htab calloc error");
         exit(1);
     }
+    DEBUG("logsize:%d", len);
     pools_htab->mask = len - 1;
     pools_htab->logsize = len;
     pools_htab->count = 0;
@@ -68,7 +69,8 @@ void hcreate ( int isize ){
     hitem_group->usable = inithitem ( (ub4) len );
     hitem_group->move = NULL;
 
-    pools_hdr = inithdr();
+    pools_hdr_head = hdrcreate();
+    pools_hdr_tail = pools_hdr_head;
 
     pools_tlist = (TLIST *)calloc(1, sizeof(TLIST));
 
@@ -86,6 +88,7 @@ void hcreate ( int isize ){
     pthread_mutex_init(&work_lock_miss, NULL);
     pthread_mutex_init(&work_lock_bytes, NULL);
     pthread_mutex_init(&work_lock_ulist, NULL);
+    pthread_mutex_init(&work_lock_hdr, NULL);
 
     pools_fslab = (FSLAB *)calloc(1, sizeof(FSLAB));
     pools_fslab->psize = 0;
@@ -244,24 +247,6 @@ void freehitem ( HITEM **_h, ub4 len ){
     free(*_h);
 
 }		/* -----  end of function freehitem  ----- */
-
-/* 
- * ===  FUNCTION  ======================================================================
- *         Name:  inithdr
- *  Description:  
- * =====================================================================================
- */
-HDR **inithdr (  ){
-    int i;
-    HDR **d;
-    d = (HDR **) calloc(conn_global->process_num, sizeof(HDR)); 
-    
-    for(i=0; i<conn_global->process_num; i++){
-        d[i] = hdrcreate();
-    }
-    return d; 
-}		/* -----  end of function inithdr  ----- */
-
 
 /* 
  * ===  FUNCTION  ======================================================================

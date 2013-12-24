@@ -50,11 +50,15 @@ void htlist (  ){
         pools_ulist_tail = pools_ulist_tail->next;
 
         if(!_u) continue;
+
+        if(!_u->key){
+            freeUList(_u);
+            continue;
+        }
         ply = parser_do (_u->key, _u->keyl);
 
         if(!ply){ 
-            DEBUG("ply is null %s", _u->key);
-            pools_ulist_tail = pools_ulist_tail->next;
+            /* DEBUG("ply is null %s", _u->key);*/
             freeUList(_u);
             continue;
         }
@@ -110,35 +114,22 @@ void fetchdti (  ){
 
     pa = pools_haru_pool;    
     
-    for(i=0; i<conn_global->process_num; i++){
-        pd = pools_hdr[i];
-        while(pd->next){
-            size = hsms(pd->drl);
-            
-            hval = lookup(pd->key, pd->keyl, 0);
-            hjval = jenkins_one_at_a_time_hash(pd->key, pd->keyl);
+    while ( pools_hdr_tail->next && 
+        pools_hdr_tail->next != pools_hdr_head ) {
+        pd = pools_hdr_tail;
+        pools_hdr_tail = pools_hdr_tail->next;
 
-            HITEM_SWITCH((y=(hval&pools_htab->mask)));
-            ph = pools_hitem[y];
+        if(!pd) continue;
 
-            /* header is not user */
-            for(; ph->next; ph=ph->next){
-                if(hval == ph->hval &&
-                    (pd->keyl == ph->keyl) &&
-                    (hjval == ph->hjval) 
-                    ){
-                    MISS_LOCK();
-                    pools_htab->miss++;
-                    MISS_UNLOCK(); 
-                    break;
-                }
-            }
-             
-            pd = pd->next;
-            haddHitem(pd);
+        if(!pd->key){
+            freeHdr(pd);
+            continue;
         }
-    }
+                        
+        haddHitem(pd);
 
+        freeHdr(pd);
+    }   
 }		/* -----  end of function fetchdti  ----- */
 
 /* 
@@ -147,14 +138,16 @@ void fetchdti (  ){
  *  Description:  hdr to hitem
  * =====================================================================================
  */
-word haddHitem ( HDR *hdr ){   
+word haddHitem ( HDR *mhdr ){ 
     HITEM  *ph,*phtmp, *hp;
+    HDR *hdr;
     ub4     y, _new_hval, _new_hjval;
     HSLAB  *hsp;
     FSLAB *fslab;
     HSLAB *hslab;
     int i, m;
 
+    hdr = mhdr;
     if(hdr == NULL) return -1;
     if(hdr->drl > LIMIT_SLAB_BYTE) return -1;
 
@@ -162,9 +155,25 @@ word haddHitem ( HDR *hdr ){
     _new_hjval = jenkins_one_at_a_time_hash(hdr->key, hdr->keyl);
     HITEM_SWITCH((y=(_new_hval&pools_htab->mask)));
 
-    ph = pools_hitem[y];    
-    
+    ph = pools_hitem[y];
+    if(!ph) {
+        return -1;
+    }
     i = hsms(hdr->drl);
+
+    /* header is not user */
+    for(; ph->next; ph=ph->next){
+        if(_new_hval == ph->hval &&
+            (hdr->keyl == ph->keyl) &&
+            (_new_hjval == ph->hjval) 
+            ){
+            MISS_LOCK();
+            pools_htab->miss++;
+            MISS_UNLOCK(); 
+            break;
+        }
+    }
+
     m = 0;
     phtmp = ph;
     ph = ph->next;  /* head is not store anything */
@@ -196,15 +205,16 @@ word haddHitem ( HDR *hdr ){
             
             hsp = findhslab(i, ph->sid);    
             if(hsp != NULL){
-                hdr->flag = H_FALSE;
                 ph->utime = hdr->stime;
                 memcpy(hsp->sm+ph->sa*ph->psize, hdr->dr, hdr->drl);
                 ph->amiss++;
                 pools_htab->miss++;
                 hrule(ph, H_UPDATE);
                 return 0;
-            }else
-                perror("hsp error\n");
+            }else{
+                DEBUG("hsp error");
+                return 0;
+            }
             break;            
         }
         ph = ph->next; 
@@ -226,20 +236,19 @@ word haddHitem ( HDR *hdr ){
         hp->sid = fslab->sid;
         hp->sa = fslab->sa;
 
-        memcpy(hslab->sm+fslab->sa*hp->psize, hdr->dr, hdr->drl);
+        memcpy(hslab->sm+hp->sa*hp->psize, hdr->dr, hdr->drl);
         free(fslab);
         phtmp->next = hp;
 
         pools_hitem_row[i]++;
 
-        hdr->flag = H_FALSE;
-
         hrule(hp, H_INSERT); 
     }
  
     /* make the hash table bigger if it is getting full */
-    if (++pools_htab->count > (ub4)1<<(pools_htab->logsize))
+    if (++pools_htab->count > pools_htab->logsize)
     {
+        DEBUG("now expand hashtable count %d logsize %d", pools_htab->count, pools_htab->logsize);
         hgrow();
     }
     return TRUE;

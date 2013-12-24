@@ -52,9 +52,7 @@ HITEM *hfind ( char *key, ub4 keyl ){
     tlist = pools_tlist->next;
 
     HITEM_SWITCH((y=(hval&pools_htab->mask)));
-    ph = pools_hitem[y];
-     
-    if(!ph) return NULL;
+    ph = pools_hitem[y]->next;
      
     while ( ph ) {
         if(hval == ph->hval &&
@@ -62,7 +60,6 @@ HITEM *hfind ( char *key, ub4 keyl ){
             (hjval == ph->hjval) &&
             (ph->drl > 0) 
             ){
-                if(!tlist)printf("tlist is null\n");
                 while ( tlist ) {
                     /*  has a bug */
                     if(tlist->keyl >0 && strstr(key, tlist->key)){
@@ -116,9 +113,10 @@ void getslab ( HITEM * hitem, SLABPACK *dest){
 
     for(; _ps; _ps=_ps->next){
         if(_ps->id == _ph->sid){
-            dest->pack = calloc(_ph->drl, sizeof(char));
+            /*dest->pack = calloc(_ph->drl, sizeof(char));
             if(!dest->pack) return;
-            memcpy(dest->pack, _ps->sm+_ph->sa*_ph->psize, _ph->drl);
+            memcpy(dest->pack, _ps->sm+_ph->sa*_ph->psize, _ph->drl);*/
+            dest->pack = _ps->sm+_ph->sa*_ph->psize;
             dest->len = _ph->drl;
             return;
         }
@@ -131,27 +129,17 @@ void getslab ( HITEM * hitem, SLABPACK *dest){
  *  Description:  
  * =====================================================================================
  */
-int addHdr ( HDR *myhdr, int m ){
-    HDR *_hdr, *_t;
+int addHdr ( HDR *myhdr){
 
-    _hdr = pools_hdr[m];
-    /* if(_hdr->pid != myhdr->pid) return -1;*/
-    if(myhdr->drl > LIMIT_SLAB_BYTE) return -1;
-
-    /* clear nasty hdr */
-    for(;_hdr->next;_hdr=_hdr->next){
-        _t = _hdr->next;
-        if(_t->flag == H_FALSE){
-            _hdr->next = _t->next;
-            freeHdr(_t);
-            if(!_hdr->next) break;
-        }
+    if(myhdr){
+        HDR_LOCK();
+        pools_hdr_head->next = myhdr;
+        pools_hdr_head = myhdr;
+        HDR_UNLOCK();
+        return 0;
     }
-        
-    for (; _hdr->next; _hdr=_hdr->next );;
-    _hdr->next = myhdr;
-
-    return 0;
+    
+    return -1;
 }		/* -----  end of function addHdr  ----- */
 
 /* select  end */
@@ -166,15 +154,19 @@ int addHdr ( HDR *myhdr, int m ){
  * =====================================================================================
  */
 int addUlist ( ULIST *mlist){
-   
-    ULIST_LOCK();
+    
+    if(mlist){
+        ULIST_LOCK();
 
-    pools_ulist_head->next = mlist;
-    pools_ulist_head = mlist;
+        pools_ulist_head->next = mlist;
+        pools_ulist_head = mlist;
 
-    ULIST_UNLOCK();
-            
-    return 0;
+        ULIST_UNLOCK();
+        
+        return 0;
+    }
+
+    return -1;
 }		/* -----  end of function addulist  ----- */
 
 /* change end */

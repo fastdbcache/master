@@ -292,8 +292,8 @@ int AuthPG(const int bfd,const int ffd, SESSION_SLOTS *slot){
                     
                     if(mem_pack->len > 0){                        
                         Socket_Send(wfd, mem_pack->pack, mem_pack->len);
-                        free(mem_pack->pack);
-                        
+                        /* free(mem_pack->pack);*/
+                        mem_pack->pack = NULL;
                         FB(0);
                     }else{
                         _hdr = hdrcreate(); 
@@ -341,7 +341,7 @@ int AuthPG(const int bfd,const int ffd, SESSION_SLOTS *slot){
                 STORE();
 
                 if(isSELECT == E_SELECT && _hdr){
-                    addHdr(_hdr, no);
+                    addHdr(_hdr);
                 }
                 if(_ulist)
                     addUlist(_ulist);

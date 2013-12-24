@@ -161,7 +161,7 @@ typedef  struct __hdr  HDR;
 /* https://github.com/troydhanson/uthash */
 struct __htab
 {
-  word           logsize; /* log of size of table */
+  ub4           logsize; /* log of size of table */
   size_t         mask;    /* (hashval & mask) is position in table */
   ub4            count;   /* how many items in this hash table so far? 记录目前使用多少hitem_pool */
   sb2            bcount;  /* single items length 记录最长的hitem*/
@@ -202,10 +202,12 @@ pthread_mutex_t work_lock_hit;
 pthread_mutex_t work_lock_miss;
 pthread_mutex_t work_lock_bytes;
 pthread_mutex_t work_lock_ulist;
+pthread_mutex_t work_lock_hdr;
 
 HG *hitem_group;
 HITEM **pools_hitem;
-HDR **pools_hdr;
+HDR *pools_hdr_tail;
+HDR *pools_hdr_head;
 TLIST *pools_tlist;
 ULIST *pools_ulist_head;
 ULIST *pools_ulist_tail;
@@ -249,6 +251,14 @@ HARU *pools_haru_pool;
 
 #define ULIST_UNLOCK() do{\
     pthread_mutex_unlock(&work_lock_ulist); \
+}while(0)
+
+#define HDR_LOCK() do{\
+    pthread_mutex_lock(&work_lock_hdr); \
+}while(0)
+
+#define HDR_UNLOCK() do{\
+    pthread_mutex_unlock(&work_lock_hdr); \
 }while(0)
 
 #define HITEM_SWITCH(y) do{\

@@ -84,7 +84,7 @@ int main(int argc, char* argv[]){
 
     hcreate(8);
     /*rq_init(MAXCONN);*/
-    rq_init(2);
+    rq_init(256);
 
     work_thread_init(conn_global->process_num);
 

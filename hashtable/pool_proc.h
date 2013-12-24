@@ -28,7 +28,7 @@
 void hproc ( );
 void htlist (  );
 void fetchdti (  );
-word haddHitem ( HDR *hdr );
+word haddHitem ( HDR *mhdr );
 void hrule ( HITEM *hitem, H_CHANGE stat );
 int hsort (  );
 

@@ -34,6 +34,7 @@ void hgrow()
     ub4     i;
     HITEM   **old_hitem, **new_hitem;
 
+    DEBUG("hgrow %d", pools_htab->logsize);
     free(pools_hitem_row);
     pools_hitem_row = calloc(newsize, sizeof(ub4)) ;
 
