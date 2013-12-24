@@ -236,6 +236,8 @@ word haddHitem ( HDR *mhdr ){
         hp->sid = fslab->sid;
         hp->sa = fslab->sa;
 
+        if(hp->sa*hp->psize > MAX_SLAB_BYTE){ DEBUG("psize error!");
+        }else{
         memcpy(hslab->sm+hp->sa*hp->psize, hdr->dr, hdr->drl);
         free(fslab);
         phtmp->next = hp;
@@ -243,6 +245,7 @@ word haddHitem ( HDR *mhdr ){
         pools_hitem_row[i]++;
 
         hrule(hp, H_INSERT); 
+        }
     }
  
     /* make the hash table bigger if it is getting full */

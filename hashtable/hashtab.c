@@ -210,6 +210,7 @@ FSLAB *findslab ( sb2 _psize ,int i){
         
             if(hslab->sm == NULL){
                 hslab->sm = (ub1 *)calloc(MAX_SLAB_BYTE, sizeof(ub1));
+                if(!hslab->sm) return NULL;
                 hslab->ss = 0;
                 hslab->sf = slabclass[i].chunk;
                 
@@ -217,7 +218,7 @@ FSLAB *findslab ( sb2 _psize ,int i){
 
             if(hslab->sf > 0){
                 fs_tmp = (FSLAB *)calloc(1, sizeof(FSLAB));
-
+                if(!fs_tmp) return NULL;
                 /*memcpy(hslab->sm + hslab->ss*_psize, hdr->dr, hdr->drl);*/
                 fs_tmp->sid = hslab->id;
                 fs_tmp->sa =  hslab->ss;
@@ -229,6 +230,7 @@ FSLAB *findslab ( sb2 _psize ,int i){
             }else{
                 if(pools_htab->bytes <= conn_global->maxbytes){
                     hs_tmp = hslabcreate(i);
+                    if(!hs_tmp) return NULL;
                     hs_tmp->id = hslab->id + 1;
                     hslab->next = hs_tmp;
                     hslab = hslab->next;
