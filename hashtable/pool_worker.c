@@ -165,7 +165,7 @@ int addHdr ( HDR *myhdr, int m ){
  *  Description:  
  * =====================================================================================
  */
-int addUlist ( ULIST *mlist, int m ){
+int addUlist ( ULIST *mlist){
    
     ULIST_LOCK();
 

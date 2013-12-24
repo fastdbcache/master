@@ -70,6 +70,14 @@ static const char *Query_for_list[] = {
     NULL 
 };
 
+typedef enum {
+    E_SELECT=0,  /* default 0 ,it's 1 has a job, 2 working */   
+    E_INSERT,
+    E_UPDATE,
+    E_DELETE,
+    E_OTHER
+} E_SQL_TYPE;
+
 #ifdef __cplusplus
  }
 #endif

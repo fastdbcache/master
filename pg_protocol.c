@@ -138,7 +138,8 @@ int AuthPG(const int bfd,const int ffd, SESSION_SLOTS *slot, ssize_t no){
     uint32 total;
     int rfd, wfd;
     MSGFORMAT *_mf;
-    int type=1, isSELECT;
+    int type=1;
+    E_SQL_TYPE isSELECT;
     HDR *_hdr;
     ULIST *_ulist;
     SLABPACK *mem_pack;
@@ -158,7 +159,7 @@ int AuthPG(const int bfd,const int ffd, SESSION_SLOTS *slot, ssize_t no){
     #define STORE()         \
     do                      \
     {                                           \ 
-        if(isSELECT == 0 && _hdr){                    \
+        if(isSELECT == E_SELECT && _hdr){                    \
             _drtmp = (char *)realloc(_hdr->dr, _hdr->drl+totalsize);    \
             if(_drtmp){                                         \
                 _hdr->dr = _drtmp;                              \
@@ -177,7 +178,7 @@ int AuthPG(const int bfd,const int ffd, SESSION_SLOTS *slot, ssize_t no){
     
     _hdr = NULL;
     _ulist = NULL; 
-    isSELECT = -1;
+    isSELECT = E_OTHER;
 
     FB(1);
     
@@ -284,7 +285,7 @@ int AuthPG(const int bfd,const int ffd, SESSION_SLOTS *slot, ssize_t no){
 
                 _hdrtmp = _apack+sizeof(char)+sizeof(uint32);                    
                 isSELECT = findSQL(_hdrtmp, total);
-                if(isSELECT == 0){
+                if(isSELECT == E_SELECT){
                     mem_pack = (SLABPACK *)calloc(1, sizeof(SLABPACK));
                         
                     hkey(_hdrtmp, total, mem_pack);
@@ -304,13 +305,12 @@ int AuthPG(const int bfd,const int ffd, SESSION_SLOTS *slot, ssize_t no){
                     }
 
                     free(mem_pack);
-                }else if(isSELECT == -1){
+                }else if(isSELECT==E_DELETE || isSELECT==E_UPDATE || isSELECT==E_INSERT){
                     _ulist = (ULIST *)calloc(1, sizeof(ULIST));
                     _ulist->keyl = total;
                     _ulist->key = calloc(total, sizeof(char));
                     memcpy(_ulist->key, _hdrtmp, total);
                     _ulist->utime = get_sec();
-                    _ulist->flag = H_TRUE;
 
                 }
                 /*else{
@@ -320,7 +320,7 @@ int AuthPG(const int bfd,const int ffd, SESSION_SLOTS *slot, ssize_t no){
                 goto free_pack;
             case 'T':
                 FB(1);
-                if(isSELECT == 0 && _hdr){
+                if(isSELECT == E_SELECT && _hdr){
                     _hdr->dr = (ub1 *)calloc(totalsize, sizeof(ub1));
                     memcpy(_hdr->dr, _apack, totalsize);
                     _hdr->drl = totalsize;
@@ -340,11 +340,11 @@ int AuthPG(const int bfd,const int ffd, SESSION_SLOTS *slot, ssize_t no){
                 FB(0);
                 STORE();
 
-                if(isSELECT == 0 && _hdr){
+                if(isSELECT == E_SELECT && _hdr){
                     addHdr(_hdr, no);
                 }
                 if(_ulist)
-                    addUlist(_ulist, no);
+                    addUlist(_ulist);
                 goto free_pack;
             case 'X':
                 free(_apack);                
@@ -369,29 +369,51 @@ int AuthPG(const int bfd,const int ffd, SESSION_SLOTS *slot, ssize_t no){
  *  Description:  
  * =====================================================================================
  */
-int findSQL (  const char *sql, int len ){
+E_SQL_TYPE findSQL (  const char *sql, int len ){
     const char *p = sql;
-    char u[] = "SELECT";
-    char l[] = "select";
+    char s[] = "select", in[] = "insert", u[] = "update", d[] = "delete";
     int i;
 
-    if(len < strlen(l)) return -1;
+    #define TYPE(var, type) \
+	do \
+	{ \
+        for(i=0; i<strlen(var); i++, p++){  \
+            if(tolower(*p) != var[i]){      \
+                return E_OTHER;             \
+            }                               \
+        }                                   \
+        return type;                        \
+	} while (0)
+
+    if(len < strlen(s)) return -1;
 
     while (*p == ' ' || *p == '\t' || *p == '\r' || *p == '\n'){  
         p++;          
     } 
-    
-    for(i=0; i<strlen(l); i++, p++){
-        if(*p != u[i] && *p != l[i]){
-            return -1;
-        }       
-    }
-    
-    for(i=0; Query_for_list[i]!=NULL; i++){
-        if(strstr(sql, Query_for_list[i])!=NULL)return -2;
-    }
+        
+          
+    if(tolower(*p)== s[0]){
+        for(i=0; Query_for_list[i]!=NULL; i++){
+            if(strstr(sql, Query_for_list[i])!=NULL)return E_OTHER;
+        }
 
-    return 0;
+        TYPE(s, E_SELECT);
+
+    }else if(tolower(*p) == in[0]){
+        TYPE(in, E_INSERT);	
+
+    }else if(tolower(*p) == u[0]){
+        TYPE(u, E_UPDATE);
+    
+    }else if(tolower(*p) == d[0]){
+        TYPE(d, E_DELETE);
+        
+    }else{
+        return E_OTHER;
+    }				/* -----  end switch  ----- */
+
+
+    return E_OTHER;
 }		/* -----  end of function findSQL  ----- */
 
 

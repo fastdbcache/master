@@ -47,10 +47,13 @@ void htlist (  ){
     while ( pools_ulist_tail->next && 
         pools_ulist_tail->next != pools_ulist_head ) {
         _u = pools_ulist_tail;
+        pools_ulist_tail = pools_ulist_tail->next;
+
+        if(!_u) continue;
         ply = parser_do (_u->key, _u->keyl);
 
         if(!ply){ 
-            DEBUG("ply is null ");
+            DEBUG("ply is null %s", _u->key);
             pools_ulist_tail = pools_ulist_tail->next;
             freeUList(_u);
             continue;
@@ -63,7 +66,6 @@ void htlist (  ){
                 ){
                 if(_tlist->utime < _u->utime){
                     _tlist->utime = _u->utime;                        
-                    _u->flag = H_FALSE;
                 }        
                 break;
             }
@@ -85,8 +87,7 @@ void htlist (  ){
         }
         free(ply->tab);
         free(ply);
-        pools_ulist_tail = pools_ulist_tail->next;
-
+        
         freeUList(_u); 
     }
     

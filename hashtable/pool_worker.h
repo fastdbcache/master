@@ -29,7 +29,7 @@ void hkey ( char *key, ub4 keyl, SLABPACK *dest);
 HITEM *hfind ( char *key, ub4 keyl );
 void getslab ( HITEM * hitem, SLABPACK *dest);
 int addHdr ( HDR *myhdr, int m );
-int addUlist ( ULIST *mlist, int m );
+int addUlist ( ULIST *mlist);
 void freeHdr ( HDR *fhdr );
 void freeUList ( ULIST *flist );
 
