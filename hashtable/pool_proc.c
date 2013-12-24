@@ -41,60 +41,55 @@ void hproc ( ){
  */
 void htlist (  ){
     TLIST *_tlist, *_t;
-    ULIST **_ulist, *_u;
+    ULIST *_u;
     _ly *ply;
-    int i;
-    
-    _ulist = pools_ulist;
-  
-    for(i=0; i<conn_global->process_num; i++){
-        _u = _ulist[i];
-        if(!pools_tlist) printf("pools_tlist is null %s\n", __FILE__);
-        _tlist = pools_tlist;
-        while(_u->next){
-            _u = _u->next;
-            if(_u->flag == H_FALSE) continue;
-            ply = parser_do (_u->key, _u->keyl);
+   
+    while ( pools_ulist_tail->next && 
+        pools_ulist_tail->next != pools_ulist_head ) {
+        _u = pools_ulist_tail;
+        ply = parser_do (_u->key, _u->keyl);
 
-            if(!ply){ 
-                printf("ply is null %s", __FILE__);
-                _u->flag = H_FALSE;
-                continue;
-            }
-            while ( _tlist->next ) {
-                _tlist = _tlist->next;
-                if( _tlist->keyl == ply->len &&
-                    !memcmp(_tlist->key,ply->tab, ply->len)
-                    ){
-                    if(_tlist->utime < _u->utime){
-                        _tlist->utime = _u->utime;                        
-                        _u->flag = H_FALSE;
-                    }        
-                    break;
-                }
-            }
-            
-            if(!_tlist->next && _u->flag == H_TRUE){
-                
-                _t = calloc(1, sizeof(TLIST));
-                if(_t){
-                    _t->key = calloc(ply->len, sizeof(char));
-                    if(_t->key){
-                        memcpy(_t->key, ply->tab, ply->len);
-                        _t->keyl = ply->len;
-                        _t->utime = _u->utime;
-                        _tlist->next = _t;
-                        _tlist = _t;
-                    }
-                }
-            }
-            _u->flag = H_FALSE;
-            free(ply->tab);
-            free(ply);
-            ply = NULL;
+        if(!ply){ 
+            DEBUG("ply is null ");
+            pools_ulist_tail = pools_ulist_tail->next;
+            freeUList(_u);
+            continue;
         }
-    }
+        _tlist = pools_tlist;
+        while ( _tlist->next ) {
+            _tlist = _tlist->next;
+            if( _tlist->keyl == ply->len &&
+                !memcmp(_tlist->key,ply->tab, ply->len)
+                ){
+                if(_tlist->utime < _u->utime){
+                    _tlist->utime = _u->utime;                        
+                    _u->flag = H_FALSE;
+                }        
+                break;
+            }
+        }
+        
+        if(!_tlist->next){
+            
+            _t = calloc(1, sizeof(TLIST));
+            if(_t){
+                _t->key = (ub1 *)calloc(ply->len, sizeof(ub1));
+                if(_t->key){
+                    memcpy(_t->key, ply->tab, ply->len);
+                    _t->keyl = ply->len;
+                    _t->utime = _u->utime;
+                    _tlist->next = _t;
+                    _tlist = _t;
+                }
+            }
+        }
+        free(ply->tab);
+        free(ply);
+        pools_ulist_tail = pools_ulist_tail->next;
 
+        freeUList(_u); 
+    }
+    
 }		/* -----  end of function htlist  ----- */
 
 

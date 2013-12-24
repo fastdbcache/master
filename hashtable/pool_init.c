@@ -298,7 +298,6 @@ ULIST *initulist (  ){
         u->key = NULL;
         u->keyl = 0;
         u->utime = 0;
-        u->flag = 0;
         u->next = NULL;
     }
     

@@ -166,25 +166,14 @@ int addHdr ( HDR *myhdr, int m ){
  * =====================================================================================
  */
 int addUlist ( ULIST *mlist, int m ){
-    ULIST *_ulist, *_t;
-    
-    _ulist = pools_ulist[m];
-    /*if(_ulist->pid != mlist->pid) return -1; */
+   
+    ULIST_LOCK();
 
-    /* clear nasty ulist */
-    for(; _ulist->next; _ulist=_ulist->next){
-        _t = _ulist->next;
-        if(_t->flag == H_FALSE){            
-            _ulist->next = _t->next;
-            freeUList(_t); 
+    pools_ulist_head->next = mlist;
+    pools_ulist_head = mlist;
 
-            if(!_ulist->next) break;
-        }
-    }
-
-    for(;_ulist->next;_ulist=_ulist->next);;
-    _ulist->next = mlist;
-    
+    ULIST_UNLOCK();
+            
     return 0;
 }		/* -----  end of function addulist  ----- */
 

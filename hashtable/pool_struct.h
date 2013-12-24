@@ -179,7 +179,6 @@ struct __tlist{
   char      *key;  /* key is table name or ulist  key sql */
   ub4       keyl;      /* length name */
   ub4       utime;  /* table the last update time */
-  H_STATE   flag;   /* 1.work set H_TRUE , 2.proc set H_FALSE, 3.work free H_FALSE */
   struct __tlist *next;  /* the next table */
 };
 /* mem proc table list */
