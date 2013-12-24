@@ -202,12 +202,14 @@ ub4 *pools_hitem_row;
 pthread_mutex_t work_lock_hit;
 pthread_mutex_t work_lock_miss;
 pthread_mutex_t work_lock_bytes;
+pthread_mutex_t work_lock_ulist;
 
 HG *hitem_group;
 HITEM **pools_hitem;
 HDR **pools_hdr;
 TLIST *pools_tlist;
-ULIST **pools_ulist;
+ULIST *pools_ulist_head;
+ULIST *pools_ulist_tail;
 HSLAB **pools_hslab;
 
 pthread_mutex_t work_lock_fslab;
@@ -240,6 +242,14 @@ HARU *pools_haru_pool;
 
 #define BYTES_UNLOCK() do{\
     pthread_mutex_unlock(&work_lock_bytes); \
+}while(0)
+
+#define ULIST_LOCK() do{\
+    pthread_mutex_lock(&work_lock_ulist); \
+}while(0)
+
+#define ULIST_UNLOCK() do{\
+    pthread_mutex_unlock(&work_lock_ulist); \
 }while(0)
 
 #define HITEM_SWITCH(y) do{\

@@ -72,7 +72,8 @@ void hcreate ( int isize ){
 
     pools_tlist = (TLIST *)calloc(1, sizeof(TLIST));
 
-    pools_ulist = initulist();
+    pools_ulist_head = initulist();
+    pools_ulist_tail = pools_ulist_head;
 
     max_slab = hslabclass();
 
@@ -84,6 +85,7 @@ void hcreate ( int isize ){
     pthread_mutex_init(&work_lock_hit, NULL);
     pthread_mutex_init(&work_lock_miss, NULL);
     pthread_mutex_init(&work_lock_bytes, NULL);
+    pthread_mutex_init(&work_lock_ulist, NULL);
 
     pools_fslab = (FSLAB *)calloc(1, sizeof(FSLAB));
     pools_fslab->psize = 0;
@@ -288,20 +290,18 @@ HDR *hdrcreate (  ){
  *  Description:  
  * =====================================================================================
  */
-ULIST **initulist (  ){
-    ULIST **u;
-    int i;
-    u = (ULIST **)calloc(conn_global->process_num, sizeof(ULIST));
-    for(i=0; i<conn_global->process_num; i++){
-        u[i] = (ULIST *)calloc(1, sizeof(ULIST));
-        if(u[i]){
-            u[i]->key = NULL;
-            u[i]->keyl = 0;
-            u[i]->utime = 0;
-            u[i]->flag = 0;
-            u[i]->next = NULL;
-        }
+ULIST *initulist (  ){
+    ULIST *u;
+
+    u = (ULIST *)calloc(1, sizeof(ULIST));
+    if(u){
+        u->key = NULL;
+        u->keyl = 0;
+        u->utime = 0;
+        u->flag = 0;
+        u->next = NULL;
     }
+    
     return u;
 }		/* -----  end of function initulist  ----- */
 
