@@ -340,8 +340,12 @@ int AuthPG(const int bfd,const int ffd, SESSION_SLOTS *slot){
                 FB(0);
                 STORE();
 
+                
                 if(isSELECT == E_SELECT && _hdr){
-                    addHdr(_hdr);
+                    if(_hdr->drl < MAX_SLAB_BYTE)
+                        addHdr(_hdr);
+                    else
+                        freeHdr(_hdr);
                 }
                 if(_ulist)
                     addUlist(_ulist);

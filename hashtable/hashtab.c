@@ -110,7 +110,7 @@ int hsms ( ub4 bytes ){
     /*float l;*/
 
     if(bytes > MAX_SLAB_BYTE){
-        printf("big bytes\n");
+        DEBUG("big bytes");
         return -1;
     }
 
