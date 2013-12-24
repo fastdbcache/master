@@ -132,7 +132,7 @@ SESSION_SLOTS *resolve_slot(const char *buf){
 }		/* -----  end of function resolve_slot  ----- */
 
 
-int AuthPG(const int bfd,const int ffd, SESSION_SLOTS *slot, ssize_t no){
+int AuthPG(const int bfd,const int ffd, SESSION_SLOTS *slot){
     char *newbuf,  *_apack, *_drtmp, *_hdrtmp;
     size_t totalsize,  total_size, cmd_size;
     uint32 total;

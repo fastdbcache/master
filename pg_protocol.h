@@ -82,7 +82,7 @@ SESSION_SLOTS *bs_slots[MAX_BACKEND_SESSION];
 
 int PGStartupPacket3(int fd, PACK *pa); /* 1. F -> B */
 SESSION_SLOTS *resolve_slot(const char *buf);
-int AuthPG(const int bfd,const int ffd, SESSION_SLOTS *slot, ssize_t no);
+int AuthPG(const int bfd,const int ffd, SESSION_SLOTS *slot);
 E_SQL_TYPE findSQL (  const char *sql , int len);
 #endif   /* PG_PROTOCOL_H_*/
 /* vim: set ts=4 sw=4: */
