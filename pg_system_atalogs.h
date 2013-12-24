@@ -23,7 +23,8 @@
 #endif
 
 static const char *Query_for_list[] = {
-    "pg_aggregate",
+    "pg_",
+   /*   "pg_aggregate",
     "pg_am",
     "pg_amop",
     "pg_amproc",
@@ -66,7 +67,7 @@ static const char *Query_for_list[] = {
     "pg_stats",
     "pg_tables",
     "pg_user",
-    "pg_views", 
+    "pg_views", */
     NULL 
 };
 
