@@ -114,7 +114,7 @@ void libevent_work_thread(int fd, short ev, void *arg){
     bad:
 
     err:
-        close(work_child->rq_item->frontend->ffd);
+        if(close(work_child->rq_item->frontend->ffd) == -1)DEBUG("close fd error");
         work_child->rq_item->isjob = JOB_FREE;
         work_child->isjob = JOB_FREE;
         printf("end\n");
@@ -209,7 +209,6 @@ void *worker_libevent(void *arg) {
     work_child = wtq_init();     
     work_child->pid = pthread_self();
     me->thread_id = work_child->pid;
-
     work_child->no = me->no;
 
     if(wtq_queue_head == NULL){
