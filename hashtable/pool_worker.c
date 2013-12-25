@@ -28,7 +28,7 @@
  */
 void hkey ( char *key, ub4 keyl, SLABPACK *dest){
     HITEM *_h;
-
+    
     _h = hfind(key, keyl);
     
     getslab(_h, dest);
@@ -45,7 +45,10 @@ HITEM *hfind ( char *key, ub4 keyl ){
     HITEM *ph;
     TLIST *tlist;
     int i;
-    
+    HITEM **pools_hitem;
+
+    if(!key) return NULL;
+
     hval = lookup((ub1 *)key, keyl, 0);
     hjval = jenkins_one_at_a_time_hash((ub1 *)key, keyl);
 
@@ -109,6 +112,8 @@ void getslab ( HITEM * hitem, SLABPACK *dest){
     if(!_ph) return;
 
     i = hsms(_ph->psize);
+    if(i == -1) return ;
+
     _ps = pools_hslab[i];
 
     for(; _ps; _ps=_ps->next){

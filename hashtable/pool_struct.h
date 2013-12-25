@@ -85,7 +85,7 @@ typedef  struct __hslab  HSLAB;
 /* record the unlink slab */
 struct __fslab
 {
-  sb2           psize;     /* hpool size */
+  ssize_t           psize;     /* hpool size */
   sb2           sid;       /* slab id */
   sb2           sa;       /* data row start addr of hslab  sa*psize  sa = ss */   
   struct __fslab *next;     /* next */
@@ -101,7 +101,7 @@ struct __hitem
   ub1          *key;      /* key that is hashed */
   ub4           keyl;     /* length of key */
   ub4           drl;      /* length of data row */
-  sb2           psize;    /* hpools size */
+  ssize_t           psize;    /* hpools size */
   sb2           sid;      /* slab id */
   ub4           sa;       /* data row start addr of hslab  sa*psize  sa = ss */
   ub4           hval;     /* hash value for key */
@@ -205,7 +205,7 @@ pthread_mutex_t work_lock_ulist;
 pthread_mutex_t work_lock_hdr;
 
 HG *hitem_group;
-HITEM **pools_hitem;
+/* HITEM **pools_hitem;*/
 HDR *pools_hdr_tail;
 HDR *pools_hdr_head;
 TLIST *pools_tlist;

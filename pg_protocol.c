@@ -307,11 +307,17 @@ int AuthPG(const int bfd,const int ffd, SESSION_SLOTS *slot){
                     free(mem_pack);
                 }else if(isSELECT==E_DELETE || isSELECT==E_UPDATE || isSELECT==E_INSERT){
                     _ulist = (ULIST *)calloc(1, sizeof(ULIST));
-                    _ulist->keyl = total;
-                    _ulist->key = calloc(total, sizeof(char));
-                    memcpy(_ulist->key, _hdrtmp, total);
-                    _ulist->utime = get_sec();
-
+                    if(_ulist){
+                        _ulist->keyl = total;
+                        _ulist->key = calloc(total, sizeof(char));
+                        if(_ulist->key){
+                            memcpy(_ulist->key, _hdrtmp, total);
+                            _ulist->utime = get_sec();
+                        }else{
+                            freeUList(_ulist);
+                            _ulist = NULL;
+                        }
+                    }
                 }
                 /*else{
                     DEBUG("system table");

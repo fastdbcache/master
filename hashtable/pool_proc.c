@@ -53,6 +53,7 @@ void htlist (  ){
 
         if(!_u->key){
             freeUList(_u);
+            DEBUG("_u->key is null");
             continue;
         }
         ply = parser_do (_u->key, _u->keyl);
@@ -146,6 +147,7 @@ word haddHitem ( HDR *mhdr ){
     FSLAB *fslab;
     HSLAB *hslab;
     int i, m;
+    HITEM **pools_hitem;
 
     hdr = mhdr;
     if(hdr == NULL) return -1;
@@ -160,6 +162,7 @@ word haddHitem ( HDR *mhdr ){
         return -1;
     }
     i = hsms(hdr->drl);
+    if(i == -1) return -1;
 
     /* header is not user */
     for(; ph->next; ph=ph->next){
@@ -184,7 +187,7 @@ word haddHitem ( HDR *mhdr ){
             (_new_hjval == ph->hjval))
         {
             m = hsms(ph->psize);
-            
+            if(m == -1) return -1; 
             if(m != i){  /* old size != new size , free old slab */
                 addfslab(ph);  /* free old slab */
 
@@ -236,15 +239,16 @@ word haddHitem ( HDR *mhdr ){
         hp->sid = fslab->sid;
         hp->sa = fslab->sa;
 
-        if(hp->sa*hp->psize > MAX_SLAB_BYTE){ DEBUG("psize error!");
+        if(hp->sa*hp->psize > MAX_SLAB_BYTE){ 
+            DEBUG("psize error! sa: %d psize: %d", hp->sa, hp->psize);
         }else{
-        memcpy(hslab->sm+hp->sa*hp->psize, hdr->dr, hdr->drl);
-        free(fslab);
-        phtmp->next = hp;
+            memcpy(hslab->sm+hp->sa*hp->psize, hdr->dr, hdr->drl);
+            free(fslab);
+            phtmp->next = hp;
 
-        pools_hitem_row[i]++;
+            pools_hitem_row[i]++;
 
-        hrule(hp, H_INSERT); 
+            hrule(hp, H_INSERT); 
         }
     }
  
