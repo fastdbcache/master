@@ -4,13 +4,13 @@ OK := server
 MAKE	:= make
 LIBS	:=	-ll -ly 
 #LIBS := -L/usr/local/mysql/lib/mysql -I/usr/local/mysql/include/mysql -DUNIV_LINUX
-CFLAGS := $(LIBS) -Wall -O -g -pedantic -Wshadow -Wunused -Wstrict-aliasing  
+CFLAGS := $(LIBS)  -pg -Wall -O -g -pedantic -Wshadow -Wunused -Wstrict-aliasing  
 
 RM-F := rm -f
 #CXXFLAGS := $(CFLAGS) -lmysqlclient_r -lpthread -lz -lcrypt -lnsl -lm -levent 
 CXXFLAGS := $(CFLAGS) -lpthread -lz -lcrypt -lnsl -lm -levent  
 
-EXECUTABLE := -o server $(CXXFLAGS) 
+EXECUTABLE :=  -o server $(CXXFLAGS)
 SOURCE := $(wildcard *.c)
 OBJS := $(patsubst %.c,%.o,$(SOURCE))
 

@@ -134,7 +134,7 @@ int Set_SockOpt(int sockfd){
     socklen_t len = sizeof(sendbuflen);
 	struct linger opt;
 	int nNetTimeout = 1;
-    int flag = 1;
+    int enable = 1;
     int keepcnt = 5;
     int keepidle = 30;
     int keepintvl = 120;
@@ -176,7 +176,7 @@ int Set_SockOpt(int sockfd){
 	}
 
     if (setsockopt(sockfd, IPPROTO_TCP, TCP_NODELAY,
-                  &flag, sizeof(flag)) == -1) {
+                  (void*)&enable, sizeof(enable)) == -1) {
         printf("noblock SockOpt\n");
 		return (-1);
     }

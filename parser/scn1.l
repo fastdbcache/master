@@ -166,7 +166,7 @@ OFFSET      { return OFFSET; }
 			yymore();
 	}
 		
-'[^'\n]*$	{ yyerror("Unterminated string"); }
+'[^'\n]*$	{/* yyerror("Unterminated string");*/ }
 
 \n		lineno++;
 
@@ -179,7 +179,7 @@ OFFSET      { return OFFSET; }
 void
 yyerror(char *s)
 {
-	printf("%d: %s at %s\n", lineno, s, yytext);
+	/*printf("%d: %s at %s\n", lineno, s, yytext);*/
 }
 /*
 main(int ac, char **av)
