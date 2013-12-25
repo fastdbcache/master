@@ -134,11 +134,11 @@ SESSION_SLOTS *resolve_slot(const char *buf){
 
 int AuthPG(const int bfd,const int ffd, SESSION_SLOTS *slot){
     char *newbuf,  *_apack, *_drtmp, *_hdrtmp;
-    size_t totalsize,  total_size, cmd_size;
+    size_t totalsize,  total_size, cmd_size, pack_len;
     uint32 total;
     int rfd, wfd;
     MSGFORMAT *_mf;
-    int type=1;
+    int type=1, isDATA;
     E_SQL_TYPE isSELECT;
     HDR *_hdr;
     ULIST *_ulist;
@@ -177,13 +177,19 @@ int AuthPG(const int bfd,const int ffd, SESSION_SLOTS *slot){
     if(slot->backend_fd != 0) return -1;
     
     _hdr = NULL;
-    _ulist = NULL; 
+    _ulist = NULL;
+    _apack = NULL;
+    pack_len = 0;
     isSELECT = E_OTHER;
+    isDATA = 0;
 
     FB(1);
     
     auth_loop:
-        _apack = calloc(1, sizeof(char));
+        if(!_apack){
+            _apack = calloc(1, sizeof(char));
+            pack_len = sizeof(char);
+        }
         cmd_size = Socket_Read(rfd, _apack, sizeof(char));
 
         if(cmd_size != sizeof(char)) {            
@@ -191,18 +197,18 @@ int AuthPG(const int bfd,const int ffd, SESSION_SLOTS *slot){
             _apack = NULL;
             return -1;
         }
-
-        newbuf = realloc(_apack, sizeof(char)+sizeof(uint32));
-        
-        if(newbuf){
-            _apack = newbuf;
-        } else{
-            free(_apack);
-            _apack = NULL;
-            return -1;
+        if(pack_len < sizeof(char)+sizeof(uint32)){
+            newbuf = realloc(_apack, sizeof(char)+sizeof(uint32));        
+            pack_len += sizeof(uint32); 
+            if(newbuf){
+                _apack = newbuf;
+            } else{
+                free(_apack);
+                _apack = NULL;
+                return -1;
+            }
+            /* printf("ask: %c\n", *_apack);*/
         }
-        /* printf("ask: %c\n", *_apack);*/
-
         total_size = Socket_Read(rfd, _apack+sizeof(char), sizeof(uint32));
 
         if(total_size != sizeof(uint32)){
@@ -214,11 +220,12 @@ int AuthPG(const int bfd,const int ffd, SESSION_SLOTS *slot){
         memcpy(&total, _apack+sizeof(char), sizeof(uint32));
 
         total = ntohl(total);
-
-        //if(totalsize < total){
-            totalsize = sizeof(char)+total;
+        totalsize = sizeof(char)+total;
+        if(pack_len < totalsize){
+            
             newbuf = realloc(_apack, total+sizeof(char));
-        
+            pack_len = totalsize;
+
             if(newbuf){
                 _apack = newbuf;
             } else{
@@ -226,7 +233,7 @@ int AuthPG(const int bfd,const int ffd, SESSION_SLOTS *slot){
                 _apack = NULL;
                 return -1;
             }
-        //}
+        }
         Socket_Read(rfd, _apack+sizeof(char)+sizeof(uint32), total-sizeof(uint32));
 
         Socket_Send(wfd, _apack, totalsize);
@@ -246,7 +253,7 @@ int AuthPG(const int bfd,const int ffd, SESSION_SLOTS *slot){
                 slot->head = _mf;
             }   
         }
-        
+
         switch ( *_apack ) {
             case 'R':	
 
@@ -328,6 +335,7 @@ int AuthPG(const int bfd,const int ffd, SESSION_SLOTS *slot){
                 FB(1);
                 if(isSELECT == E_SELECT && _hdr){
                     _hdr->dr = (ub1 *)calloc(totalsize, sizeof(ub1));
+                    
                     memcpy(_hdr->dr, _apack, totalsize);
                     _hdr->drl = totalsize;
                 }
@@ -336,7 +344,7 @@ int AuthPG(const int bfd,const int ffd, SESSION_SLOTS *slot){
             case 'D':
                 FB(1);
                 STORE();
-
+                isDATA = 1;
                 goto free_pack;
             case 'C':
                 FB(1);
@@ -348,17 +356,20 @@ int AuthPG(const int bfd,const int ffd, SESSION_SLOTS *slot){
 
                 
                 if(isSELECT == E_SELECT && _hdr){
-                    if(_hdr->drl < MAX_SLAB_BYTE)
+                    if(_hdr->drl < MAX_SLAB_BYTE && isDATA)
                         addHdr(_hdr);
                     else
                         freeHdr(_hdr);
                 }
+                isDATA = 0;
                 if(_ulist)
                     addUlist(_ulist);
                 goto free_pack;
             case 'X':
                 free(_apack);                
                 _apack = NULL;
+                pack_len = 0;
+                isDATA = 0;
                 return 0;
                 
             default:	
@@ -366,10 +377,11 @@ int AuthPG(const int bfd,const int ffd, SESSION_SLOTS *slot){
                 break;
         }				/* -----  end switch  ----- */
     
-    free_pack:
-        if(_apack)free(_apack);
-        _apack = NULL;
+    free_pack:        
         goto auth_loop;
+
+    if(_apack)free(_apack);
+    _apack = NULL;
 }
 
 

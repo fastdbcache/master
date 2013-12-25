@@ -23,6 +23,7 @@
 #endif
 
 #include <pthread.h>
+#include <stdint.h> 
 
 #include "../config_global.h"
 #include "../parser/da.h"
@@ -104,8 +105,8 @@ struct __hitem
   ssize_t           psize;    /* hpools size */
   sb2           sid;      /* slab id */
   ub4           sa;       /* data row start addr of hslab  sa*psize  sa = ss */
-  ub4           hval;     /* hash value for key */
-  ub4           hjval;     /* hash value for key */
+  uint32_t          hval;     /* hash value for key */
+  uint32_t           hjval;     /* hash value for key */
   ub4           utime;    /* */
   ub4           ahit;     /* all hit */
   ub4           amiss;    /* all update */

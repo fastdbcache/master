@@ -130,7 +130,7 @@ int server_socket_unix(void) {
 }
 
 int Set_SockOpt(int sockfd){
-	socklen_t sendbuflen = 1024*1024;
+	socklen_t sendbuflen = (256*1024*1024);
     socklen_t len = sizeof(sendbuflen);
 	struct linger opt;
 	int nNetTimeout = 1;

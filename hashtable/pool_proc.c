@@ -142,7 +142,8 @@ void fetchdti (  ){
 word haddHitem ( HDR *mhdr ){ 
     HITEM  *ph,*phtmp, *hp;
     HDR *hdr;
-    ub4     y, _new_hval, _new_hjval;
+    ub4     y ;
+    uint32_t _new_hval, _new_hjval;
     HSLAB  *hsp;
     FSLAB *fslab;
     HSLAB *hslab;

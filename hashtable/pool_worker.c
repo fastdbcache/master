@@ -41,7 +41,8 @@ void hkey ( char *key, ub4 keyl, SLABPACK *dest){
  * =====================================================================================
  */
 HITEM *hfind ( char *key, ub4 keyl ){
-    ub4 hval,hjval, y;
+    ub4  y;
+    uint32_t hval, hjval;
     HITEM *ph;
     TLIST *tlist;
     int i;
@@ -56,13 +57,18 @@ HITEM *hfind ( char *key, ub4 keyl ){
 
     HITEM_SWITCH((y=(hval&pools_htab->mask)));
     ph = pools_hitem[y]->next;
+    
      
     while ( ph ) {
+        DEBUG("hval:%llu hjval:%llu", hval, hjval);
+        DEBUG("hval:%llu hjval:%llu, keyl:%llu", ph->hval, ph->hjval, ph->keyl);
         if(hval == ph->hval &&
             (keyl == ph->keyl) &&
             (hjval == ph->hjval) &&
             (ph->drl > 0) 
             ){
+                DEBUG("start--\nkey:%s", key);
+                
                 while ( tlist ) {
                     /*  has a bug */
                     if(tlist->keyl >0 && strstr(key, tlist->key)){
@@ -71,7 +77,8 @@ HITEM *hfind ( char *key, ub4 keyl ){
                     }
                     tlist = tlist->next;
                 }
-
+                DEBUG("ph key:%s",ph->key);
+                DEBUG("--end--");
                 HIT_LOCK();
                 ph->ahit++;
                 pools_htab->hit++;

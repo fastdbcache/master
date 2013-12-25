@@ -76,12 +76,12 @@ acceptable.  Do NOT use for cryptographic purposes.
 --------------------------------------------------------------------
 */
 
-ub4 lookup( k, length, level)
+uint32_t lookup( k, length, level)
 register ub1 *k;        /* the key */
 register ub4  length;   /* the length of the key */
 register ub4  level;    /* the previous hash, or an arbitrary value */
 {
-   register ub4 a,b,c,len;
+   register uint32_t a,b,c,len;
 
    /* Set up the internal state */
    len = length;
@@ -237,9 +237,9 @@ register ub4 *state;
 }
 
 
-ub4 jenkins_one_at_a_time_hash(ub1 *key, size_t len)
+uint32_t jenkins_one_at_a_time_hash(ub1 *key, size_t len)
 {
-    ub4 hash, i;
+    uint32_t hash, i;
     for(hash = i = 0; i < len; ++i)
     {
         hash += key[i];
