@@ -190,6 +190,7 @@ int AuthPG(const int bfd,const int ffd, SESSION_SLOTS *slot){
             _apack = calloc(1, sizeof(char));
             pack_len = sizeof(char);
         }
+        bzero(_apack, pack_len);
         cmd_size = Socket_Read(rfd, _apack, sizeof(char));
 
         if(cmd_size != sizeof(char)) {            
