@@ -22,6 +22,51 @@
 
 /* 
  * ===  FUNCTION  ======================================================================
+ *         Name:  listHslab
+ *  Description:  
+ * =====================================================================================
+ */
+void listHslab (  ){
+    HITEM *_h;
+    int i, m;
+    HITEM **pools_hitem;
+
+    for(i=0; i<pools_htab->logsize; i++){
+        HITEM_SWITCH(i);
+        _h = pools_hitem[i];
+        if(_h->next) _h = _h->next;
+        else continue;
+        for(; _h; _h=_h->next){
+            m=0;
+            printf("%d.hitem:%d\n",m++, i);
+            printf("%d.hitem:key:%s\n",m++,_h->key);
+            printf("%d.hitem:keyl:%lu\n",m++,_h->keyl);
+            printf("%d.hitem:drl:%lu\n",m++,_h->drl);
+            printf("%d.hitem:psize:%lu\n",m++,_h->psize);
+            printf("%d.hitem:sid:%d\n",m++,_h->sid);
+            printf("%d.hitem:sa:%lu\n",m++,_h->sa);
+            printf("%d.hitem:hval:%lu\n",m++,_h->hval);
+            printf("%d.hitem:hjval:%lu, %lu\n",m++,_h->hjval, jenkins_one_at_a_time_hash(_h->key, _h->keyl));
+            printf("%d.hitem:utime:%lu\n",m++,_h->utime);
+            printf("%d.hitem:ahit:%lu\n",m++,_h->ahit);
+            printf("%d.hitem:amiss:%lu\n",m++,_h->amiss);
+            printf("%d.end %d\n",m++, i);
+        }
+    }
+   /*
+    for(i=0; slabclass[i].chunk; i++){
+        DEBUG("chunk %d, size:%d", slabclass[i].chunk, slabclass[i].size);
+        _h = pools_hslab[i];
+        if(_h && _h->sm){
+            for(;_h;_h=_h->next){
+                DEBUG();
+            }
+        }
+    }  */ 
+}		/* -----  end of function listHslab  ----- */
+
+/* 
+ * ===  FUNCTION  ======================================================================
  *         Name:  hkey
  *  Description:  
  * =====================================================================================
@@ -42,13 +87,14 @@ void hkey ( char *key, ub4 keyl, SLABPACK *dest){
  */
 HITEM *hfind ( char *key, ub4 keyl ){
     ub4  y;
-    uint32_t hval, hjval;
+    uint64_t hval, hjval;
     HITEM *ph;
     TLIST *tlist;
     int i;
     HITEM **pools_hitem;
 
-    if(!key) return NULL;
+    i = 0;
+    if(!key){DEBUG("key error %d",i); return NULL;}
 
     hval = lookup((ub1 *)key, keyl, 0);
     hjval = jenkins_one_at_a_time_hash((ub1 *)key, keyl);
@@ -60,8 +106,8 @@ HITEM *hfind ( char *key, ub4 keyl ){
     
      
     while ( ph ) {
-        DEBUG("hval:%llu hjval:%llu", hval, hjval);
-        DEBUG("hval:%llu hjval:%llu, keyl:%llu", ph->hval, ph->hjval, ph->keyl);
+        DEBUG("hval:%lu hjval:%lu", hval, hjval);
+        DEBUG("hval:%lu hjval:%lu, keyl:%lu", ph->hval, ph->hjval, ph->keyl);
         if(hval == ph->hval &&
             (keyl == ph->keyl) &&
             (hjval == ph->hjval) &&
@@ -78,7 +124,7 @@ HITEM *hfind ( char *key, ub4 keyl ){
                     tlist = tlist->next;
                 }
                 DEBUG("ph key:%s",ph->key);
-                DEBUG("--end--");
+                DEBUG("end %d",ph->sid);
                 HIT_LOCK();
                 ph->ahit++;
                 pools_htab->hit++;
@@ -125,10 +171,10 @@ void getslab ( HITEM * hitem, SLABPACK *dest){
 
     for(; _ps; _ps=_ps->next){
         if(_ps->id == _ph->sid){
-            /*dest->pack = calloc(_ph->drl, sizeof(char));
+            dest->pack = calloc(_ph->drl, sizeof(char));
             if(!dest->pack) return;
-            memcpy(dest->pack, _ps->sm+_ph->sa*_ph->psize, _ph->drl);*/
-            dest->pack = _ps->sm+_ph->sa*_ph->psize;
+            memcpy(dest->pack, _ps->sm+_ph->sa*_ph->psize, _ph->drl);
+            /*  dest->pack = _ps->sm+_ph->sa*_ph->psize;*/
             dest->len = _ph->drl;
             return;
         }

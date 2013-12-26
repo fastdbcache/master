@@ -143,7 +143,7 @@ word haddHitem ( HDR *mhdr ){
     HITEM  *ph,*phtmp, *hp;
     HDR *hdr;
     ub4     y ;
-    uint32_t _new_hval, _new_hjval;
+    uint64_t _new_hval, _new_hjval;
     HSLAB  *hsp;
     FSLAB *fslab;
     HSLAB *hslab;
@@ -165,7 +165,7 @@ word haddHitem ( HDR *mhdr ){
     i = hsms(hdr->drl);
     if(i == -1) return -1;
 
-    /* header is not user */
+    /* header is not user 
     for(; ph->next; ph=ph->next){
         if(_new_hval == ph->hval &&
             (hdr->keyl == ph->keyl) &&
@@ -176,7 +176,7 @@ word haddHitem ( HDR *mhdr ){
             MISS_UNLOCK(); 
             break;
         }
-    }
+    }*/
 
     m = 0;
     phtmp = ph;
@@ -239,12 +239,13 @@ word haddHitem ( HDR *mhdr ){
         
         hp->sid = fslab->sid;
         hp->sa = fslab->sa;
+        free(fslab);
 
-        if(hp->sa*hp->psize > MAX_SLAB_BYTE){ 
+        if(hp->sa*hp->psize > LIMIT_SLAB_BYTE){ 
             DEBUG("psize error! sa: %d psize: %d", hp->sa, hp->psize);
         }else{
             memcpy(hslab->sm+hp->sa*hp->psize, hdr->dr, hdr->drl);
-            free(fslab);
+            
             phtmp->next = hp;
 
             pools_hitem_row[i]++;

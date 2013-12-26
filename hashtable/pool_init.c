@@ -141,14 +141,12 @@ HSLAB *hslabcreate ( int i ){
     HSLAB *h;
 
     h = hslabnull();
-    h->sm = (ub1 *)calloc(MAX_SLAB_BYTE, sizeof(ub1));
+    h->sm = (ub1 *)calloc(LIMIT_SLAB_BYTE, sizeof(ub1));
     if(!h->sm)perror("h sm calloc error\n"); 
     h->sf = slabclass[i].chunk;
    
-    BYTES_LOCK();
-    pools_htab->bytes += MAX_SLAB_BYTE;    
+    pools_htab->bytes += LIMIT_SLAB_BYTE;    
     pools_htab->hslab_stat[i]++;
-    BYTES_UNLOCK();
      
     return h;
 }		/* -----  end of function hslabcreate  ----- */

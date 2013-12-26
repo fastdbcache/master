@@ -76,12 +76,12 @@ acceptable.  Do NOT use for cryptographic purposes.
 --------------------------------------------------------------------
 */
 
-uint32_t lookup( k, length, level)
-register ub1 *k;        /* the key */
-register ub4  length;   /* the length of the key */
-register ub4  level;    /* the previous hash, or an arbitrary value */
+uint64_t lookup( k, length, level)
+ ub1 *k;        /* the key */
+ ub4  length;   /* the length of the key */
+ ub4  level;    /* the previous hash, or an arbitrary value */
 {
-   register uint32_t a,b,c,len;
+   uint64_t a,b,c,len;
 
    /* Set up the internal state */
    len = length;
@@ -165,7 +165,7 @@ register ub1 *k;
 register ub4  len;
 register ub4 *state;
 {
-   register ub4 a,b,c,d,e,f,g,h,length;
+    ub4 a,b,c,d,e,f,g,h,length;
 
    /* Use the length and level; add in the golden ratio. */
    length = len;
@@ -237,9 +237,9 @@ register ub4 *state;
 }
 
 
-uint32_t jenkins_one_at_a_time_hash(ub1 *key, size_t len)
+uint64_t jenkins_one_at_a_time_hash(ub1 *key, size_t len)
 {
-    uint32_t hash, i;
+    uint64_t hash, i;
     for(hash = i = 0; i < len; ++i)
     {
         hash += key[i];

@@ -224,7 +224,7 @@ int AuthPG(const int bfd,const int ffd, SESSION_SLOTS *slot){
         totalsize = sizeof(char)+total;
         if(pack_len < totalsize){
             
-            newbuf = realloc(_apack, total+sizeof(char));
+            newbuf = realloc(_apack, totalsize);
             pack_len = totalsize;
 
             if(newbuf){
@@ -291,23 +291,24 @@ int AuthPG(const int bfd,const int ffd, SESSION_SLOTS *slot){
             case 'Q':
                 FB(1);
 
+                isDATA = 0;
                 _hdrtmp = _apack+sizeof(char)+sizeof(uint32);                    
-                isSELECT = findSQL(_hdrtmp, total);
+                isSELECT = findSQL(_hdrtmp, total-sizeof(uint32));
                 if(isSELECT == E_SELECT){
                     mem_pack = (SLABPACK *)calloc(1, sizeof(SLABPACK));
                         
-                    hkey(_hdrtmp, total, mem_pack);
+                    hkey(_hdrtmp, total-sizeof(uint32), mem_pack);
                     
                     if(mem_pack->len > 0){                        
                         Socket_Send(wfd, mem_pack->pack, mem_pack->len);
-                        /* free(mem_pack->pack);*/
-                        mem_pack->pack = NULL;
+                        free(mem_pack->pack);
+                        /*mem_pack->pack = NULL;*/
                         FB(0);
                     }else{
                         _hdr = hdrcreate(); 
-                        _hdr->keyl = total;
-                        _hdr->key = (ub1 *)calloc(total, sizeof(ub1));
-                        memcpy(_hdr->key, _hdrtmp, total);
+                        _hdr->keyl = total-sizeof(uint32);
+                        _hdr->key = (ub1 *)calloc(_hdr->keyl, sizeof(ub1));
+                        memcpy(_hdr->key, _hdrtmp, _hdr->keyl);
                         _hdr->stime = get_sec(); 
                         _hdr->flag = H_TRUE;                    
                     }
@@ -316,18 +317,20 @@ int AuthPG(const int bfd,const int ffd, SESSION_SLOTS *slot){
                 }else if(isSELECT==E_DELETE || isSELECT==E_UPDATE || isSELECT==E_INSERT){
                     _ulist = (ULIST *)calloc(1, sizeof(ULIST));
                     if(_ulist){
-                        _ulist->keyl = total;
-                        _ulist->key = calloc(total, sizeof(char));
+                        _ulist->keyl = total-sizeof(uint32);
+                        _ulist->key = calloc(_ulist->keyl, sizeof(char));
                         if(_ulist->key){
-                            memcpy(_ulist->key, _hdrtmp, total);
+                            memcpy(_ulist->key, _hdrtmp, _ulist->keyl);
                             _ulist->utime = get_sec();
                         }else{
                             freeUList(_ulist);
                             _ulist = NULL;
                         }
                     }
+                }else if(isSELECT == E_SHOW){
+                    listHslab();
                 }
-                /*else{
+                /*  else{
                     DEBUG("system table");
                 }*/
 
@@ -344,27 +347,32 @@ int AuthPG(const int bfd,const int ffd, SESSION_SLOTS *slot){
                 goto free_pack;
             case 'D':
                 FB(1);
+                isDATA++;
                 STORE();
-                isDATA = 1;
+                
                 goto free_pack;
             case 'C':
                 FB(1);
+
                 STORE(); 
                 goto free_pack;
             case 'Z':
                 FB(0);
                 STORE();
-
                 
-                if(isSELECT == E_SELECT && _hdr){
-                    if(_hdr->drl < MAX_SLAB_BYTE && isDATA)
+                if(isSELECT == E_SELECT 
+                    && _hdr
+                    && isDATA > 0){
+                    if(_hdr->drl <= LIMIT_SLAB_BYTE ){
+                        DEBUG("add hdr sql:%s isDATA:%d", _hdr->key, isDATA);
                         addHdr(_hdr);
-                    else
-                        freeHdr(_hdr);
+                    }
+                }else{
+                    freeHdr(_hdr);
                 }
                 isDATA = 0;
                 if(_ulist)
-                    addUlist(_ulist);
+                    addUlist(_ulist);                 
                 goto free_pack;
             case 'X':
                 free(_apack);                
@@ -394,7 +402,7 @@ int AuthPG(const int bfd,const int ffd, SESSION_SLOTS *slot){
  */
 E_SQL_TYPE findSQL (  const char *sql, int len ){
     const char *p = sql;
-    char s[] = "select", in[] = "insert", u[] = "update", d[] = "delete";
+    char s[] = "select", in[] = "insert", u[] = "update", d[] = "delete", show[] = "show";
     int i;
 
     #define TYPE(var, type) \
@@ -413,7 +421,10 @@ E_SQL_TYPE findSQL (  const char *sql, int len ){
     while (*p == ' ' || *p == '\t' || *p == '\r' || *p == '\n'){  
         p++;          
     } 
-        
+    
+    if(memcmp(p, show, strlen(show)) == 0){
+        return E_SHOW;
+    }
           
     if(tolower(*p)== s[0]){
         for(i=0; Query_for_list[i]!=NULL; i++){

@@ -76,6 +76,7 @@ typedef enum {
     E_INSERT,
     E_UPDATE,
     E_DELETE,
+    E_SHOW,
     E_OTHER
 } E_SQL_TYPE;
 

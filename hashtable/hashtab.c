@@ -203,17 +203,20 @@ FSLAB *findslab ( sb2 _psize ,int i){
         /* 2. find a slab from pools_hslab */
         hslab = pools_hslab[i];
         if(!hslab){
-            printf("hslab error\n");
+            DEBUG("hslab error");
             return NULL;
         } 
         loop:
         
-            if(hslab->sm == NULL){
-                hslab->sm = (ub1 *)calloc(MAX_SLAB_BYTE, sizeof(ub1));
+            if(hslab->sm == NULL && pools_htab->bytes <= conn_global->maxbytes){
+                hslab->sm = (ub1 *)calloc(LIMIT_SLAB_BYTE, sizeof(ub1));
                 if(!hslab->sm) return NULL;
                 hslab->ss = 0;
                 hslab->sf = slabclass[i].chunk;
-                
+                hslab->id = 0;
+
+                pools_htab->bytes += LIMIT_SLAB_BYTE;    
+                pools_htab->hslab_stat[i]++;
             }
 
             if(hslab->sf > 0){
@@ -237,7 +240,7 @@ FSLAB *findslab ( sb2 _psize ,int i){
 
                     goto loop;
                 }else {
-                    perror("bytes is eq conn_global->bytes\n");
+                    DEBUG("bytes is eq conn_global->bytes\n");
                     return NULL;
                 }
             }
