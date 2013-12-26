@@ -133,7 +133,8 @@ SESSION_SLOTS *resolve_slot(const char *buf){
 
 
 int AuthPG(const int bfd,const int ffd, SESSION_SLOTS *slot){
-    char *newbuf,  *_apack, *_drtmp, *_hdrtmp;
+    char *newbuf,  *_apack, *_hdrtmp;
+    ub1 *_drtmp;
     size_t totalsize,  total_size, cmd_size, pack_len;
     uint32 total;
     int rfd, wfd;
@@ -160,7 +161,7 @@ int AuthPG(const int bfd,const int ffd, SESSION_SLOTS *slot){
     do                      \
     {                                           \ 
         if(isSELECT == E_SELECT && _hdr){                    \
-            _drtmp = (char *)realloc(_hdr->dr, _hdr->drl+totalsize);    \
+            _drtmp = (ub1 *)realloc(_hdr->dr, _hdr->drl+totalsize);    \
             if(_drtmp){                                         \
                 _hdr->dr = _drtmp;                              \
                 memcpy(_hdr->dr+_hdr->drl, _apack, totalsize);  \
@@ -196,6 +197,7 @@ int AuthPG(const int bfd,const int ffd, SESSION_SLOTS *slot){
         if(cmd_size != sizeof(char)) {            
             free(_apack);
             _apack = NULL;
+            DEBUG("client close");
             return -1;
         }
         if(pack_len < sizeof(char)+sizeof(uint32)){
@@ -208,8 +210,8 @@ int AuthPG(const int bfd,const int ffd, SESSION_SLOTS *slot){
                 _apack = NULL;
                 return -1;
             }
-            /* printf("ask: %c\n", *_apack);*/
         }
+        /* DEBUG("ask: %c\n", *_apack);*/
         total_size = Socket_Read(rfd, _apack+sizeof(char), sizeof(uint32));
 
         if(total_size != sizeof(uint32)){
@@ -237,7 +239,8 @@ int AuthPG(const int bfd,const int ffd, SESSION_SLOTS *slot){
         }
         Socket_Read(rfd, _apack+sizeof(char)+sizeof(uint32), total-sizeof(uint32));
 
-        Socket_Send(wfd, _apack, totalsize);
+        if(*_apack != 'Q')
+            Socket_Send(wfd, _apack, totalsize);
 
         if ( slot->backend_fd == 0 && *_apack != 'p') {
             _mf = (MSGFORMAT *)calloc(1, sizeof(MSGFORMAT));
@@ -289,8 +292,7 @@ int AuthPG(const int bfd,const int ffd, SESSION_SLOTS *slot){
 
                 return -1; 
             case 'Q':
-                FB(1);
-
+                
                 isDATA = 0;
                 _hdrtmp = _apack+sizeof(char)+sizeof(uint32);                    
                 isSELECT = findSQL(_hdrtmp, total-sizeof(uint32));
@@ -300,11 +302,14 @@ int AuthPG(const int bfd,const int ffd, SESSION_SLOTS *slot){
                     hkey(_hdrtmp, total-sizeof(uint32), mem_pack);
                     
                     if(mem_pack->len > 0){                        
-                        Socket_Send(wfd, mem_pack->pack, mem_pack->len);
+                        Socket_Send(rfd, mem_pack->pack, mem_pack->len);
                         free(mem_pack->pack);
                         /*mem_pack->pack = NULL;*/
                         FB(0);
+                        goto free_pack;
+
                     }else{
+                        
                         _hdr = hdrcreate(); 
                         _hdr->keyl = total-sizeof(uint32);
                         _hdr->key = (ub1 *)calloc(_hdr->keyl, sizeof(ub1));
@@ -312,7 +317,7 @@ int AuthPG(const int bfd,const int ffd, SESSION_SLOTS *slot){
                         _hdr->stime = get_sec(); 
                         _hdr->flag = H_TRUE;                    
                     }
-
+                    
                     free(mem_pack);
                 }else if(isSELECT==E_DELETE || isSELECT==E_UPDATE || isSELECT==E_INSERT){
                     _ulist = (ULIST *)calloc(1, sizeof(ULIST));
@@ -333,7 +338,9 @@ int AuthPG(const int bfd,const int ffd, SESSION_SLOTS *slot){
                 /*  else{
                     DEBUG("system table");
                 }*/
-
+                Socket_Send(wfd, _apack, totalsize);
+                FB(1);
+                DEBUG("Q. isDATA:%d, %s", isDATA, _hdrtmp);
                 goto free_pack;
             case 'T':
                 FB(1);
@@ -342,8 +349,10 @@ int AuthPG(const int bfd,const int ffd, SESSION_SLOTS *slot){
                     
                     memcpy(_hdr->dr, _apack, totalsize);
                     _hdr->drl = totalsize;
+                    DEBUG("T. isDATA:%d %s", isDATA, _hdr->key);
                 }
-
+                
+                
                 goto free_pack;
             case 'D':
                 FB(1);
@@ -355,16 +364,20 @@ int AuthPG(const int bfd,const int ffd, SESSION_SLOTS *slot){
                 FB(1);
 
                 STORE(); 
+                if(_hdr)
+                    DEBUG("C. isDATA:%d %s", isDATA, _hdr->key);
                 goto free_pack;
             case 'Z':
                 FB(0);
                 STORE();
-                
+                if(_hdr)
+                    DEBUG("Z. isDATA:%d", isDATA);
                 if(isSELECT == E_SELECT 
                     && _hdr
                     && isDATA > 0){
                     if(_hdr->drl <= LIMIT_SLAB_BYTE ){
                         DEBUG("add hdr sql:%s isDATA:%d", _hdr->key, isDATA);
+                        
                         addHdr(_hdr);
                     }
                 }else{
@@ -382,7 +395,7 @@ int AuthPG(const int bfd,const int ffd, SESSION_SLOTS *slot){
                 return 0;
                 
             default:	
-                //printf("any:%c\n", *_apack);
+                printf("any:%c\n", *_apack);
                 break;
         }				/* -----  end switch  ----- */
     
