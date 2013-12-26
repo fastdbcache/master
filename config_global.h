@@ -80,7 +80,7 @@ typedef                 int  word;  /* fastest type available */
 #define FALSE 0
 #define SUCCESS 0  /* 1 on VAX */
 
-#define DEBUG(fmt, args...) printf(fmt" %s %d\n", ##args, __FILE__, __LINE__);
+#define DEBUG(fmt, args...) printf(fmt" %s %d\n", ##args, __FILE__, __LINE__)
 
 typedef struct __conn _conn;
 struct __conn{
