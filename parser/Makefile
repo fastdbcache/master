@@ -1,5 +1,5 @@
 OK := lex
-CC := gcc
+CC := cc
 CFLAGS := -Wall -O -g -pedantic -Wshadow -Wunused -Wstrict-aliasing -ll -ly -lm  
 DEBUG := n
 LEX := flex

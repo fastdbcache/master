@@ -1,10 +1,10 @@
 
-CC := gcc
+CC := cc
 OK := server
 MAKE	:= make
 LIBS	:=	-ll -ly 
 #LIBS := -L/usr/local/mysql/lib/mysql -I/usr/local/mysql/include/mysql -DUNIV_LINUX
-CFLAGS := $(LIBS) -Wall -O -g -pedantic -Wshadow -Wunused -Wstrict-aliasing  
+CFLAGS := $(LIBS)  -Wall -O -g -pedantic -Wshadow -Wunused -Wstrict-aliasing  
 
 RM-F := rm -f
 #CXXFLAGS := $(CFLAGS) -lmysqlclient_r -lpthread -lz -lcrypt -lnsl -lm -levent 

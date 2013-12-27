@@ -20,6 +20,7 @@ void on_accept(int fd, short ev, void *arg){
     client_len = sizeof(client_addr);
     uint64_t u;
     ssize_t s;
+    
     extern NOTIFY_TOKEN_STATE notify_token_thread;
     extern int token_efd;
         
@@ -54,7 +55,6 @@ void on_accept(int fd, short ev, void *arg){
         close(client_fd);
         d_log("RQ is full");
     }
-
     if(proc_status == NT_FREE){
         procThread();
     }
