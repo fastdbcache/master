@@ -182,7 +182,7 @@ int AuthPG(const int bfd,const int ffd, SESSION_SLOTS *slot){
     _apack = NULL;
     pack_len = 0;
     isSELECT = E_OTHER;
-    isDATA = 0;
+    isDATA = FALSE;
 
     FB(1);
     
@@ -293,7 +293,7 @@ int AuthPG(const int bfd,const int ffd, SESSION_SLOTS *slot){
                 return -1; 
             case 'Q':
                 
-                isDATA = 0;
+                isDATA = FALSE;
                 _hdrtmp = _apack+sizeof(char)+sizeof(uint32);                    
                 isSELECT = findSQL(_hdrtmp, total-sizeof(uint32));
                 if(isSELECT == E_SELECT){
@@ -354,7 +354,7 @@ int AuthPG(const int bfd,const int ffd, SESSION_SLOTS *slot){
                 goto free_pack;
             case 'D':
                 FB(1);
-                isDATA++;
+                isDATA = TRUE;
                 STORE();
                 
                 goto free_pack;
@@ -368,7 +368,7 @@ int AuthPG(const int bfd,const int ffd, SESSION_SLOTS *slot){
                 STORE();
                 if(isSELECT == E_SELECT 
                     && _hdr
-                    && isDATA > 0){
+                    && isDATA == TRUE){
                     if(_hdr->drl <= LIMIT_SLAB_BYTE ){
                         
                         addHdr(_hdr);
@@ -376,7 +376,7 @@ int AuthPG(const int bfd,const int ffd, SESSION_SLOTS *slot){
                 }else{
                     freeHdr(_hdr);
                 }
-                isDATA = 0;
+                isDATA = FALSE;
                 if(_ulist)
                     addUlist(_ulist);                 
                 goto free_pack;
@@ -384,7 +384,7 @@ int AuthPG(const int bfd,const int ffd, SESSION_SLOTS *slot){
                 free(_apack);                
                 _apack = NULL;
                 pack_len = 0;
-                isDATA = 0;
+                isDATA = FALSE;
                 return 0;
                 
             default:	
