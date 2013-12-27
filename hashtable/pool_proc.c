@@ -149,13 +149,22 @@ word haddHitem ( HDR *mhdr ){
     HSLAB *hslab;
     int i, m;
     HITEM **pools_hitem;
+    ub1 md5[MD5_LENG];
+    MD5_CTX *ctx;
 
     hdr = mhdr;
     if(hdr == NULL) return -1;
     if(hdr->drl > LIMIT_SLAB_BYTE) return -1;
 
-    _new_hval = lookup(hdr->key,hdr->keyl,0);
-    _new_hjval = jenkins_one_at_a_time_hash(hdr->key, hdr->keyl);
+    bzero(md5, MD5_LENG);
+    ctx = calloc(1, sizeof(MD5_CTX));
+    MD5_Init(ctx);
+    MD5_Update(ctx, hdr->key, hdr->keyl);
+    MD5_Final(md5, ctx);
+    free(ctx);
+
+    _new_hval = lookup(md5,MD5_LENG,0);
+    _new_hjval = jenkins_one_at_a_time_hash(md5, MD5_LENG);
     HITEM_SWITCH((y=(_new_hval&pools_htab->mask)));
 
     ph = pools_hitem[y];
@@ -177,7 +186,6 @@ word haddHitem ( HDR *mhdr ){
             break;
         }
     }*/
-    DEBUG("here");
     m = 0;
     phtmp = ph;
     ph = ph->next;  /* head is not store anything */

@@ -31,6 +31,7 @@
 #include "../time_lib.h"
 
 #include "lookupa.h"
+#include "openmd5.h"
 
 #define MAX_HITEM_LENGTH 1024
 #define MAX_HITEM_LENGTH_8 (MAX_HITEM_LENGTH<<8)
@@ -41,6 +42,8 @@
 #define LIMIT_SLAB_BYTE 1024 * 1024
 #define SLAB_BEGIN 88
 #define LIMIT_PERCENT 0.1
+
+#define MD5_LENG 33
 /* 
  * f=1.25
  * slab class   1: chunk size     88 perslab 11915

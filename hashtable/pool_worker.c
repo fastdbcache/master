@@ -92,12 +92,22 @@ HITEM *hfind ( char *key, ub4 keyl ){
     TLIST *tlist;
     int i;
     HITEM **pools_hitem;
+    ub1 md5[MD5_LENG];
+    MD5_CTX *ctx;
 
     i = 0;
     if(!key){DEBUG("key error %d",i); return NULL;}
 
-    hval = lookup((ub1 *)key, keyl, 0);
-    hjval = jenkins_one_at_a_time_hash((ub1 *)key, keyl);
+    bzero(md5, MD5_LENG);
+     
+    ctx = calloc(1, sizeof(MD5_CTX));
+    MD5_Init(ctx);
+    MD5_Update(ctx, key, keyl);
+    MD5_Final(md5, ctx);
+    free(ctx);
+
+    hval = lookup(md5, MD5_LENG, 0);
+    hjval = jenkins_one_at_a_time_hash(md5, MD5_LENG);
 
     tlist = pools_tlist->next;
 
