@@ -106,14 +106,11 @@ HITEM *hfind ( char *key, ub4 keyl ){
     
      
     while ( ph ) {
-        DEBUG("hval:%lu hjval:%lu", hval, hjval);
-        DEBUG("hval:%lu hjval:%lu, keyl:%lu", ph->hval, ph->hjval, ph->keyl);
         if(hval == ph->hval &&
             (keyl == ph->keyl) &&
             (hjval == ph->hjval) &&
             (ph->drl > 0) 
             ){
-                DEBUG("start--\nkey:%s", key);
                 
                 while ( tlist ) {
                     /*  has a bug */
@@ -123,8 +120,6 @@ HITEM *hfind ( char *key, ub4 keyl ){
                     }
                     tlist = tlist->next;
                 }
-                DEBUG("ph key:%s",ph->key);
-                DEBUG("end %d",ph->sid);
                 HIT_LOCK();
                 ph->ahit++;
                 pools_htab->hit++;
@@ -171,10 +166,10 @@ void getslab ( HITEM * hitem, SLABPACK *dest){
 
     for(; _ps; _ps=_ps->next){
         if(_ps->id == _ph->sid){
-            dest->pack = calloc(_ph->drl, sizeof(char));
+            /*dest->pack = calloc(_ph->drl, sizeof(char));
             if(!dest->pack) return;
-            memcpy(dest->pack, _ps->sm+_ph->sa*_ph->psize, _ph->drl);
-            /*  dest->pack = _ps->sm+_ph->sa*_ph->psize;*/
+            memcpy(dest->pack, _ps->sm+_ph->sa*_ph->psize, _ph->drl);*/
+              dest->pack = _ps->sm+_ph->sa*_ph->psize;
             dest->len = _ph->drl;
             return;
         }

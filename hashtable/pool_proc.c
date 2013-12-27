@@ -177,7 +177,7 @@ word haddHitem ( HDR *mhdr ){
             break;
         }
     }*/
-
+    DEBUG("here");
     m = 0;
     phtmp = ph;
     ph = ph->next;  /* head is not store anything */
