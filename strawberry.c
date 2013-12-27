@@ -18,10 +18,6 @@
 #include "./modules/modules.h"
 #include "./hashtable/pool_init.h"
 
-static void sighandler( int sig_no ) { 
-    exit(0);
-}
-
 int main(int argc, char* argv[]){
     int listen_fd, unix_sock;
 	int h;
@@ -61,7 +57,7 @@ int main(int argc, char* argv[]){
         conn_get_global();
     }
     
-    signal( SIGUSR1, sighandler );
+
 	d_log("snooker:0.0.1 start ...");
 
 	if(do_daemonize == 1 || conn_global->do_daemonize == 1){
@@ -102,5 +98,6 @@ int main(int argc, char* argv[]){
 
     return 0;
 }
+
 /* vim: set ts=4 sw=4: */
 
