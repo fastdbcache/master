@@ -24,7 +24,9 @@
 
 #include "pool_struct.h"
 #include "hashtab.h"
+#include "../socket_lib.h"
 
+void setCacheRowDescriptions ( int frontend );
 void listHslab (  );
 void hkey ( char *key, ub4 keyl, SLABPACK *dest);
 HITEM *hfind ( char *key, ub4 keyl );

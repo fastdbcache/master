@@ -27,17 +27,17 @@ YACCPROG := $(patsubst $(PARDIR)%.y,$(PARDIR)%.o, $(YACCSOUR))
 
 .PHONY : deps everything objs clean 
 
-$(OK) : $(OBJS) hashtables parsers 
+$(OK) :   parsers hashtables $(OBJS) 
 	@echo "======== ok ========="
 	$(CC)  $(OBJS) $(PARPROG) $(HASHPROG) $(LEXPROG) $(YACCPROG)  $(HASHROG)  $(EXECUTABLE)
-
-hashtables :  
-	@echo "======= hashtable ========="
-	$(foreach c,$(HASHDIR),$(MAKE) -C $(c) && ) true
 
 parsers :  
 	@echo "======= parser ========="
 	$(foreach c,$(PARDIR),$(MAKE) -C $(c) && ) true
+
+hashtables :  
+	@echo "======= hashtable ========="
+	$(foreach c,$(HASHDIR),$(MAKE) -C $(c) && ) true
 
 deps : $(OBJS)
 		$(CC) $(OBJS) $(CFLAGS)  $(CXXFLAGS)

@@ -16,7 +16,6 @@ void on_accept(int fd, short ev, void *arg){
     char *err, *err_log;
 	struct sockaddr_in client_addr;
 	socklen_t client_len;
-    LIBEVENT_WORK_THREAD *thread;
     client_len = sizeof(client_addr);
     uint64_t u;
     ssize_t s;
@@ -87,7 +86,6 @@ void procThread (  ){
             
     if ((ret = pthread_create(&thread, &attr, fproc, NULL)) != 0) {
         d_log("Can't create thread");
-        printf("here---\n");
         exit(1);
     }   
 }		/* -----  end of function procThread  ----- */

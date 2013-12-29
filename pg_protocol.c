@@ -48,13 +48,14 @@ int PGStartupPacket3(int fd,PACK *pa){
         pv_len = Socket_Read(fd, pa->pack+sizeof(uint32), pv-sizeof(uint32));
 
         if(pv_len == (pv-sizeof(uint32))){
-            /*  v=0;
+            /*uint32  v=0;
             memcpy(&v, pa->pack+sizeof(uint32), sizeof(uint32));
             printf("pv major: %d pv minor:%d\n", ntohl(v)>>16, ntohl(v)&0x0000ffff);
             printf("param: %s\n", pa->pack+sizeof(uint32)+sizeof(uint32));
             printf("pv:%d\n", pv);*/
             return pv;
         }
+        
         return -1;
     }
     return -1;
@@ -159,7 +160,7 @@ int AuthPG(const int bfd,const int ffd, SESSION_SLOTS *slot){
 
     #define STORE()         \
     do                      \
-    {                                           \ 
+    {                           \
         if(isSELECT == E_SELECT && _hdr){                    \
             _drtmp = (ub1 *)realloc(_hdr->dr, _hdr->drl+totalsize);    \
             if(_drtmp){                                         \
@@ -210,7 +211,8 @@ int AuthPG(const int bfd,const int ffd, SESSION_SLOTS *slot){
                 return -1;
             }
         }
-        /*   DEBUG("ask: %c", *_apack);*/
+       /* DEBUG("ask: %c", *_apack);*/
+        
         total_size = Socket_Read(rfd, _apack+sizeof(char), sizeof(uint32));
 
         if(total_size != sizeof(uint32)){
@@ -279,7 +281,6 @@ int AuthPG(const int bfd,const int ffd, SESSION_SLOTS *slot){
                 goto free_pack;
             
             case 'E':
-                printf("E\n");
 
                 if(_hdr){
                     freeHdr(_hdr);
@@ -296,6 +297,7 @@ int AuthPG(const int bfd,const int ffd, SESSION_SLOTS *slot){
                 isDATA = FALSE;
                 _hdrtmp = _apack+sizeof(char)+sizeof(uint32);                    
                 isSELECT = findSQL(_hdrtmp, total-sizeof(uint32));
+                DEBUG("sql:%s", _hdrtmp); 
                 if(isSELECT == E_SELECT){
                     mem_pack = (SLABPACK *)calloc(1, sizeof(SLABPACK));
                         
@@ -332,8 +334,11 @@ int AuthPG(const int bfd,const int ffd, SESSION_SLOTS *slot){
                             _ulist = NULL;
                         }
                     }
-                }else if(isSELECT == E_SHOW){
-                    listHslab();
+                }else if(isSELECT == E_CACHE){
+                    /*  listHslab();*/
+                    setCacheRowDescriptions(rfd);
+                    FB(0);
+                    goto free_pack;
                 }
                 /*  else{
                     DEBUG("system table");
@@ -343,6 +348,41 @@ int AuthPG(const int bfd,const int ffd, SESSION_SLOTS *slot){
                 goto free_pack;
             case 'T':
                 FB(1);
+                int nfields, fid;
+                char *field;
+                memcpy(&nfields, _apack+sizeof(char)+sizeof(uint32), sizeof(uint16));
+                nfields = ntohs(nfields);
+                field = _apack+sizeof(char)+sizeof(uint32)+sizeof(uint16);
+                DEBUG("T:%s %d, %d", _apack+sizeof(char)+sizeof(uint32)+sizeof(uint16), nfields, totalsize-sizeof(uint32));
+                int n, m = (int)nfields;
+                for(n=0; n<m; n++){
+                    DEBUG("%d.name:%s, fields:%u",n, field,(int) nfields);
+                    field += strlen(field)+1;
+                    fid=0;
+                    memcpy(&fid, field, sizeof(uint32));
+                    DEBUG("tableid:%d",(int)ntohl(fid) );
+                    field += sizeof(uint32);
+                    fid=0;
+                    memcpy(&fid, field, sizeof(uint16));
+                    DEBUG("columnid:%d",(int)ntohs(fid) );
+                    field += sizeof(uint16);
+                    fid = 0;
+                    memcpy(&fid, field, sizeof(uint32));
+                    DEBUG("typid:%d",(int)ntohl(fid) );
+                    field += sizeof(uint32);
+                    fid=0;
+                    memcpy(&fid, field, sizeof(uint16));
+                    DEBUG("typlen:%d",(int)ntohs(fid) );
+                    field += sizeof(uint16);
+                    fid=0;
+                    memcpy(&fid, field, sizeof(uint32));
+                    DEBUG("atttypmod:%d",(int)ntohl(fid) );
+                    field += sizeof(uint32);
+                    fid=0;
+                    memcpy(&fid, field, sizeof(uint16));
+                    DEBUG("format:%d",(int)ntohs(fid) );
+                    field += sizeof(uint16);
+                }
                 if(isSELECT == E_SELECT && _hdr){
                     _hdr->dr = (ub1 *)calloc(totalsize, sizeof(ub1));
                     
@@ -362,6 +402,7 @@ int AuthPG(const int bfd,const int ffd, SESSION_SLOTS *slot){
                 FB(1);
 
                 STORE(); 
+                DEBUG("C:%s", _apack+sizeof(char)+sizeof(uint32));
                 goto free_pack;
             case 'Z':
                 FB(0);
@@ -379,6 +420,9 @@ int AuthPG(const int bfd,const int ffd, SESSION_SLOTS *slot){
                 isDATA = FALSE;
                 if(_ulist)
                     addUlist(_ulist);                 
+                _hdr = NULL;
+                _ulist = NULL;
+                DEBUG("Z:%s", _apack+sizeof(char)+sizeof(uint32));
                 goto free_pack;
             case 'X':
                 free(_apack);                
@@ -408,7 +452,7 @@ int AuthPG(const int bfd,const int ffd, SESSION_SLOTS *slot){
  */
 E_SQL_TYPE findSQL (  const char *sql, int len ){
     const char *p = sql;
-    char s[] = "select", in[] = "insert", u[] = "update", d[] = "delete", show[] = "show";
+    char s[] = "select", in[] = "insert", u[] = "update", d[] = "delete", cache[] = "cache";
     int i;
 
     #define TYPE(var, type) \
@@ -428,8 +472,8 @@ E_SQL_TYPE findSQL (  const char *sql, int len ){
         p++;          
     } 
     
-    if(memcmp(p, show, strlen(show)) == 0){
-        return E_SHOW;
+    if(memcmp(p, cache, strlen(cache)) == 0){
+        return E_CACHE;
     }
           
     if(tolower(*p)== s[0]){

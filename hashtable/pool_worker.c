@@ -65,6 +65,102 @@ void listHslab (  ){
     }  */ 
 }		/* -----  end of function listHslab  ----- */
 
+
+/* 
+ * ===  FUNCTION  ======================================================================
+ *         Name:  setCacheRowDescriptions
+ *  Description:  
+ * =====================================================================================
+ */
+void setCacheRowDescriptions ( int frontend ){
+    char *crd, *field, *newbuf;
+    uint32 total, len;
+    int i, nfields;
+    int         tableid;
+    int         columnid;
+    int         typid;
+    int         typlen;
+    int         atttypmod;
+    int         format;
+    char *rowdes[]={"key","keyl","drl","psize","sid","sa","hval","hjval","utime","ahit","amiss"};
+    char res[] = "SELECT 0";
+    total = 0;
+    nfields = 11;
+
+    total += sizeof(uint32)+sizeof(uint16);
+
+    field = NULL;
+    for(i=0; i<nfields; i++){
+        total += strlen(rowdes[i])+1+sizeof(uint32)+sizeof(uint16)+sizeof(uint32)+sizeof(uint16)+sizeof(uint32)+sizeof(uint16);
+    }
+    printf("0\n");
+    crd = calloc(total+sizeof(char), sizeof(char));
+    newbuf = crd;
+    memcpy(crd, "T", sizeof(char));
+    crd+=sizeof(char);
+    len = total; 
+    total = htonl(total);
+    memcpy(crd, &total, sizeof(uint32));
+    crd+=sizeof(uint32);
+
+    nfields = htons(nfields);    
+    memcpy(crd, &nfields, sizeof(uint16));
+    crd+=sizeof(uint16);
+
+    
+    for(i=0; i<11; i++){
+        
+        memcpy(crd,rowdes[i],strlen(rowdes[i]));
+        crd += strlen(rowdes[i])+1;
+        tableid = htonl(0); 
+        memcpy(crd, &tableid, sizeof(uint32));
+        crd+=sizeof(uint32);
+        columnid = htons(i+1);
+        memcpy(crd,&columnid , sizeof(uint16));
+        crd+=sizeof(uint16);
+        typid = htonl(25);
+        memcpy(crd,&typid , sizeof(uint32));
+        crd+=sizeof(uint32);
+        typlen = htons(65535);
+        memcpy(crd, &typlen, sizeof(uint16));
+        crd+=sizeof(uint16);
+        atttypmod = htonl(-1);
+        memcpy(crd,&atttypmod , sizeof(uint32));
+        crd+=sizeof(uint32);
+        format = htons(0);
+        memcpy(crd,&format , sizeof(uint16));
+        if(i!=(nfields-1))
+            crd+=sizeof(uint16);
+    }
+    Socket_Send(frontend, newbuf, len+sizeof(char));
+
+    free(newbuf);
+
+    total = sizeof(uint32)+strlen(res)+1;
+    crd = calloc(total+sizeof(char), sizeof(char));
+    newbuf = crd;
+    memcpy(crd, "C", sizeof(char));
+    crd+=sizeof(char);
+    len = total;
+    total = htonl(total);
+    memcpy(crd, &total, sizeof(uint32));
+    crd+=sizeof(uint32);
+    memcpy(crd, res, strlen(res)+1);
+    Socket_Send(frontend, newbuf, len+sizeof(char));
+    free(newbuf);
+    total = sizeof(uint32)+sizeof(char);
+    crd = calloc(sizeof(char)+total, sizeof(char));
+    newbuf = crd;
+    memcpy(crd, "Z", sizeof(char));
+    crd += sizeof(char);
+    len = total;
+    total = htonl(total);
+    memcpy(crd, &total, sizeof(uint32));
+    crd+=sizeof(uint32);
+    memcpy(crd, "I", sizeof(char)); 
+    Socket_Send(frontend, newbuf, len+sizeof(char));
+}	/*	 -----  end of function setCacheRowDescriptions  ----- */
+
 /* 
  * ===  FUNCTION  ======================================================================
  *         Name:  hkey
@@ -246,6 +342,7 @@ void freeHdr ( HDR *fhdr ){
     if(fhdr->dr)
         free(fhdr->dr);
     free(fhdr);
+    fhdr = NULL;
 }		/* -----  end of function freeHdr  ----- */
 
 

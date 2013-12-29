@@ -37,7 +37,9 @@
 #include <malloc.h>
 #include <string.h>
 #include <stdlib.h>
+#include <ctype.h>
 
+typedef unsigned short uint16;
 typedef unsigned int uint32;
 typedef  unsigned long  ub8;
 #define UB8MAXVAL 0xffffffffffffffffLL
