@@ -297,7 +297,6 @@ int AuthPG(const int bfd,const int ffd, SESSION_SLOTS *slot){
                 isDATA = FALSE;
                 _hdrtmp = _apack+sizeof(char)+sizeof(uint32);                    
                 isSELECT = findSQL(_hdrtmp, total-sizeof(uint32));
-                DEBUG("sql:%s", _hdrtmp); 
                 if(isSELECT == E_SELECT){
                     mem_pack = (SLABPACK *)calloc(1, sizeof(SLABPACK));
                         
@@ -348,61 +347,41 @@ int AuthPG(const int bfd,const int ffd, SESSION_SLOTS *slot){
                 goto free_pack;
             case 'T':
                 FB(1);
-                int nfields, fid;
-                char *field;
-                memcpy(&nfields, _apack+sizeof(char)+sizeof(uint32), sizeof(uint16));
-                nfields = ntohs(nfields);
-                field = _apack+sizeof(char)+sizeof(uint32)+sizeof(uint16);
-                DEBUG("T:%s %d, %d", _apack+sizeof(char)+sizeof(uint32)+sizeof(uint16), nfields, totalsize-sizeof(uint32));
-                int n, m = (int)nfields;
-                for(n=0; n<m; n++){
-                    DEBUG("%d.name:%s, fields:%u",n, field,(int) nfields);
-                    field += strlen(field)+1;
-                    fid=0;
-                    memcpy(&fid, field, sizeof(uint32));
-                    DEBUG("tableid:%d",(int)ntohl(fid) );
-                    field += sizeof(uint32);
-                    fid=0;
-                    memcpy(&fid, field, sizeof(uint16));
-                    DEBUG("columnid:%d",(int)ntohs(fid) );
-                    field += sizeof(uint16);
-                    fid = 0;
-                    memcpy(&fid, field, sizeof(uint32));
-                    DEBUG("typid:%d",(int)ntohl(fid) );
-                    field += sizeof(uint32);
-                    fid=0;
-                    memcpy(&fid, field, sizeof(uint16));
-                    DEBUG("typlen:%d",(int)ntohs(fid) );
-                    field += sizeof(uint16);
-                    fid=0;
-                    memcpy(&fid, field, sizeof(uint32));
-                    DEBUG("atttypmod:%d",(int)ntohl(fid) );
-                    field += sizeof(uint32);
-                    fid=0;
-                    memcpy(&fid, field, sizeof(uint16));
-                    DEBUG("format:%d",(int)ntohs(fid) );
-                    field += sizeof(uint16);
-                }
+                
                 if(isSELECT == E_SELECT && _hdr){
                     _hdr->dr = (ub1 *)calloc(totalsize, sizeof(ub1));
                     
                     memcpy(_hdr->dr, _apack, totalsize);
                     _hdr->drl = totalsize;
                 }
-                
-                
                 goto free_pack;
             case 'D':
                 FB(1);
                 isDATA = TRUE;
                 STORE();
+                char *ds, data[1024];
+                uint16 num;
+                uint32 len;
                 
+                ds = _apack+sizeof(char)+sizeof(uint32);
+                memcpy(&num, ds, sizeof(uint16));
+                num = ntohs(num);
+                ds+=sizeof(uint16);
+                for(;num>0;num--){
+                    memcpy(&len, ds, sizeof(32));
+                    len = ntohl(len);
+                    ds+=sizeof(32);
+                    bzero(data, 1024);
+                    memcpy(data, ds, len);
+                    /*  DEBUG("len:%d, byte:%s",len, data );*/
+                    ds+=len;
+                }
                 goto free_pack;
             case 'C':
                 FB(1);
 
                 STORE(); 
-                DEBUG("C:%s", _apack+sizeof(char)+sizeof(uint32));
+                /*  DEBUG("C:%s", _apack+sizeof(char)+sizeof(uint32));*/
                 goto free_pack;
             case 'Z':
                 FB(0);
@@ -422,7 +401,7 @@ int AuthPG(const int bfd,const int ffd, SESSION_SLOTS *slot){
                     addUlist(_ulist);                 
                 _hdr = NULL;
                 _ulist = NULL;
-                DEBUG("Z:%s", _apack+sizeof(char)+sizeof(uint32));
+                /*  DEBUG("Z:%s", _apack+sizeof(char)+sizeof(uint32));*/
                 goto free_pack;
             case 'X':
                 free(_apack);                

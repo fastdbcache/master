@@ -83,7 +83,7 @@ void setCacheRowDescriptions ( int frontend ){
     int         atttypmod;
     int         format;
     char *rowdes[]={"key","keyl","drl","psize","sid","sa","hval","hjval","utime","ahit","amiss"};
-    char res[] = "SELECT 0";
+    char res[32]={'\0'};
     total = 0;
     nfields = 11;
 
@@ -93,7 +93,7 @@ void setCacheRowDescriptions ( int frontend ){
     for(i=0; i<nfields; i++){
         total += strlen(rowdes[i])+1+sizeof(uint32)+sizeof(uint16)+sizeof(uint32)+sizeof(uint16)+sizeof(uint32)+sizeof(uint16);
     }
-    printf("0\n");
+
     crd = calloc(total+sizeof(char), sizeof(char));
     newbuf = crd;
     memcpy(crd, "T", sizeof(char));
@@ -135,7 +135,144 @@ void setCacheRowDescriptions ( int frontend ){
     Socket_Send(frontend, newbuf, len+sizeof(char));
 
     free(newbuf);
+    
+    HITEM *_h;
+    int  m, nf, tlen, _tlen;
+    uint32 _ulen;
+    HITEM **pools_hitem;
+    char *tmp, *_tmp, *_newtmp;
+    _tlen = 0; 
+    tmp = NULL;
+    m=0;
+    for(i=0; i<pools_htab->logsize; i++){
+        HITEM_SWITCH(i);
+        _h = pools_hitem[i];
+        if(_h->next) _h = _h->next;
+        else continue;
+        for(; _h; _h=_h->next){
+            if(_tlen==0){
+                _tlen = _h->keyl+sizeof(_h->keyl)+sizeof(_h->drl)+sizeof(_h->psize)
+                    + sizeof(_h->sid)+sizeof(_h->sa)+sizeof(_h->hval)+sizeof(_h->hjval)
+                    +sizeof(_h->utime)+sizeof(_h->ahit)+sizeof(_h->amiss)+(11*sizeof(uint32));
+                tlen = _tlen;
+            }
+            m++;
+            if(tmp == NULL){
+                tmp = calloc(tlen, sizeof(char));
+                _newtmp = tmp;
+            }else{
+                _tmp = realloc(tmp, (tlen+_tlen));
+                if(_tmp){
+                    tmp = _tmp;
+                    _newtmp = tmp;
+                    tmp += tlen;
+                    tlen+=_tlen;
+                }return ;
+            }
+            _ulen = htonl(_h->keyl);
+            memcpy(tmp, &_ulen, sizeof(uint32));
+            tmp+=sizeof(uint32);
+            memcpy(tmp, _h->key, _h->keyl);
+            tmp += _h->keyl;
 
+            _ulen = htonl(sizeof(_h->keyl));
+            memcpy(tmp, &_ulen, sizeof(uint32));
+            tmp+=sizeof(uint32);
+            memcpy(tmp, &_h->keyl, sizeof(_h->keyl));
+            tmp += sizeof(_h->keyl);
+
+            _ulen = htonl(sizeof(_h->drl));
+            memcpy(tmp, &_ulen, sizeof(uint32));
+            tmp+=sizeof(uint32);
+            memcpy(tmp, &_h->drl, sizeof(_h->drl));
+            tmp += sizeof(_h->drl);
+
+            _ulen = htonl(sizeof(_h->psize));
+            memcpy(tmp, &_ulen, sizeof(uint32));
+            tmp+=sizeof(uint32);
+            memcpy(tmp, &_h->psize, sizeof(_h->psize));
+            tmp += sizeof(_h->psize);
+
+            _ulen = htonl(sizeof(_h->sid));
+            memcpy(tmp, &_ulen, sizeof(uint32));
+            tmp+=sizeof(uint32);
+            memcpy(tmp,&_h->sid, sizeof(_h->sid));
+            tmp += sizeof(_h->sid);
+
+            _ulen = htonl(sizeof(_h->sa));
+            memcpy(tmp, &_ulen, sizeof(uint32));
+            tmp+=sizeof(uint32);
+            memcpy(tmp, &_h->sa, sizeof(_h->sa));
+            tmp += sizeof(_h->sa);
+
+            _ulen = htonl(sizeof(_h->hval));
+            memcpy(tmp, &_ulen, sizeof(uint32));
+            tmp+=sizeof(uint32);
+            memcpy(tmp, &_h->hval, sizeof(_h->hval));
+            tmp += sizeof(_h->hval);
+
+            _ulen = htonl(sizeof(_h->hjval));
+            memcpy(tmp, &_ulen, sizeof(uint32));
+            tmp+=sizeof(uint32);
+            memcpy(tmp,&_h->hjval, sizeof(_h->hjval));
+            tmp += sizeof(_h->hjval);
+
+            _ulen = htonl(sizeof(_h->utime));
+            memcpy(tmp, &_ulen, sizeof(uint32));
+            tmp+=sizeof(uint32);
+            memcpy(tmp, &_h->utime, sizeof(_h->utime));
+            tmp += sizeof(_h->utime);
+
+            _ulen = htonl(sizeof(_h->ahit));
+            memcpy(tmp, &_ulen, sizeof(uint32));
+            tmp+=sizeof(uint32);
+            memcpy(tmp, &_h->ahit, sizeof(_h->ahit));
+            tmp += sizeof(_h->ahit);
+        
+            _ulen = htonl(sizeof(_h->amiss));
+            memcpy(tmp, &_ulen, sizeof(uint32));
+            tmp+=sizeof(uint32);
+            memcpy(tmp, &_h->amiss, sizeof(_h->amiss));
+        }
+    }
+    if(m>0){
+        total = sizeof(uint32)+sizeof(uint16) + tlen;
+        crd = calloc(total+sizeof(char), sizeof(char));
+        newbuf = crd;
+        memcpy(crd, "D", sizeof(char));
+        crd+=sizeof(char);
+        len = total;
+        total = htonl(total);
+        memcpy(crd, &total, sizeof(uint32));
+        crd += sizeof(uint32);
+        DEBUG("m %d 11: %d", m, m*11);
+        nf = htons((m*11));
+        memcpy(crd, &nf, sizeof(uint16));
+        crd += sizeof(uint16);
+        memcpy(crd, &_newtmp, tlen);
+
+        char *ds, data[1024];
+        uint16 num;
+        uint32 nlen;
+        num = ntohs(nf);
+        ds = _newtmp;
+        for(;num>0;num--){
+            memcpy(&nlen, ds, sizeof(32));
+            nlen = ntohl(nlen);
+            DEBUG("nlen %d", nlen);
+            ds+=sizeof(32);
+            bzero(data, 1024);
+            memcpy(data, ds, nlen);
+            DEBUG("len:%d, byte:%s",nlen, data );
+            ds+=len;
+        } 
+
+        Socket_Send(frontend, newbuf, len+sizeof(char));
+        free(newbuf);
+        free(_newtmp);
+    }
+    DEBUG("C---Z tlen: %d", tlen);
+    snprintf(res, 31, "SELECT %d", m);
     total = sizeof(uint32)+strlen(res)+1;
     crd = calloc(total+sizeof(char), sizeof(char));
     newbuf = crd;
@@ -148,6 +285,8 @@ void setCacheRowDescriptions ( int frontend ){
     memcpy(crd, res, strlen(res)+1);
     Socket_Send(frontend, newbuf, len+sizeof(char));
     free(newbuf);
+
+    
     total = sizeof(uint32)+sizeof(char);
     crd = calloc(sizeof(char)+total, sizeof(char));
     newbuf = crd;
