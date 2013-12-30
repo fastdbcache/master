@@ -347,7 +347,7 @@ int AuthPG(const int bfd,const int ffd, SESSION_SLOTS *slot){
                 goto free_pack;
             case 'T':
                 FB(1);
-                
+                                            
                 if(isSELECT == E_SELECT && _hdr){
                     _hdr->dr = (ub1 *)calloc(totalsize, sizeof(ub1));
                     
@@ -359,29 +359,13 @@ int AuthPG(const int bfd,const int ffd, SESSION_SLOTS *slot){
                 FB(1);
                 isDATA = TRUE;
                 STORE();
-                char *ds, data[1024];
-                uint16 num;
-                uint32 len;
                 
-                ds = _apack+sizeof(char)+sizeof(uint32);
-                memcpy(&num, ds, sizeof(uint16));
-                num = ntohs(num);
-                ds+=sizeof(uint16);
-                for(;num>0;num--){
-                    memcpy(&len, ds, sizeof(32));
-                    len = ntohl(len);
-                    ds+=sizeof(32);
-                    bzero(data, 1024);
-                    memcpy(data, ds, len);
-                    /*  DEBUG("len:%d, byte:%s",len, data );*/
-                    ds+=len;
-                }
                 goto free_pack;
             case 'C':
                 FB(1);
 
                 STORE(); 
-                /*  DEBUG("C:%s", _apack+sizeof(char)+sizeof(uint32));*/
+                /*    DEBUG("C:%s", _apack+sizeof(char)+sizeof(uint32));*/
                 goto free_pack;
             case 'Z':
                 FB(0);
