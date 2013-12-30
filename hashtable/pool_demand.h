@@ -27,6 +27,9 @@
 #include "hashtab.h"
 #include "../socket_lib.h"
 
+char *item[]={"key","utime","ahit","amiss"};
+char *version[]={"version"};
+
 void setCacheRowDescriptions ( int frontend );
 #ifdef __cplusplus
  }
