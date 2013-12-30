@@ -1,6 +1,6 @@
 
 CC := cc
-CFLAGS :=  -Wall -O2 -g -pedantic -Wshadow -Wunused -Wstrict-aliasing
+CFLAGS :=  -Wall -O -g -pedantic -Wshadow -Wunused -Wstrict-aliasing
 FLAG	:=	-ll -ly -lm
 
 RM-F := rm -f

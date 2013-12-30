@@ -36,7 +36,6 @@ void hcreate ( int isize ){
         perror("pools_htab calloc error");
         exit(1);
     }
-    DEBUG("logsize:%d", len);
     pools_htab->mask = len - 1;
     pools_htab->logsize = len;
     pools_htab->count = 0;

@@ -1,6 +1,6 @@
 OK := lex
 CC := cc
-CFLAGS := -Wall -O2 -g -pedantic -Wshadow -Wunused -Wstrict-aliasing -ll -ly -lm  
+CFLAGS := -Wall -O -g -pedantic -Wshadow -Wunused -Wstrict-aliasing -ll -ly -lm  
 DEBUG := n
 LEX := flex
 YACC := yacc

@@ -22,6 +22,7 @@
  {
 #endif
 
+#include <stdlib.h>
 #include "pool_struct.h"
 #include "hashtab.h"
 #include "../socket_lib.h"
