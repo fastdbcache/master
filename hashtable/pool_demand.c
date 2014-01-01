@@ -25,7 +25,7 @@
  *  Description:  
  * =====================================================================================
  */
-void setRowDescription ( char *parastat, int frontend ){
+size_t setRowDescription ( char *parastat, int frontend ){
     char *crd, *newbuf;
     uint32 total, tlen, plen;
     int i, nfields;
@@ -35,15 +35,21 @@ void setRowDescription ( char *parastat, int frontend ){
     int         typlen;
     int         atttypmod;
     int         format;
-    total = 0;
+
     nfields = 0;
 
-    field = NULL;
+    total = sizeof(uint32) + sizeof(uint16);
     for(i=0; parastat[i]; i++){
-        total += strlen(parastat[i])+1+ (sizeof(uint32) +sizeof(uint16)) * 4;
+        nfields++;
+        total += strlen(parastat[i]) + 1 + (sizeof(uint32) + sizeof(uint16)) * 3;
     }
 
     crd = calloc(total+sizeof(char), sizeof(char));
+    if(!crd){
+        DEBUG("error");
+        return -1;
+    }
+
     newbuf = crd;
     memcpy(crd, "T", sizeof(char));
     crd+=sizeof(char);
@@ -83,6 +89,8 @@ void setRowDescription ( char *parastat, int frontend ){
     Socket_Send(frontend, newbuf, total+sizeof(char));
 
     free(newbuf);
+
+    return nfields;
 }		/* -----  end of function setRowDescription  ----- */
 
 
