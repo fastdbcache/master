@@ -17,6 +17,107 @@
  */
 
 #include "pool_demand.h"
+
+
+/* 
+ * ===  FUNCTION  ======================================================================
+ *         Name:  setRowDescription
+ *  Description:  
+ * =====================================================================================
+ */
+void setRowDescription ( char *parastat, int frontend ){
+    char *crd, *newbuf;
+    uint32 total, tlen, plen;
+    int i, nfields;
+    int         tableid;
+    int         columnid;
+    int         typid;
+    int         typlen;
+    int         atttypmod;
+    int         format;
+    total = 0;
+    nfields = 0;
+
+    field = NULL;
+    for(i=0; parastat[i]; i++){
+        total += strlen(parastat[i])+1+ (sizeof(uint32) +sizeof(uint16)) * 4;
+    }
+
+    crd = calloc(total+sizeof(char), sizeof(char));
+    newbuf = crd;
+    memcpy(crd, "T", sizeof(char));
+    crd+=sizeof(char);
+    tlen = htonl(total);
+    memcpy(crd, &tlen, sizeof(uint32));
+    crd+=sizeof(uint32);
+
+    plen = htons(nfields);    
+    memcpy(crd, &plen, sizeof(uint16));
+    crd+=sizeof(uint16);
+
+    
+    for(i=0; i<nfields; i++){
+        
+        memcpy(crd,parastat[i],strlen(parastat[i]));
+        crd += strlen(parastat[i])+1;
+        tableid = htonl(0); 
+        memcpy(crd, &tableid, sizeof(uint32));
+        crd+=sizeof(uint32);
+        columnid = htons(i+1);
+        memcpy(crd,&columnid , sizeof(uint16));
+        crd+=sizeof(uint16);
+        typid = htonl(25);
+        memcpy(crd,&typid , sizeof(uint32));
+        crd+=sizeof(uint32);
+        typlen = htons(65535);
+        memcpy(crd, &typlen, sizeof(uint16));
+        crd+=sizeof(uint16);
+        atttypmod = htonl(-1);
+        memcpy(crd,&atttypmod , sizeof(uint32));
+        crd+=sizeof(uint32);
+        format = htons(0);
+        memcpy(crd,&format , sizeof(uint16));
+        if(i!=(nfields-1))
+            crd+=sizeof(uint16);
+    }
+    Socket_Send(frontend, newbuf, total+sizeof(char));
+
+    free(newbuf);
+}		/* -----  end of function setRowDescription  ----- */
+
+
+/* 
+ * ===  FUNCTION  ======================================================================
+ *         Name:  setDataRow
+ *  Description:  
+ * =====================================================================================
+ */
+void setDataRow ( <+argument_list+> ){
+    return <+return_value+>;
+}		/* -----  end of function setDataRow  ----- */
+
+
+/* 
+ * ===  FUNCTION  ======================================================================
+ *         Name:  CommandComplete
+ *  Description:  
+ * =====================================================================================
+ */
+void CommandComplete ( <+argument_list+> ){
+    return <+return_value+>;
+}		/* -----  end of function CommandComplete  ----- */
+
+
+/* 
+ * ===  FUNCTION  ======================================================================
+ *         Name:  ReadyForQuery
+ *  Description:  
+ * =====================================================================================
+ */
+void ReadyForQuery ( <+argument_list+> ){
+    return <+return_value+>;
+}		/* -----  end of function ReadyForQuery  ----- */
+
 /* 
  * ===  FUNCTION  ======================================================================
  *         Name:  setCacheRowDescriptions

@@ -27,8 +27,11 @@
 #include "hashtab.h"
 #include "../socket_lib.h"
 
-char *item[]={"key","utime","ahit","amiss"};
-char *version[]={"version"};
+char *item[]={"key","utime","ahit","amiss",NULL};
+char *version[]={"version",NULL};
+char *help[]={"help",NULL};
+char *stat[]={"count", "bcount","lcount","hit","miss","set","get","bytes",NULL};
+char *hstat[MAX_SLAB_CLASS];
 
 void setCacheRowDescriptions ( int frontend );
 #ifdef __cplusplus
