@@ -22,51 +22,6 @@
 
 /* 
  * ===  FUNCTION  ======================================================================
- *         Name:  listHslab
- *  Description:  
- * =====================================================================================
- */
-void listHslab (  ){
-    HITEM *_h;
-    int i, m;
-    HITEM **pools_hitem;
-
-    for(i=0; i<pools_htab->logsize; i++){
-        HITEM_SWITCH(i);
-        _h = pools_hitem[i];
-        if(_h->next) _h = _h->next;
-        else continue;
-        for(; _h; _h=_h->next){
-            m=0;
-            printf("%d.hitem:%d\n",m++, i);
-            printf("%d.hitem:key:%s\n",m++,_h->key);
-            printf("%d.hitem:keyl:%lu\n",m++,_h->keyl);
-            printf("%d.hitem:drl:%lu\n",m++,_h->drl);
-            printf("%d.hitem:psize:%lu\n",m++,_h->psize);
-            printf("%d.hitem:sid:%d\n",m++,_h->sid);
-            printf("%d.hitem:sa:%lu\n",m++,_h->sa);
-            printf("%d.hitem:hval:%lu\n",m++,_h->hval);
-            printf("%d.hitem:hjval:%lu, %lu\n",m++,_h->hjval, jenkins_one_at_a_time_hash(_h->key, _h->keyl));
-            printf("%d.hitem:utime:%lu\n",m++,_h->utime);
-            printf("%d.hitem:ahit:%lu\n",m++,_h->ahit);
-            printf("%d.hitem:amiss:%lu\n",m++,_h->amiss);
-            printf("%d.end %d\n",m++, i);
-        }
-    }
-   /*
-    for(i=0; slabclass[i].chunk; i++){
-        DEBUG("chunk %d, size:%d", slabclass[i].chunk, slabclass[i].size);
-        _h = pools_hslab[i];
-        if(_h && _h->sm){
-            for(;_h;_h=_h->next){
-                DEBUG();
-            }
-        }
-    }  */ 
-}		/* -----  end of function listHslab  ----- */
-
-/* 
- * ===  FUNCTION  ======================================================================
  *         Name:  hkey
  *  Description:  
  * =====================================================================================

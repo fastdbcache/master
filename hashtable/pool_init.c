@@ -258,7 +258,7 @@ HDR *hdrcreate (  ){
         d->key = NULL;
         d->keyl = 0;
         d->stime = 0;
-        d->flag = 0;
+        d->flag = TRUE;
         d->dr = NULL;
         d->drl = 0;
         d->next = NULL;            
@@ -280,6 +280,7 @@ ULIST *initulist (  ){
         u->key = NULL;
         u->keyl = 0;
         u->utime = 0;
+        u->flag = TRUE;
         u->next = NULL;
     }
     

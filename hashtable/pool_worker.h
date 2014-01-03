@@ -27,7 +27,6 @@
 #include "hashtab.h"
 #include "../socket_lib.h"
 
-void listHslab (  );
 void hkey ( char *key, ub4 keyl, SLABPACK *dest);
 HITEM *hfind ( char *key, ub4 keyl );
 void getslab ( HITEM * hitem, SLABPACK *dest);

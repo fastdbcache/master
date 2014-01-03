@@ -322,7 +322,7 @@ int AuthPG(const int bfd,const int ffd, SESSION_SLOTS *slot){
                     
                     free(mem_pack);
                 }else if(isSELECT==E_DELETE || isSELECT==E_UPDATE || isSELECT==E_INSERT){
-                    _ulist = (ULIST *)calloc(1, sizeof(ULIST));
+                    _ulist = initulist();
                     if(_ulist){
                         _ulist->keyl = total-sizeof(uint32);
                         _ulist->key = calloc(_ulist->keyl, sizeof(char));

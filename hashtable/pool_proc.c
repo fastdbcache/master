@@ -43,25 +43,25 @@ void htlist (  ){
     TLIST *_tlist, *_t;
     ULIST *_u;
     _ly *ply;
-   
+  
+    _u = pools_ulist_tail;
+     
     while ( pools_ulist_tail->next && 
         pools_ulist_tail->next != pools_ulist_head ) {
         _u = pools_ulist_tail;
         pools_ulist_tail = pools_ulist_tail->next;
-
-        if(!_u) continue;
+    
+    while(_u) {        
 
         if(!_u->key){
-            freeUList(_u);
             DEBUG("_u->key is null");
-            continue;
+            goto clear;
         }
         ply = parser_do (_u->key, _u->keyl);
 
         if(!ply){ 
             /* DEBUG("ply is null %s", _u->key);*/
-            freeUList(_u);
-            continue;
+            goto clear;
         }
         _tlist = pools_tlist;
         while ( _tlist->next ) {
@@ -93,7 +93,16 @@ void htlist (  ){
         free(ply->tab);
         free(ply);
         
-        freeUList(_u); 
+        clear:
+            if(_u != pools_ulist_head){
+                freeUList(_u); 
+                _u = _u->next;
+            }else{
+                _u->flag = FALSE;
+                pools_ulist_tail = _u;
+                break;
+            }
+        
     }
     
 }		/* -----  end of function htlist  ----- */

@@ -155,7 +155,7 @@ struct __hdr
   ub1           *key;     /* sql that is hashed */
   ub4           keyl;     /* length of key */
   ub4           stime;    /* select time */
-  H_STATE       flag;     /* 0 is new, 1 is update, HDR_FALSE worker delete, proc change */
+  H_STATE       flag;     /* TRUE default FALSE is del */
   ub1           *dr;      /* db return data row */
   ub4           drl;      /* length of data row */
   struct __hdr   *next;  
@@ -183,6 +183,7 @@ struct __tlist{
   char      *key;  /* key is table name or ulist  key sql */
   ub4       keyl;      /* length name */
   ub4       utime;  /* table the last update time */
+  H_STATE       flag; /* TRUE default FALSE is del */
   struct __tlist *next;  /* the next table */
 };
 /* mem proc table list */
