@@ -46,12 +46,9 @@ void htlist (  ){
   
     _u = pools_ulist_tail;
      
-    while ( pools_ulist_tail->next && 
-        pools_ulist_tail->next != pools_ulist_head ) {
-        _u = pools_ulist_tail;
-        pools_ulist_tail = pools_ulist_tail->next;
-    
     while(_u) {        
+
+        if(_u->flag == FALSE) goto clear;
 
         if(!_u->key){
             DEBUG("_u->key is null");
@@ -94,13 +91,13 @@ void htlist (  ){
         free(ply);
         
         clear:
-            if(_u != pools_ulist_head){
-                freeUList(_u); 
-                _u = _u->next;
-            }else{
+            if(_u == pools_ulist_head){                
                 _u->flag = FALSE;
                 pools_ulist_tail = _u;
                 break;
+            }else{
+                freeUList(_u); 
+                _u = _u->next;                
             }
         
     }
