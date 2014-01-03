@@ -27,11 +27,6 @@
 #include "hashtab.h"
 #include "../socket_lib.h"
 
-/* char *version[]={"version",NULL};
-char *chelp[]={"help",NULL};
-char *htabstat[]={"count", "bcount","lcount","hit","miss","set","get","bytes",NULL};
-char *hstat[MAX_SLAB_CLASS];
- */
 struct _help_cmd{
     char *cmd;
     char *desc;

@@ -246,10 +246,8 @@ void fdbcHelp ( int frontend ){
     free(item_desc);
     
     i=0;
-    while(help_cmd[i].cmd){
-        _helps = help_cmd[i];
+    for(_helps=help_cmd; _helps->cmd; _helps++, i++){
         RowHelp ( _helps, frontend , nfields );
-        i++;
     }
 
     CommandComplete(i , frontend);
@@ -439,7 +437,7 @@ void RowHtab (int frontend , ssize_t nfields){
  * =====================================================================================
  */
 void RowHelp ( HELP_CMD *_helps, int frontend , ssize_t nfields ){
-    char *crd, *newbuf, nlen[256];
+    char *crd, *newbuf;
     uint32 tlen, nf, _ulen;     
     ssize_t total, cmd_len, desc_len;
 
@@ -451,11 +449,10 @@ void RowHelp ( HELP_CMD *_helps, int frontend , ssize_t nfields ){
         crd += (len);   \
     }while(0)
          
-    if(!_helps[0].cmd) return;
+    if(!_helps->cmd) return;
    
-    DEBUG("cmd %s, dec %s", _helps[0].cmd, _helps[1].desc); 
-    cmd_len = strlen(_helps[0].cmd);
-    desc_len = strlen(_helps[1].desc);
+    cmd_len = strlen(_helps->cmd);
+    desc_len = strlen(_helps->desc);
 
     total = sizeof(uint32) + sizeof(uint16) + cmd_len + desc_len
              + sizeof(uint32)*nfields;
@@ -473,8 +470,8 @@ void RowHelp ( HELP_CMD *_helps, int frontend , ssize_t nfields ){
     memcpy(crd, &nf, sizeof(uint16));
     crd += sizeof(uint16);
      
-    CALCH(_helps[0].cmd, cmd_len);
-    CALCH(_helps[1].desc, cmd_len);
+    CALCH(_helps->cmd, cmd_len);
+    CALCH(_helps->desc, desc_len);
    
     Socket_Send(frontend, newbuf, total+sizeof(char));
     if(newbuf)
