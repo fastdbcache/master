@@ -77,6 +77,11 @@ typedef enum {
     E_UPDATE,
     E_DELETE,
     E_CACHE,
+    E_CACHE_ITEM,
+    E_CACHE_VERSION,
+    E_CACHE_STAT,
+    E_CACHE_HSTAT,
+    E_CACHE_HELP,
     E_OTHER
 } E_SQL_TYPE;
 

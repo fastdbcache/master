@@ -41,6 +41,8 @@ void conn_init_global ( void ){
 
     conn_global->factor = 1.25;
     conn_global->maxbytes = 64 * 1024 * 1024 ;
+
+    conn_global->fdbc = "fastdbcache version 0.0.1";
 }		/* -----  end of function conn_init_global  ----- */
 
 

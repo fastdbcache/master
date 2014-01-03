@@ -86,6 +86,8 @@ typedef                 int  word;  /* fastest type available */
 
 typedef struct __conn _conn;
 struct __conn{
+    char *fdbc;
+
     char *server_ip;   /* server listen ip */
     ssize_t server_port; /* server listen port */
 

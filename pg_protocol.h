@@ -25,6 +25,7 @@
 #include "socket_lib.h"
 #include "./hashtable/pool_init.h"
 #include "./hashtable/pool_worker.h"
+#include "./hashtable/pool_demand.h"
 #include "pg_system_atalogs.h"
 #include "log_lib.h"
 
@@ -84,6 +85,7 @@ int PGStartupPacket3(int fd, PACK *pa); /* 1. F -> B */
 SESSION_SLOTS *resolve_slot(const char *buf);
 int AuthPG(const int bfd,const int ffd, SESSION_SLOTS *slot);
 E_SQL_TYPE findSQL (  const char *sql , int len);
+E_SQL_TYPE findCache ( const char *spl, int *offset);
 #endif   /* PG_PROTOCOL_H_*/
 /* vim: set ts=4 sw=4: */
 

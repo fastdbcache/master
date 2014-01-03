@@ -58,7 +58,7 @@ int main(int argc, char* argv[]){
     }
     
 
-	d_log("snooker:0.0.1 start ...");
+	d_log(conn_global->fdbc);
 
 	if(do_daemonize == 1 || conn_global->do_daemonize == 1){
 		daemon_init(argv[0], 0);	

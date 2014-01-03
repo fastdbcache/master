@@ -27,13 +27,41 @@
 #include "hashtab.h"
 #include "../socket_lib.h"
 
-char *item[]={"key","utime","ahit","amiss",NULL};
-char *version[]={"version",NULL};
-char *help[]={"help",NULL};
-char *stat[]={"count", "bcount","lcount","hit","miss","set","get","bytes",NULL};
+/* char *version[]={"version",NULL};
+char *chelp[]={"help",NULL};
+char *htabstat[]={"count", "bcount","lcount","hit","miss","set","get","bytes",NULL};
 char *hstat[MAX_SLAB_CLASS];
+ */
+struct _help_cmd{
+    char *cmd;
+    char *desc;
+};
+typedef struct _help_cmd HELP_CMD;
 
+
+#define COUNT(a, b) do{\
+    ssize_t shift=1;        \
+    (b) = 0;            \
+    do {\
+        shift *= 10;        \
+        (b)++;          \
+    } while((shift*10) < (a));\
+}while(0)
+
+void getVer ( int frontend );
+void gethtabstat ( int frontend );
+void RowHtab (int frontend , ssize_t nfields);
+void fdbcHelp ( int frontend );
+void RowHelp ( HELP_CMD *_helps, int frontend , ssize_t nfields );
+void getItemStat ( char *key, ssize_t keyl, int frontend );
+int RowDesLen ( char **parastat, ssize_t *count );
+void setRowDescription ( char **parastat, char *crd, ssize_t count, ssize_t nfields );
+int RowItem ( char *key, ssize_t keyl, int frontend , ssize_t nfields );
 void setCacheRowDescriptions ( int frontend );
+
+void CommandComplete ( ssize_t rows, int frontend );
+void ReadyForQuery ( int frontend );
+
 #ifdef __cplusplus
  }
 #endif

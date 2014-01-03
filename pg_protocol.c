@@ -145,7 +145,8 @@ int AuthPG(const int bfd,const int ffd, SESSION_SLOTS *slot){
     HDR *_hdr;
     ULIST *_ulist;
     SLABPACK *mem_pack;
-    
+    E_SQL_TYPE cache;
+ 
     #define FB(type) \
 	do \
 	{ \
@@ -291,11 +292,11 @@ int AuthPG(const int bfd,const int ffd, SESSION_SLOTS *slot){
                     _ulist = NULL;
                 }
 
-                return -1; 
+                goto free_pack; 
             case 'Q':
                 
                 isDATA = FALSE;
-                _hdrtmp = _apack+sizeof(char)+sizeof(uint32);                    
+                _hdrtmp = _apack+sizeof(char)+sizeof(uint32);
                 isSELECT = findSQL(_hdrtmp, total-sizeof(uint32));
                 if(isSELECT == E_SELECT){
                     mem_pack = (SLABPACK *)calloc(1, sizeof(SLABPACK));
@@ -334,10 +335,30 @@ int AuthPG(const int bfd,const int ffd, SESSION_SLOTS *slot){
                         }
                     }
                 }else if(isSELECT == E_CACHE){
-                    /*  listHslab();*/
-                    setCacheRowDescriptions(rfd);
-                    FB(0);
-                    goto free_pack;
+                    /*  listHslab();
+                    setCacheRowDescriptions(rfd);*/
+                    int clen=0; 
+                    cache = findCache(_hdrtmp, &clen);
+                    if(cache == E_CACHE_ITEM){
+                        getItemStat(_hdrtmp+clen, total-sizeof(uint32)-clen , rfd);
+                        FB(0);
+                        goto free_pack;
+                    }else if(cache == E_CACHE_VERSION){
+                        getVer(rfd); 
+                        FB(0);
+                        goto free_pack;
+                    }else if(cache == E_CACHE_STAT){
+                        
+                        gethtabstat(rfd); 
+                        FB(0);
+                        goto free_pack;
+                    }else if(cache == E_CACHE_HELP){
+                        
+                        fdbcHelp(rfd); 
+                        FB(0);
+                        goto free_pack;
+                    }
+                    
                 }
                 /*  else{
                     DEBUG("system table");
@@ -435,7 +456,7 @@ E_SQL_TYPE findSQL (  const char *sql, int len ){
         p++;          
     } 
     
-    if(memcmp(p, cache, strlen(cache)) == 0){
+    if(memcmp(p, cache, strlen(cache)) == 0){                
         return E_CACHE;
     }
           
@@ -464,5 +485,75 @@ E_SQL_TYPE findSQL (  const char *sql, int len ){
 }		/* -----  end of function findSQL  ----- */
 
 
+
+/* 
+ * ===  FUNCTION  ======================================================================
+ *         Name:  findCache
+ *  Description:  
+ * =====================================================================================
+ */
+E_SQL_TYPE findCache (const char *sql, int *offset){
+    char item[]="item";
+    char version[]="version";
+    char htab[]="stat";
+    char helps[]="help";
+    const char *p = sql;
+
+    
+    while (*p == ' ' || *p == '\t' || *p == '\r' || *p == '\n'){  
+        (*offset)++;
+        p += (*offset);
+    }
+    (*offset) += 5;
+    p += 5;
+    if(*p != ' '){
+         return E_OTHER;
+    }
+    while(*p == ' ' || *p == '\t' || *p == '\r' || *p == '\n'){
+        (*offset)++;
+        p++;
+    }
+    if(memcmp(p, item, strlen(item)) == 0){
+        (*offset) += strlen(item);
+        p += strlen(item);
+
+        if(*p != ' '){
+            return E_OTHER;
+        }
+        while(*p == ' '){
+            (*offset)++;
+            p++;
+        }
+        return E_CACHE_ITEM;
+    }
+    else if(memcmp(p, version, strlen(version)) == 0){
+        p += strlen(version);
+        
+        while(*p == ' '){
+            p++;
+        }
+        if(*p != ';') return E_OTHER;
+
+        return E_CACHE_VERSION;
+    }else if(memcmp(p, htab, strlen(htab)) == 0){
+        p += strlen(htab);
+        while(*p == ' '){
+            p++;
+        }
+        if(*p != ';') return E_OTHER;
+
+        return E_CACHE_STAT;
+    }else if(memcmp(p, helps, strlen(helps)) == 0){
+        p += strlen(helps);
+        while(*p == ' '){
+            p++;
+        }
+        if(*p != ';') return E_OTHER;
+
+        return E_CACHE_HELP;
+    }
+    
+    return E_OTHER;
+}		/* -----  end of function findCache  ----- */
 /* vim: set ts=4 sw=4: */
 
