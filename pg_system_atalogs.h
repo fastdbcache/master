@@ -82,6 +82,9 @@ typedef enum {
     E_CACHE_STAT,
     E_CACHE_HSTAT,
     E_CACHE_HELP,
+    E_CACHE_SET,
+    E_CACHE_SET_MAXBYTE,
+    E_CACHE_SET_ITEM,
     E_OTHER
 } E_SQL_TYPE;
 

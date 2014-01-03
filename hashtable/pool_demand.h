@@ -48,6 +48,7 @@ void gethtabstat ( int frontend );
 void RowHtab (int frontend , ssize_t nfields);
 void fdbcHelp ( int frontend );
 void RowHelp ( HELP_CMD *_helps, int frontend , ssize_t nfields );
+void fdbcSet ( int frontend );
 void getItemStat ( char *key, ssize_t keyl, int frontend );
 int RowDesLen ( char **parastat, ssize_t *count );
 void setRowDescription ( char **parastat, char *crd, ssize_t count, ssize_t nfields );

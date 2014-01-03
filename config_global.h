@@ -84,6 +84,19 @@ typedef                 int  word;  /* fastest type available */
 
 #define DEBUG(fmt, args...) printf(fmt" %s %d\n", ##args, __FILE__, __LINE__)
 
+#define SPACE(point) do{ \
+    while (*(point) == ' ' || *(point) == '\t' || *(point) == '\r' || *(point) == '\n'){  \
+        (point)++;                                                    \
+    }                                                           \
+}while(0)
+
+#define SPACER(point, move) do{ \
+    while (*(point) == ' ' || *(point) == '\t' || *(point) == '\r' || *(point) == '\n'){  \
+        (point)++;                                                    \
+        (move)++;                                                   \
+    }                                                           \
+}while(0)
+
 typedef struct __conn _conn;
 struct __conn{
     char *fdbc;

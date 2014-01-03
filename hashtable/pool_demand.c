@@ -26,7 +26,7 @@ HELP_CMD help_cmd[]={
     {NULL,NULL},
 };
 
-
+#define SQL_SELECT
 
 /* 
  * ===  FUNCTION  ======================================================================
@@ -199,7 +199,7 @@ void gethtabstat ( int frontend ){
     int deslen;
     int nfields;
     char *item_desc, *res;
-    char *htabstat[]={"count", "bcount","lcount","hit","miss","set","get","bytes M",NULL};
+    char *htabstat[]={"count", "bcount","lcount","hit","miss","set","get","bytes M", "max_bytes M",NULL};
 
     nfields = 0;
     deslen = RowDesLen( htabstat, &nfields);
@@ -253,6 +253,24 @@ void fdbcHelp ( int frontend ){
     CommandComplete(i , frontend);
     ReadyForQuery(frontend);
 }		/* -----  end of function fdbcHelp  ----- */
+
+
+/* 
+ * ===  FUNCTION  ======================================================================
+ *         Name:  fdbcSet
+ *  Description:  
+ * =====================================================================================
+ */
+void fdbcSet ( int frontend ){    
+
+#ifdef SQL_SELECT
+#undef SQL_SELECT
+    CommandComplete(1 , frontend);
+    ReadyForQuery(frontend);
+#endif
+#define SQL_SELECT
+
+}		/* -----  end of function fdbcSet  ----- */
 
 /* 
  * ===  FUNCTION  ======================================================================
@@ -376,7 +394,7 @@ void RowHtab (int frontend , ssize_t nfields){
     uint32 tlen, nf, _ulen;
     ssize_t count_len, bcount_len, lcount_len;
     ssize_t hit_len, miss_len, set_len, get_len;
-    ssize_t byte_len, total;
+    ssize_t byte_len,maxbyte_len, total;
 
     #define CALC(val, len) do{\
         _ulen = htonl((len));       \
@@ -396,10 +414,11 @@ void RowHtab (int frontend , ssize_t nfields){
     COUNT( pools_htab->set, set_len );
     COUNT( pools_htab->get, get_len );
     COUNT( (((pools_htab->bytes)/1024)/1024), byte_len);
+    COUNT( (((conn_global->maxbytes)/1024)/1024), maxbyte_len);
 
     total = sizeof(uint32) + sizeof(uint16) + count_len + bcount_len
             + lcount_len + hit_len + miss_len + set_len + get_len
-            + byte_len  + sizeof(uint32)*nfields;
+            + byte_len + maxbyte_len + sizeof(uint32)*nfields;
     newbuf = calloc(total+sizeof(char), sizeof(char));
 
     if(!newbuf) return ;
@@ -422,6 +441,7 @@ void RowHtab (int frontend , ssize_t nfields){
     CALC(pools_htab->set, set_len);
     CALC(pools_htab->get, get_len);
     CALC(((pools_htab->bytes/1024)/1024), byte_len);
+    CALC(((conn_global->maxbytes/1024)/1024), maxbyte_len);
 
     Socket_Send(frontend, newbuf, total+sizeof(char));
     if(newbuf)
@@ -490,7 +510,11 @@ void CommandComplete ( ssize_t rows, int frontend ){
     char *newbuf, *crd;
     ssize_t total, len;
 
+#ifdef SQL_SELECT
     snprintf(res, 31, "SELECT %d", rows);
+#else
+    snprintf(res, 31, "UPDATE %d", rows);
+#endif
     total = sizeof(uint32) + strlen(res) + 1;
     crd = calloc(total+sizeof(char), sizeof(char));
     newbuf = crd;

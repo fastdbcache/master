@@ -357,6 +357,14 @@ int AuthPG(const int bfd,const int ffd, SESSION_SLOTS *slot){
                         fdbcHelp(rfd); 
                         FB(0);
                         goto free_pack;
+                    }else if(cache == E_CACHE_SET){
+                        ssize_t set_val;
+                        int set_offset;
+                        _hdrtmp+=clen;
+                        SPACER(_hdrtmp, set_offset); 
+                        fdbcSet(rfd);
+                        FB(0);
+                        goto free_pack;
                     }
                     
                 }
@@ -452,10 +460,7 @@ E_SQL_TYPE findSQL (  const char *sql, int len ){
 
     if(len < strlen(s)) return -1;
 
-    while (*p == ' ' || *p == '\t' || *p == '\r' || *p == '\n'){  
-        p++;          
-    } 
-    
+    SPACE(p);
     if(memcmp(p, cache, strlen(cache)) == 0){                
         return E_CACHE;
     }
@@ -497,22 +502,19 @@ E_SQL_TYPE findCache (const char *sql, int *offset){
     char version[]="version";
     char htab[]="stat";
     char helps[]="help";
+    char sets[]="set";
     const char *p = sql;
 
-    
-    while (*p == ' ' || *p == '\t' || *p == '\r' || *p == '\n'){  
-        (*offset)++;
-        p += (*offset);
-    }
+    SPACER(p, (*offset));
+
     (*offset) += 5;
     p += 5;
     if(*p != ' '){
          return E_OTHER;
     }
-    while(*p == ' ' || *p == '\t' || *p == '\r' || *p == '\n'){
-        (*offset)++;
-        p++;
-    }
+
+    SPACER(p, (*offset));
+    
     if(memcmp(p, item, strlen(item)) == 0){
         (*offset) += strlen(item);
         p += strlen(item);
@@ -520,34 +522,39 @@ E_SQL_TYPE findCache (const char *sql, int *offset){
         if(*p != ' '){
             return E_OTHER;
         }
-        while(*p == ' '){
-            (*offset)++;
-            p++;
-        }
+        SPACER(p, (*offset));    
+   
         return E_CACHE_ITEM;
+    }else if(memcmp(p, sets, strlen(sets)) == 0){
+        (*offset) += strlen(sets);
+        p += strlen(set);
+
+        if(*p != ' '){
+            return E_OTHER;
+        }
+        SPACER(p, (*offset));
+    
+        return E_CACHE_SET;
     }
     else if(memcmp(p, version, strlen(version)) == 0){
         p += strlen(version);
-        
-        while(*p == ' '){
-            p++;
-        }
+  
+        SPACE(p);
+
         if(*p != ';') return E_OTHER;
 
         return E_CACHE_VERSION;
     }else if(memcmp(p, htab, strlen(htab)) == 0){
         p += strlen(htab);
-        while(*p == ' '){
-            p++;
-        }
+        SPACE(p);
+ 
         if(*p != ';') return E_OTHER;
 
         return E_CACHE_STAT;
     }else if(memcmp(p, helps, strlen(helps)) == 0){
         p += strlen(helps);
-        while(*p == ' '){
-            p++;
-        }
+
+        SPACE(p);
         if(*p != ';') return E_OTHER;
 
         return E_CACHE_HELP;
