@@ -217,6 +217,7 @@ HITEM *hitemcreate(){
         h->hval = 0;
         h->hjval = 0;
         h->utime = 0;
+        h->offtime = 0;
         h->ahit = 0;  
         h->amiss = 0;
         h->next = NULL;

@@ -101,6 +101,7 @@ struct __hitem
   uint64_t          hval;     /* hash value for key */
   uint64_t           hjval;     /* hash value for key */
   ub4           utime;    /* */
+  ub4           offtime;  /* offset update time default 0 */
   ub4           ahit;     /* all hit */
   ub4           amiss;    /* all update */
   struct __hitem *next;     /* next hitem in list */
