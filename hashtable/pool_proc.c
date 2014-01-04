@@ -41,17 +41,16 @@ void hproc ( ){
  */
 void htlist (  ){
     TLIST *_tlist, *_t;
-    ULIST *_u;
+    ULIST *_u, *_u_tmp;
     _ly *ply;
   
     _u = pools_ulist_tail;
      
     while(_u) {        
 
-        if(_u->flag == FALSE) goto clear;
+        if(_u->flag == H_FALSE) goto clear;
 
         if(!_u->key){
-            DEBUG("_u->key is null");
             goto clear;
         }
         ply = parser_do (_u->key, _u->keyl);
@@ -92,12 +91,13 @@ void htlist (  ){
         
         clear:
             if(_u == pools_ulist_head){                
-                _u->flag = FALSE;
+                _u->flag = H_FALSE;
                 pools_ulist_tail = _u;
                 break;
             }else{
-                freeUList(_u); 
-                _u = _u->next;                
+                _u_tmp = _u;
+                _u = _u->next;
+                freeUList(_u_tmp);                                 
             }
         
     }
@@ -113,29 +113,30 @@ void htlist (  ){
  * =====================================================================================
  */
 void fetchdti (  ){
-    HITEM *ph ;
-    HARU *pa;
-    HDR *pd;
-    int i, size, y;
-    ub4 hval, hjval;
+    HDR *pd, *_pd;
 
-    pa = pools_haru_pool;    
+    pd = pools_hdr_tail;
     
-    while ( pools_hdr_tail->next && 
-        pools_hdr_tail->next != pools_hdr_head ) {
-        pd = pools_hdr_tail;
-        pools_hdr_tail = pools_hdr_tail->next;
+    while(pd){
 
-        if(!pd) continue;
-
-        if(!pd->key){
-            freeHdr(pd);
-            continue;
+        if(pd->flag == H_FALSE){ 
+            goto clear;
         }
-                        
+        if(!pd->key){
+            goto clear;
+        }
         haddHitem(pd);
 
-        freeHdr(pd);
+        clear:
+            if(pd == pools_hdr_head){
+                pd->flag = H_FALSE;
+                pools_hdr_tail = pd;
+                break;
+            }else{
+                _pd = pd;
+                pd = pd->next;
+                freeHdr(_pd);                
+            }
     }   
 }		/* -----  end of function fetchdti  ----- */
 

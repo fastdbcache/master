@@ -57,16 +57,6 @@
  * slab class  38: chunk size 391224 perslab     2  
  * slab class  39: chunk size 489032 perslab     2  
  * */
-typedef enum {
-    H_TRUE=0,  /* default 0 ,it's 1 has a job, 2 working */   
-    H_FALSE
-} H_STATE;
-
-typedef enum {
-    H_INSERT=0,  /* default 0 ,it's 1 has a job, 2 working */   
-    H_UPDATE
-} H_CHANGE;
-
 
 struct __slabpack {
     char *pack;

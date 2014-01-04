@@ -97,6 +97,16 @@ typedef                 int  word;  /* fastest type available */
     }                                                           \
 }while(0)
 
+typedef enum {
+    H_TRUE=0,  /*  default 0 ,it's 1 has a job, 2 working */
+    H_FALSE
+} H_STATE;
+
+typedef enum {
+    H_INSERT=0,  /*  default 0 ,it's 1 has a job, 2 working */
+    H_UPDATE
+} H_CHANGE; 
+
 typedef struct __conn _conn;
 struct __conn{
     char *fdbc;

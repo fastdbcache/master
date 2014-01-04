@@ -69,7 +69,7 @@ int PGStartupPacket3(int fd,PACK *pa){
  * =====================================================================================
  */
 SESSION_SLOTS *resolve_slot(const char *buf){
-    char *p;
+    const char *p;
     SESSION_SLOTS *_slot;
     uint32 v;
 
@@ -317,7 +317,6 @@ int AuthPG(const int bfd,const int ffd, SESSION_SLOTS *slot){
                         _hdr->key = (ub1 *)calloc(_hdr->keyl, sizeof(ub1));
                         memcpy(_hdr->key, _hdrtmp, _hdr->keyl);
                         _hdr->stime = get_sec(); 
-                        _hdr->flag = H_TRUE;                    
                     }
                     
                     free(mem_pack);
@@ -527,7 +526,7 @@ E_SQL_TYPE findCache (const char *sql, int *offset){
         return E_CACHE_ITEM;
     }else if(memcmp(p, sets, strlen(sets)) == 0){
         (*offset) += strlen(sets);
-        p += strlen(set);
+        p += strlen(sets);
 
         if(*p != ' '){
             return E_OTHER;
