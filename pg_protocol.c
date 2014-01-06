@@ -207,7 +207,6 @@ int AuthPG(const int bfd,const int ffd, SESSION_SLOTS *slot){
             return -1;
         }
 
-            
         if(CheckBufSpace(sizeof(uint32), _apack) != 0)return -1;
             
        /* DEBUG("ask: %c", *_apack->inBuf);*/
