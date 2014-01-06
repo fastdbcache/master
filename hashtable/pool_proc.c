@@ -59,33 +59,8 @@ void htlist (  ){
             /* DEBUG("ply is null %s", _u->key);*/
             goto clear;
         }
-        _tlist = pools_tlist;
-        while ( _tlist->next ) {
-            _tlist = _tlist->next;
-            if( _tlist->keyl == ply->len &&
-                !memcmp(_tlist->key,ply->tab, ply->len)
-                ){
-                if(_tlist->utime < _u->utime){
-                    _tlist->utime = _u->utime;                        
-                }        
-                break;
-            }
-        }
-        
-        if(!_tlist->next){
-            
-            _t = calloc(1, sizeof(TLIST));
-            if(_t){
-                _t->key = (ub1 *)calloc(ply->len, sizeof(ub1));
-                if(_t->key){
-                    memcpy(_t->key, ply->tab, ply->len);
-                    _t->keyl = ply->len;
-                    _t->utime = _u->utime;
-                    _tlist->next = _t;
-                    _tlist = _t;
-                }
-            }
-        }
+        pushList(ply->tab, ply->len, _u->utime);
+
         free(ply->tab);
         free(ply);
         
@@ -105,6 +80,44 @@ void htlist (  ){
 }		/* -----  end of function htlist  ----- */
 
 
+/* 
+ * ===  FUNCTION  ======================================================================
+ *         Name:  pushList
+ *  Description:  
+ * =====================================================================================
+ */
+void pushList ( ub1 key, ub4 keyl, ub4 utime ){
+    TLIST *_tlist, *_t;
+
+    _tlist = pools_tlist;
+    TLIST_LOCK();
+    while ( _tlist->next ) {
+        _tlist = _tlist->next;
+        if( _tlist->keyl == keyl &&
+            !memcmp(_tlist->key, key, keyl)
+            ){
+            if(_tlist->utime < utime){
+                _tlist->utime = utime;                        
+            }        
+            break;
+        }
+    }
+    
+    if(!_tlist->next){        
+        _t = calloc(1, sizeof(TLIST));
+        if(_t){
+            _t->key = (ub1 *)calloc(keyl, sizeof(ub1));
+            if(_t->key){
+                memcpy(_t->key, key, keyl);
+                _t->keyl = keyl;
+                _t->utime = utime;
+                _tlist->next = _t;
+                _tlist = _t;
+            }
+        }
+    }
+    TLIST_UNLOCK();
+}		/* -----  end of function pushList  ----- */
 
 /* 
  * ===  FUNCTION  ======================================================================

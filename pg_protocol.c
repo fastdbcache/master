@@ -561,5 +561,38 @@ E_SQL_TYPE findCache (const char *sql, int *offset){
     
     return E_OTHER;
 }		/* -----  end of function findCache  ----- */
+
+/* 
+ * ===  FUNCTION  ======================================================================
+ *         Name:  getCmd
+ *  Description:  
+ * =====================================================================================
+ */
+void getCmd ( <+argument_list+> ){
+    return <+return_value+>;
+}		/* -----  end of function getCmd  ----- */
+
+
+/* 
+ * ===  FUNCTION  ======================================================================
+ *         Name:  getInt
+ *  Description:  
+ * =====================================================================================
+ */
+void getInt ( <+argument_list+> ){
+    return <+return_value+>;
+}		/* -----  end of function getInt  ----- */
+
+
+/* 
+ * ===  FUNCTION  ======================================================================
+ *         Name:  getCont
+ *  Description:  
+ * =====================================================================================
+ */
+void getCont ( <+argument_list+> ){
+    return <+return_value+>;
+}		/* -----  end of function getCont  ----- */
+
 /* vim: set ts=4 sw=4: */
 

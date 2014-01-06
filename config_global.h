@@ -63,6 +63,18 @@ typedef    signed       char sb1;   /* signed 1-byte quantities */
 #define SB1MAXVAL 0x7f
 typedef                 int  word;  /* fastest type available */
 
+#define MAX_HITEM_LENGTH 1024
+#define MAX_HITEM_LENGTH_8 (MAX_HITEM_LENGTH<<8)
+#define MAX_HARU_POOL 1024
+#define MAX_SLAB_CLASS  200
+#define CHUNK_ALIGN_BYTES 8
+#define MAX_SLAB_BYTE 128*1024 * 1024
+#define LIMIT_SLAB_BYTE 1024 * 1024
+#define SLAB_BEGIN 88
+#define LIMIT_PERCENT 0.1
+
+#define MD5_LENG 33
+
 #define bis(target,mask)  ((target) |=  (mask))
 #define bic(target,mask)  ((target) &= ~(mask))
 #define bit(target,mask)  ((target) &   (mask))
@@ -98,9 +110,14 @@ typedef                 int  word;  /* fastest type available */
 }while(0)
 
 typedef enum {
-    H_TRUE=0,  /*  default 0 ,it's 1 has a job, 2 working */
+    H_TRUE=0,
     H_FALSE
 } H_STATE;
+
+typedef enum {
+    H_USE=0,
+    H_FREE
+} H_USESTAT;
 
 typedef enum {
     H_INSERT=0,  /*  default 0 ,it's 1 has a job, 2 working */
@@ -109,7 +126,7 @@ typedef enum {
 
 typedef struct __conn _conn;
 struct __conn{
-    char *fdbc;
+    char *fdbc;  /* version for fastdbcache */
 
     char *server_ip;   /* server listen ip */
     ssize_t server_port; /* server listen port */
@@ -127,8 +144,11 @@ struct __conn{
     ssize_t process_num;  /* work process number */
     ssize_t max_link;
 
-    float factor;
-    size_t maxbytes;
+    float factor;       /* for hslab default 1.25  */
+    size_t maxbytes;   /* max bytes for hslab */
+
+    size_t dmaxbytes;   /* max bytes for deposit  */
+    H_STATE isdep;      /* is use deposit default FALSE */
 };
 
 _conn *conn_global;

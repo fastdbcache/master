@@ -27,26 +27,31 @@
 
 #include "../config_global.h"
 
-struct __depstat
-{ 
-    ub4         maxbyte;  /* max  byte for deposit  */
-    
-};
-typedef  struct __depstat  DEST;
-
 struct __deposit
-{
-    ub1           *de;      /*  change sql only for insert update delete  */
-    ub4           del;      /*  sql length */
-    H_STATE       flag;     /*  TRUE default FALSE is del */
-    struct __deposit   *next;
+{    
+    H_STATE       flag;     /*  TRUE is busy,  FALSE is empty */
+    ub1           *sm;      /*   malloc 1M only for insert update delete  */
+    ub4           ss;      /*  start of pool malloc */
+    ub4           sp;      /*  now is read point  */
+    ub4           se;      /*  point to the end*/ 
 };
 typedef  struct __deposit  DEPO;
 
-pthread_mutex_t work_lock_depo;
+struct __depstat
+{ 
+    ub4         maxbyte;  /* max  byte for deposit  */
+    H_STATE     isfull;   /* default H_FALSE , H_TRUE is full */
+    sb2         count;   /* how much malloc depo sm */
+    sb2         sd;     /* now start DEPO */
+    sb2         nd;    /* now doing DEPO */
+    H_USESTAT   fe;     /* the first deposit is free default H_USE , H_FREE is free */
+    DEPO        *pool_depo;
+};
+typedef  struct __depstat  DEST;
 
-DEPO *pools_depo_tail;
-DEPO *pools_depo_head;
+DEST *pools_dest;
+
+pthread_mutex_t work_lock_depo;
 
 #define DEPO_LOCK() do{\
     pthread_mutex_lock(&work_lock_depo); \
@@ -55,6 +60,8 @@ DEPO *pools_depo_head;
 #define DEOP_UNLOCK() do{\
     pthread_mutex_unlock(&work_lock_depo); \
 }while(0)
+
+
 
 #ifdef __cplusplus
  }

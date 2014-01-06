@@ -33,17 +33,6 @@
 #include "lookupa.h"
 #include "openmd5.h"
 
-#define MAX_HITEM_LENGTH 1024
-#define MAX_HITEM_LENGTH_8 (MAX_HITEM_LENGTH<<8)
-#define MAX_HARU_POOL 1024
-#define MAX_SLAB_CLASS  200
-#define CHUNK_ALIGN_BYTES 8
-#define MAX_SLAB_BYTE 128*1024 * 1024
-#define LIMIT_SLAB_BYTE 1024 * 1024
-#define SLAB_BEGIN 88
-#define LIMIT_PERCENT 0.1
-
-#define MD5_LENG 33
 /* 
  * f=1.25
  * slab class   1: chunk size     88 perslab 11915
@@ -198,6 +187,7 @@ pthread_mutex_t work_lock_hit;
 pthread_mutex_t work_lock_miss;
 pthread_mutex_t work_lock_bytes;
 pthread_mutex_t work_lock_ulist;
+pthread_mutex_t work_lock_tlist;
 pthread_mutex_t work_lock_hdr;
 
 HG *hitem_group;
@@ -247,6 +237,14 @@ HARU *pools_haru_pool;
 
 #define ULIST_UNLOCK() do{\
     pthread_mutex_unlock(&work_lock_ulist); \
+}while(0)
+
+#define TLIST_LOCK() do{\
+    pthread_mutex_lock(&work_lock_tlist); \
+}while(0)
+
+#define TLIST_UNLOCK() do{\
+    pthread_mutex_unlock(&work_lock_tlist); \
 }while(0)
 
 #define HDR_LOCK() do{\
