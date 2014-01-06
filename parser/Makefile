@@ -3,7 +3,7 @@ CC := cc
 CFLAGS := -Wall -O -g -pedantic -Wshadow -Wunused -Wstrict-aliasing -ll -ly -lm  
 DEBUG := n
 LEX := flex
-YACC := yacc
+YACC := bison
 
 RM-F := rm -f
 EXECUTABLE :=  $(CFLAGS)

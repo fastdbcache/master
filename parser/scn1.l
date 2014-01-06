@@ -2,6 +2,7 @@
 /*
  * AT&T lex can't handle this lexer due to lex bugs.  It works with flex
  * 2.3.7, pclex 2.0.5, and MKS lex 3.1a.
+ * http://flex.sourceforge.net/manual/Bison-Bridge.html
  */
 #include "da.h"
 #include "sql1.h"
@@ -13,6 +14,7 @@ void yyerror(char *s);
 %}
 	/* MKS needs the next line to increase the NFA table */
 %e 1200
+%option bison-bridge bison-locations
 
 %%
 
@@ -141,7 +143,7 @@ OFFSET      { return OFFSET; }
         _ly *c = calloc(1, sizeof(_ly));
         c->tab = yytext;
         c->len = yyleng;
-		yylval.lys = c;
+		yylval->lys = c;
         return NAME; 
         }
 
@@ -181,7 +183,7 @@ yyerror(char *s)
 {
 	/*printf("%d: %s at %s\n", lineno, s, yytext);*/
 }
-/*
+
 main(int ac, char **av)
 {
     extern int yydebug ;
@@ -202,7 +204,7 @@ main(int ac, char **av)
     tly = _get();
     for(;tly; tly=tly->next)
         printf("tab: %s\n", tly->tab);
-}  main */
+} /* main */
 
 /* 
  * ===  FUNCTION  ======================================================================

@@ -3,7 +3,8 @@
 
 #include "da.h"
 #define YYDEBUG 1
-
+#define YYPARSE_PARAM scanner
+#define YYLEX_PARAM   scanner
 %}
 %union {
 	int intval;
@@ -12,6 +13,8 @@
 	int subtok;
     _ly *lys;
 }
+%locations
+%pure-parser
 %token <lys> NAME
 %token STRING
 %token INTNUM APPROXNUM
