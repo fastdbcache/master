@@ -22,6 +22,7 @@
  {
 #endif
 
+#include "../config_global.h"
 
 #ifdef __cplusplus
  }
