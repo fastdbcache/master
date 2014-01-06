@@ -45,10 +45,7 @@ void on_accept(int fd, short ev, void *arg){
  
         }else{
             printf("accept error\n");
-        }
-
-        
-
+        }    
     }else{
         close(client_fd);
         d_log("RQ is full");

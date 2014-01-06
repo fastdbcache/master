@@ -47,6 +47,15 @@
     (cq) = rq_head;                       \
 }while(0)
 
+#define QR_COUNT(c)  do{    \
+    (c) = 0;                \
+    RQ *_rq = rq_queue_tail;    \
+    while(rq!=rq_queue_head){   \
+        if(rq->isjob == JOB_FREE) \
+            (c)++;               \
+        rq = rq->next;          \
+    }                           \
+}while(0)
 
 typedef enum {
     JOB_FREE=0,  /* default 0 ,it's 1 has a job, 2 working */
