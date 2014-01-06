@@ -134,7 +134,8 @@ SESSION_SLOTS *resolve_slot(const char *buf){
 
 
 int AuthPG(const int bfd,const int ffd, SESSION_SLOTS *slot){
-    char *newbuf,  *_apack, *_hdrtmp;
+    char *newbuf,  *_hdrtmp;
+    DBP *_apack; 
     ub1 *_drtmp;
     size_t totalsize,  total_size, cmd_size, pack_len;
     uint32 total;
@@ -166,7 +167,7 @@ int AuthPG(const int bfd,const int ffd, SESSION_SLOTS *slot){
             _drtmp = (ub1 *)realloc(_hdr->dr, _hdr->drl+totalsize);    \
             if(_drtmp){                                         \
                 _hdr->dr = _drtmp;                              \
-                memcpy(_hdr->dr+_hdr->drl, _apack, totalsize);  \
+                memcpy(_hdr->dr+_hdr->drl, _apack->inBuf, totalsize);  \
                 _hdr->drl += totalsize;                         \
             }else{                                              \
                 freeHdr(_hdr);                                  \
@@ -181,7 +182,7 @@ int AuthPG(const int bfd,const int ffd, SESSION_SLOTS *slot){
     
     _hdr = NULL;
     _ulist = NULL;
-    _apack = NULL;
+    _apack = initdbp();
     pack_len = 0;
     isSELECT = E_OTHER;
     isDATA = FALSE;
@@ -189,66 +190,53 @@ int AuthPG(const int bfd,const int ffd, SESSION_SLOTS *slot){
     FB(1);
     
     auth_loop:
-        if(!_apack){
-            _apack = calloc(1, sizeof(char));
-            pack_len = sizeof(char);
-        }
-        bzero(_apack, pack_len);
-        cmd_size = Socket_Read(rfd, _apack, sizeof(char));
+        _apack->inCursor = 0;
+                
+        if(!_apack->inBuf){
+            
+            CheckBufSpace(sizeof(char), _apack);
+
+        }else _apack->inEnd = sizeof(char);
+
+        bzero(_apack->inBuf, _apack->inBufSize);
+                 
+        cmd_size = Socket_Read(rfd, _apack->inBuf, sizeof(char));
 
         if(cmd_size != sizeof(char)) {            
-            free(_apack);
-            _apack = NULL;
+            freeDBP(_apack); 
             return -1;
         }
-        if(pack_len < sizeof(char)+sizeof(uint32)){
-            newbuf = realloc(_apack, sizeof(char)+sizeof(uint32));        
-            pack_len += sizeof(uint32); 
-            if(newbuf){
-                _apack = newbuf;
-            } else{
-                free(_apack);
-                _apack = NULL;
-                return -1;
-            }
-        }
-       /* DEBUG("ask: %c", *_apack);*/
-        
-        total_size = Socket_Read(rfd, _apack+sizeof(char), sizeof(uint32));
+
+            
+        if(CheckBufSpace(sizeof(uint32), _apack) != 0)return -1;
+            
+       /* DEBUG("ask: %c", *_apack->inBuf);*/
+
+        total_size = Socket_Read(rfd, _apack->inBuf + _apack->inCursor, sizeof(uint32));
 
         if(total_size != sizeof(uint32)){
-            free(_apack);
-            _apack = NULL;
+            
+            freeDBP(_apack);
             return -1;
         }
         total = 0;
-        memcpy(&total, _apack+sizeof(char), sizeof(uint32));
+        
+        getInt(&total, 4, _apack);
+        
+        totalsize = total-sizeof(uint32);
 
-        total = ntohl(total);
-        totalsize = sizeof(char)+total;
-        if(pack_len < totalsize){
-            
-            newbuf = realloc(_apack, totalsize);
-            pack_len = totalsize;
+        if(CheckBufSpace(totalsize, _apack) != 0)return -1;
+                         
+        Socket_Read(rfd, _apack->inBuf+_apack->inCursor, total-sizeof(uint32));
 
-            if(newbuf){
-                _apack = newbuf;
-            } else{
-                free(_apack);
-                _apack = NULL;
-                return -1;
-            }
-        }
-        Socket_Read(rfd, _apack+sizeof(char)+sizeof(uint32), total-sizeof(uint32));
+        if(*_apack->inBuf != 'Q')
+            Socket_Send(wfd, _apack->inBuf, _apack->inEnd);
 
-        if(*_apack != 'Q')
-            Socket_Send(wfd, _apack, totalsize);
-
-        if ( slot->backend_fd == 0 && *_apack != 'p') {
+        if ( slot->backend_fd == 0 && *_apack->inBuf != 'p') {
             _mf = (MSGFORMAT *)calloc(1, sizeof(MSGFORMAT));
             _mf->format = (char *)calloc(1, totalsize);
 
-            memcpy(_mf->format, _apack, totalsize);                    
+            memcpy(_mf->format, _apack->inBuf, _apack->inEnd);
             _mf->format_len = totalsize;
            
             if(slot->tail == NULL){
@@ -260,7 +248,7 @@ int AuthPG(const int bfd,const int ffd, SESSION_SLOTS *slot){
             }   
         }
 
-        switch ( *_apack ) {
+        switch ( *_apack->inBuf ) {
             case 'R':	
                 /* total eq 8 is AuthenticationOk */
                 if(total==8){
@@ -296,7 +284,7 @@ int AuthPG(const int bfd,const int ffd, SESSION_SLOTS *slot){
             case 'Q':
                 
                 isDATA = FALSE;
-                _hdrtmp = _apack+sizeof(char)+sizeof(uint32);
+                _hdrtmp = _apack->inBuf + _apack->inCursor;
                 isSELECT = findSQL(_hdrtmp, total-sizeof(uint32));
                 if(isSELECT == E_SELECT){
                     mem_pack = (SLABPACK *)calloc(1, sizeof(SLABPACK));
@@ -370,7 +358,7 @@ int AuthPG(const int bfd,const int ffd, SESSION_SLOTS *slot){
                 /*  else{
                     DEBUG("system table");
                 }*/
-                Socket_Send(wfd, _apack, totalsize);
+                Socket_Send(wfd, _apack->inBuf, _apack->inEnd );
                 FB(1);
                 goto free_pack;
             case 'T':
@@ -379,7 +367,7 @@ int AuthPG(const int bfd,const int ffd, SESSION_SLOTS *slot){
                 if(isSELECT == E_SELECT && _hdr){
                     _hdr->dr = (ub1 *)calloc(totalsize, sizeof(ub1));
                     
-                    memcpy(_hdr->dr, _apack, totalsize);
+                    memcpy(_hdr->dr, _apack->inBuf, _apack->inEnd);
                     _hdr->drl = totalsize;
                 }
                 goto free_pack;
@@ -416,21 +404,21 @@ int AuthPG(const int bfd,const int ffd, SESSION_SLOTS *slot){
                 /*  DEBUG("Z:%s", _apack+sizeof(char)+sizeof(uint32));*/
                 goto free_pack;
             case 'X':
-                free(_apack);                
-                _apack = NULL;
+                
                 pack_len = 0;
+                freedbp(_apack);
                 isDATA = FALSE;
                 return 0;
                 
             default:	
-                printf("any:%c\n", *_apack);
+                printf("any:%c\n", *_apack->inBuf);
                 break;
         }				/* -----  end switch  ----- */
     
     free_pack:        
         goto auth_loop;
 
-    if(_apack)free(_apack);
+    freedbp(_apack); 
     _apack = NULL;
 }
 
@@ -562,37 +550,6 @@ E_SQL_TYPE findCache (const char *sql, int *offset){
     return E_OTHER;
 }		/* -----  end of function findCache  ----- */
 
-/* 
- * ===  FUNCTION  ======================================================================
- *         Name:  getCmd
- *  Description:  
- * =====================================================================================
- */
-void getCmd ( <+argument_list+> ){
-    return <+return_value+>;
-}		/* -----  end of function getCmd  ----- */
-
-
-/* 
- * ===  FUNCTION  ======================================================================
- *         Name:  getInt
- *  Description:  
- * =====================================================================================
- */
-void getInt ( <+argument_list+> ){
-    return <+return_value+>;
-}		/* -----  end of function getInt  ----- */
-
-
-/* 
- * ===  FUNCTION  ======================================================================
- *         Name:  getCont
- *  Description:  
- * =====================================================================================
- */
-void getCont ( <+argument_list+> ){
-    return <+return_value+>;
-}		/* -----  end of function getCont  ----- */
 
 /* vim: set ts=4 sw=4: */
 

@@ -27,6 +27,7 @@
 #include "./hashtable/pool_worker.h"
 #include "./hashtable/pool_demand.h"
 #include "pg_system_atalogs.h"
+#include "pg_misc.h"
 #include "log_lib.h"
 
 #define MAX_BACKEND_SESSION 128

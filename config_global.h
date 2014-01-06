@@ -124,6 +124,18 @@ typedef enum {
     H_UPDATE
 } H_CHANGE; 
 
+typedef struct __packer DBP;
+struct __packer{
+    char *inBuf;
+    size_t 		inBufSize;		/* allocated size of buffer */
+	int			inStart;		/* offset to first unconsumed data in buffer */
+	int			inCursor;		/* next byte to tentatively consume */
+	int			inEnd;			/* offset to first position after avail data */
+
+    int backend;
+    int frontend;
+};
+
 typedef struct __conn _conn;
 struct __conn{
     char *fdbc;  /* version for fastdbcache */
