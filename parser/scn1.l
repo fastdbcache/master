@@ -183,7 +183,7 @@ yyerror(char *s)
 {
 	/*printf("%d: %s at %s\n", lineno, s, yytext);*/
 }
-
+/*
 main(int ac, char **av)
 {
     extern int yydebug ;
@@ -204,7 +204,7 @@ main(int ac, char **av)
     tly = _get();
     for(;tly; tly=tly->next)
         printf("tab: %s\n", tly->tab);
-} /* main */
+}  main */
 
 /* 
  * ===  FUNCTION  ======================================================================
