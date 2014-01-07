@@ -57,11 +57,13 @@ void on_accept(int fd, short ev, void *arg){
         anyThread(fproc, NULL);
     }
 
-    RQ_BUSY(isDep);
+    if(conn_global->hasdep == H_TRUE){
+        RQ_BUSY(isDep);
 
-    if(isDep < conn_global->quotient){
-        depo_status = NT_HAS;
-        anyThread(fdepo, NULL); 
+        if(isDep < conn_global->quotient){
+            depo_status = NT_HAS;
+            anyThread(fdepo, NULL); 
+        }
     }
 }
 
@@ -114,7 +116,7 @@ void *fproc ( void *arg){
  */
 void *fdepo ( void *arg ){
     depo_status = NT_WORKING;
-    mem_push();
+    leadpush();
     depo_status = NT_FREE;
 }		/* -----  end of function fdepo  ----- */
 /* vim: set ts=4 sw=4: */

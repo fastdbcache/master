@@ -26,6 +26,7 @@
 #include "./hashtable/pool_init.h"
 #include "./hashtable/pool_worker.h"
 #include "./hashtable/pool_demand.h"
+#include "./deposit/dep_struct.h"
 #include "pg_system_atalogs.h"
 #include "pg_misc.h"
 #include "log_lib.h"

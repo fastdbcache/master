@@ -61,7 +61,9 @@ pthread_mutex_t work_lock_depo;
     pthread_mutex_unlock(&work_lock_depo); \
 }while(0)
 
-
+void leadadd ( ub1 *key, ub4 keyl );
+void leadpush (  );
+DEPO *deposit_init (  );
 
 #ifdef __cplusplus
  }

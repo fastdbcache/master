@@ -120,6 +120,12 @@ typedef enum {
 } H_USESTAT;
 
 typedef enum {
+    D_MEM=0,    /* memory */
+    D_MMAP,     /* mmap  */
+    D_HD        /* hard disk */
+} D_TYPE;
+
+typedef enum {
     H_INSERT=0,  /*  default 0 ,it's 1 has a job, 2 working */
     H_UPDATE
 } H_CHANGE; 
@@ -166,6 +172,7 @@ struct __conn{
     float factor;       /* for hslab default 1.25  */
     size_t maxbytes;   /* max bytes for hslab */
 
+    D_TYPE deptype;     /* deposit type */
     size_t dmaxbytes;   /* max bytes for deposit  */
     H_STATE hasdep;      /* is use deposit default FALSE */
     size_t quotient;    /* when client over quotient, deposit inure */

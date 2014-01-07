@@ -325,7 +325,7 @@ int AuthPG(const int bfd,const int ffd, SESSION_SLOTS *slot){
                             for(_depr = conn_global->deprule; _depr; _depr=_depr->next){
                                 if(_depr->len == ply->len &&
                                     memcmp(_depr->table, ply->tab, ply->len)){
-                                    mem_set ( (ub1)_apack->inBuf, (ub4)_apack->inEnd );        
+                                    leadadd ( (ub1)_apack->inBuf, (ub4)_apack->inEnd );        
                                 }else continue;
                             }
                             free(ply->tab);

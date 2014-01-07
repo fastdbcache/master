@@ -16,7 +16,57 @@
  * =====================================================================================
  */
 
+#include "dep_struct.h"
+#include "dep_mem.h"
 
+/* 
+ * ===  FUNCTION  ======================================================================
+ *         Name:  leadadd
+ *  Description:  
+ * =====================================================================================
+ */
+void leadadd ( ub1 *key, ub4 keyl ){
+        
+    switch ( conn_global->deptype ) {
+        case D_MEM:	
+            mem_set ( key, keyl );
+            break;
+
+        case D_MMAP:	
+            break;
+
+        case D_HD:	
+            break;
+
+        default:	
+            break;
+    }				/* -----  end switch  ----- */
+}		/* -----  end of function leadadd  ----- */
+
+
+/* 
+ * ===  FUNCTION  ======================================================================
+ *         Name:  leadpush
+ *  Description:  
+ * =====================================================================================
+ */
+void leadpush (  ){
+
+    switch ( conn_global->deptype ) {
+        case D_MEM:	
+            mem_pushdb (  );
+            break;
+
+        case D_MMAP:	
+            break;
+
+        case D_HD:	
+            break;
+
+        default:	
+            break;
+    }				/* -----  end switch  ----- */
+}		/* -----  end of function leadpush  ----- */
  /* vim: set ts=4 sw=4: */
 
 

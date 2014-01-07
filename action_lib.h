@@ -11,6 +11,7 @@
 
 #include "thread_lib.h"
 #include "./hashtable/pool_proc.h"
+#include "./deposit/dep_struct.h"
 
 NOTIFY_TOKEN_STATE proc_status;
 NOTIFY_TOKEN_STATE depo_status;
