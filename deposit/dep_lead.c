@@ -19,6 +19,39 @@
 #include "dep_struct.h"
 #include "dep_mem.h"
 
+
+/* 
+ * ===  FUNCTION  ======================================================================
+ *         Name:  leadinit
+ *  Description:  
+ * =====================================================================================
+ */
+void leadinit ( size_t byte ){
+    if(byte < LIMIT_SLAB_BYTE) {
+        DEBUG("deposit is very little");
+        exit(1);
+    }
+    switch (conn_global->deptype  ) {
+        case D_MEM:	
+            pools_dest = mem_init ( byte );
+            break;
+
+        case D_MMAP:	
+            break;
+
+        case D_HD:	
+            break;
+
+        default:	
+            break;
+    }				/* -----  end switch  ----- */
+
+    if(!pools_dest){
+        DEBUG("init pools_dest error");
+        exit(1);
+    }
+}		/* -----  end of function leadinit  ----- */
+
 /* 
  * ===  FUNCTION  ======================================================================
  *         Name:  leadadd

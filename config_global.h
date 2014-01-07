@@ -33,6 +33,7 @@
 #include <sys/types.h>
 
 #include "conf_lib.h"
+#include <pthread.h>
 #include <unistd.h>
 #include <malloc.h>
 #include <string.h>
@@ -149,6 +150,29 @@ struct __deporule{
     DEPR *next;
 };
 
+typedef struct {
+   DBP *StartupPack;
+   DBP *verify; 
+   ssize_t pw_len;
+   char *user;
+   char *database;
+   char *application_name;
+   uint64_t major;
+   uint64_t minor;   
+   int backend_fd;
+}SESSION_SLOTS;
+
+SESSION_SLOTS *conn_session_slot;
+pthread_mutex_t session_slot_lock;
+
+#define SLOT_LOCK() do{\
+    pthread_mutex_lock(&session_slot_lock); \
+}while(0)
+
+#define SLOT_UNLOCK() do{\
+    pthread_mutex_unlock(&session_slot_lock); \
+}while(0)
+
 typedef struct __conn _conn;
 struct __conn{
     char *fdbc;  /* version for fastdbcache */
@@ -176,13 +200,15 @@ struct __conn{
     size_t dmaxbytes;   /* max bytes for deposit  */
     H_STATE hasdep;      /* is use deposit default FALSE */
     size_t quotient;    /* when client over quotient, deposit inure */
-    DEPR  **deprule;    /* table for depost */
+    DEPR  **deprule;    /* table for deposit */
 };
 
 _conn *conn_global;
 
 void conn_init_global();
 void conn_get_global ();
+void slotinit ( );
+
 #ifdef __cplusplus
  }
 #endif

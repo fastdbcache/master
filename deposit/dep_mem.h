@@ -25,7 +25,7 @@
 #include "../config_global.h"
 #include "dep_struct.h"
 
-DEST *mem_init ( int num, size_t byte );
+DEST *mem_init ( size_t byte );
 void mem_set ( ub1 *key, ub4 keyl );
 void mem_pushdb (  );
 

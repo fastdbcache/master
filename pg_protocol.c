@@ -22,43 +22,42 @@
 /* 
  * client to pg
  * */
-int PGStartupPacket3(int fd,PACK *pa){
+int PGStartupPacket3(int fd, DBP *_dbp){
     char *newbuf;
     size_t pv_len;
     uint32 pv;
+    int res;
 
-    if(pa->pack == NULL) {
-        d_log("pack calloc error !\n");
+    if(_dbp == NULL) {
+        d_log("pack calloc error !\n");         
         return -1;
     }
-
-    pv_len = Socket_Read(fd, pa->pack, sizeof(uint32));
-    if(pv_len == sizeof(uint32)){
-        memcpy(&pv, pa->pack, sizeof(uint32));
-
-        pv = ntohl(pv);
-        newbuf = realloc(pa->pack, pv);
-        if(newbuf){
-            pa->pack = newbuf;
-        }else {
-            printf("errr-----\n");
-            return -1;
-        }
-
-        pv_len = Socket_Read(fd, pa->pack+sizeof(uint32), pv-sizeof(uint32));
-
-        if(pv_len == (pv-sizeof(uint32))){
-            /*uint32  v=0;
-            memcpy(&v, pa->pack+sizeof(uint32), sizeof(uint32));
-            printf("pv major: %d pv minor:%d\n", ntohl(v)>>16, ntohl(v)&0x0000ffff);
-            printf("param: %s\n", pa->pack+sizeof(uint32)+sizeof(uint32));
-            printf("pv:%d\n", pv);*/
-            return pv;
-        }
-        
+    res = CheckBufSpace(sizeof(uint32), _dbp);
+    if(res == -1) {
+        DEBUG("CheckBufSpace error !\n");
         return -1;
     }
+    pv_len = Socket_Read(fd, _dbp->inBuf, sizeof(uint32));
+
+    if(pv_len != sizeof(uint32)) return -1;
+
+    getInt(&pv, 4, _dbp);
+    res = CheckBufSpace((pv-sizeof(uint32)), _dbp);
+    if(res == -1) return -1;
+
+    pv_len = Socket_Read(fd, _dbp->inBuf+_dbp->inCursor, pv-sizeof(uint32));
+
+    if(pv_len == (pv-sizeof(uint32))){
+        /*uint32  v=0;
+        memcpy(&v, pa->pack+sizeof(uint32), sizeof(uint32));
+        printf("pv major: %d pv minor:%d\n", ntohl(v)>>16, ntohl(v)&0x0000ffff);
+        printf("param: %s\n", pa->pack+sizeof(uint32)+sizeof(uint32));
+        printf("pv:%d\n", pv);*/
+        return pv;
+    }
+    
     return -1;
+     
 }
 
 
@@ -109,17 +108,7 @@ SESSION_SLOTS *resolve_slot(const char *buf){
                 return NULL;
             }
         }
-
-        /*
-         * From 9.0, the start up packet may include
-         * application name. After receiving such that packet,
-         * backend sends parameter status of application_name.
-         * Upon reusing connection to backend, we need to
-         * emulate this behavior of backend. So we remember
-         * this and send parameter status packet to frontend
-         * instead of backend in
-         * connect_using_existing_connection().
-         **/
+        
         else if (!strcmp("application_name", p))
         {
             p += (strlen(p) + 1);
@@ -133,7 +122,7 @@ SESSION_SLOTS *resolve_slot(const char *buf){
 }		/* -----  end of function resolve_slot  ----- */
 
 
-int AuthPG(const int bfd,const int ffd, SESSION_SLOTS *slot){
+int AuthPG(const int bfd,const int ffd, DBP *slot_dbp){
     char *newbuf,  *_hdrtmp;
     DBP *_apack; 
     ub1 *_drtmp;
@@ -141,7 +130,7 @@ int AuthPG(const int bfd,const int ffd, SESSION_SLOTS *slot){
     uint32 total;
     int rfd, wfd;
     MSGFORMAT *_mf;
-    int type=1, isDATA;
+    int type, isDATA;
     E_SQL_TYPE isSELECT;
     HDR *_hdr;
     ULIST *_ulist;
@@ -177,11 +166,9 @@ int AuthPG(const int bfd,const int ffd, SESSION_SLOTS *slot){
             }                                                   \
         }                                                       \
     }while (0)
-
+    type = 1;
     FB(type);
-      
-    if(slot->backend_fd != 0) return -1;
-    
+        
     _hdr = NULL;
     _ulist = NULL;
     _apack = initdbp();
@@ -233,20 +220,11 @@ int AuthPG(const int bfd,const int ffd, SESSION_SLOTS *slot){
         if(*_apack->inBuf != 'Q')
             Socket_Send(wfd, _apack->inBuf, _apack->inEnd);
 
-        if ( slot->backend_fd == 0 && *_apack->inBuf != 'p') {
-            _mf = (MSGFORMAT *)calloc(1, sizeof(MSGFORMAT));
-            _mf->format = (char *)calloc(1, totalsize);
-
-            memcpy(_mf->format, _apack->inBuf, _apack->inEnd);
-            _mf->format_len = totalsize;
-           
-            if(slot->tail == NULL){
-                slot->tail = slot->head = _mf;
-
-            }else{    
-                slot->head->next = _mf;
-                slot->head = _mf;
-            }   
+        if (slot_dbp !=NULL &&
+             slot_dbp->inBuf == NULL && 
+             *_apack->inBuf == 'p') {
+            CheckBufSpace(_apack->inEnd, slot_dbp);                       
+            memcpy(slot_dbp->inBuf, _apack->inBuf, _apack->inEnd);               
         }
 
         switch ( *_apack->inBuf ) {

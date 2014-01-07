@@ -59,21 +59,6 @@ struct work_process_q{
     char *pack;
 };
 
-typedef struct {
-   char *StartupPack;
-   ssize_t sp_len;
-   char *passwd; 
-   ssize_t pw_len;
-   char *user;
-   char *database;
-   char *application_name;
-   uint64_t major;
-   uint64_t minor;
-   MSGFORMAT *head;
-   MSGFORMAT *tail;
-   int backend_fd;
-}SESSION_SLOTS;
-
 struct pg_conn {
     int frontend;  /* frontend fd */
     int backend;    /* backend fd */
@@ -83,7 +68,7 @@ typedef struct pg_conn Pg_conn;
 
 SESSION_SLOTS *bs_slots[MAX_BACKEND_SESSION];
 
-int PGStartupPacket3(int fd, PACK *pa); /* 1. F -> B */
+int PGStartupPacket3(int fd, SESSION_SLOTS *slot); /* 1. F -> B */
 SESSION_SLOTS *resolve_slot(const char *buf);
 int AuthPG(const int bfd,const int ffd, SESSION_SLOTS *slot);
 E_SQL_TYPE findSQL (  const char *sql , int len);

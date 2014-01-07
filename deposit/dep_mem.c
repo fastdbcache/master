@@ -23,8 +23,11 @@
  *  Description:  
  * =====================================================================================
  */
-DEST *mem_init ( int num, size_t byte ){
+DEST *mem_init ( size_t byte ){
     DEST *_dest;
+    int i, num;
+
+    num = (int)(byte / LIMIT_SLAB_BYTE);
     _dest = calloc(1, sizeof(DEST));
     _dest->maxbyte = byte;
     _dest->count = 1;
@@ -32,7 +35,10 @@ DEST *mem_init ( int num, size_t byte ){
     _dest->sd = 0;
     _dest->nd = 0;
     _dest->fe = H_USE;
-    _dest->pool_depo = (DEPO *)calloc(num, sizeof(DEPO));
+    _dest->pool_depo = (DEPO **)calloc(num, sizeof(DEPO));
+    for(i=0; i< num; i++){
+        _dest->pool_depo[i] = deposit_init();
+    }
 
     return _dest;
 }		/* -----  end of function mem_init  ----- */
@@ -47,7 +53,8 @@ void mem_set ( ub1 *key, ub4 keyl ){
     DEST *_dest = pools_dest; 
     DEPO *_depo;
     ub4 _end, _len;
-    
+   
+    if(!_dest)  return;
     _len = keyl;
     if (_len % CHUNK_ALIGN_BYTES)
             _len += CHUNK_ALIGN_BYTES - (_len % CHUNK_ALIGN_BYTES);

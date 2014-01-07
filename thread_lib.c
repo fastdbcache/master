@@ -21,11 +21,8 @@ void libevent_work_thread(int fd, short ev, void *arg){
     char buf[1], *pv_buf;
     int ffd;
     WTQ *work_child; 
-    SESSION_SLOTS *slot;
     int pg_fds, m, pg_len, client_len, pack_len;
-
-    PACK *start_pack;
-    SESSION_SLOTS *_slot;
+    DBP *_dbp, *_verify;
 
     if (read(fd, buf, 1) != 1)
 	    d_log("error Can't read from libevent pipe");
@@ -48,22 +45,26 @@ void libevent_work_thread(int fd, short ev, void *arg){
     
     ffd = work_child->rq_item->frontend->ffd;
 
-    start_pack = (PACK *)calloc(1, sizeof(PACK));
-    start_pack->pack = (char *)calloc(1, sizeof(char));
-    pack_len = PGStartupPacket3(ffd, start_pack);  /*  1. F -> B */
+    /* i only set child 0 can set conn_session_slot */
+    if(work_child->no == 0 &&
+        conn_session_slot->StartupPack->inBuf == NULL){
+        _dbp = conn_session_slot->StartupPack;
+    }else{
+        _dbp = initdbp();
+    }
+
+    pack_len = PGStartupPacket3(ffd, _dbp);  /*  1. F -> B */
+
     if(pack_len == -1)goto ok; 
 
     pg_fds = Client_Init(conn_global->pg_host, conn_global->pg_port);
     if(pg_fds == -1){
-        if(start_pack->pack != NULL)free(start_pack->pack);
-        start_pack->pack = NULL;
+        freedbp(_dbp);        
         goto bad;
     }
-    pg_len = Socket_Send(pg_fds, start_pack->pack, pack_len);
-
+    pg_len = Socket_Send(pg_fds, _dbp->inBuf, _dbp->inEnd);
 
     if(pg_len != pack_len) goto bad;
-    _slot = resolve_slot(start_pack->pack);
     
    if(_slot->backend_fd == 0){
        /*  pg_fds = Client_Init(conf_get("pg_host"), atoi(conf_get("pg_port")));
@@ -75,8 +76,17 @@ void libevent_work_thread(int fd, short ev, void *arg){
         pg_len = Socket_Send(pg_fds, start_pack->pack, pack_len);
 
          */
+        
         if(pg_len != pack_len) goto bad;
-        if(AuthPG(pg_fds, ffd, _slot)==-1){
+        if(work_child->no == 0 &&
+            conn_session_slot->verify-inBuf == NULL){
+            _verify = conn_session_slot->verify;
+        }else {
+            _verify = NULL;
+            freedbp(_dbp);
+        }
+
+        if(AuthPG(pg_fds, ffd, _verify)==-1){
             //printf("auth error\n");
             //            goto bad;
             //                    }else{
