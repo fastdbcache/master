@@ -17,6 +17,7 @@
 #include "config_global.h"
 #include "./modules/modules.h"
 #include "./hashtable/pool_init.h"
+#include "./deposit/dep_struct.h"
 
 int main(int argc, char* argv[]){
     int listen_fd, unix_sock;
@@ -57,8 +58,23 @@ int main(int argc, char* argv[]){
         conn_get_global();
     }
     
-
+    
 	d_log(conn_global->fdbc);
+
+    if(conn_global->hasdep == H_TRUE)
+        leadinit(conn_global->dmaxbytes);
+    slotinit ( )
+
+    hcreate(8);
+    /*rq_init(MAXCONN);*/
+    rq_init(256);
+
+    work_thread_init(conn_global->process_num);
+
+    token_thread_init();
+    notify_token_thread = NT_FREE;
+
+    main_base = event_init();
 
 	if(do_daemonize == 1 || conn_global->do_daemonize == 1){
 		daemon_init(argv[0], 0);	
@@ -81,17 +97,7 @@ int main(int argc, char* argv[]){
 		perror( "listen failed");
 		exit(-1);
 	}
-
-    hcreate(8);
-    /*rq_init(MAXCONN);*/
-    rq_init(256);
-
-    work_thread_init(conn_global->process_num);
-
-    token_thread_init();
-    notify_token_thread = NT_FREE;
-
-    main_base = event_init();
+    
     conn_new(listen_fd, main_base);
 
     event_base_loop(main_base, 0);
