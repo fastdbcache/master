@@ -66,7 +66,7 @@ int PGStartupPacket3(int fd, DBP *_dbp){
  *         Name:  resolve_slot
  *  Description:  
  * =====================================================================================
- */
+ 
 SESSION_SLOTS *resolve_slot(const char *buf){
     const char *p;
     SESSION_SLOTS *_slot;
@@ -119,7 +119,7 @@ SESSION_SLOTS *resolve_slot(const char *buf){
     }
 
     return _slot;
-}		/* -----  end of function resolve_slot  ----- */
+}	*/	/* -----  end of function resolve_slot  ----- */
 
 
 int AuthPG(const int bfd,const int ffd, DBP *slot_dbp){

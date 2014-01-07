@@ -22,9 +22,6 @@
  {
 #endif
 
-#include <pthread.h>
-#include <stdint.h> 
-
 #include "../config_global.h"
 #include "../parser/da.h"
 #include "../parser/sql1.h"
@@ -261,6 +258,9 @@ HARU *pools_haru_pool;
     }else                               \
         pools_hitem = hitem_group->usable; \
 }while(0)
+
+void freeHdr ( HDR *fhdr );
+void freeUList ( ULIST *flist );
 
 #ifdef __cplusplus
  }

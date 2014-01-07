@@ -53,11 +53,6 @@ struct _msg_format{
     MSGFORMAT *next;
 };
 
-/* test */
-typedef struct work_process_q PACK;
-struct work_process_q{
-    char *pack;
-};
 
 struct pg_conn {
     int frontend;  /* frontend fd */
@@ -66,11 +61,9 @@ struct pg_conn {
 
 typedef struct pg_conn Pg_conn;
 
-SESSION_SLOTS *bs_slots[MAX_BACKEND_SESSION];
-
-int PGStartupPacket3(int fd, SESSION_SLOTS *slot); /* 1. F -> B */
-SESSION_SLOTS *resolve_slot(const char *buf);
-int AuthPG(const int bfd,const int ffd, SESSION_SLOTS *slot);
+int PGStartupPacket3(int fd, DBP *_dbp); /* 1. F -> B 
+SESSION_SLOTS *resolve_slot(const char *buf);*/
+int AuthPG(const int bfd,const int ffd, DBP *slot_dbp);
 E_SQL_TYPE findSQL (  const char *sql , int len);
 E_SQL_TYPE findCache ( const char *spl, int *offset);
 

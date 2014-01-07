@@ -31,15 +31,16 @@
 #  define STDDEF
 # endif
 #include <sys/types.h>
-
-#include "conf_lib.h"
+#include <netinet/in.h>
 #include <pthread.h>
 #include <unistd.h>
 #include <malloc.h>
 #include <string.h>
 #include <stdlib.h>
 #include <ctype.h>
+#include <stdint.h> 
 
+#include "conf_lib.h"
 typedef unsigned short uint16;
 typedef unsigned int uint32;
 typedef  unsigned long  ub8;
@@ -131,7 +132,14 @@ typedef enum {
     H_UPDATE
 } H_CHANGE; 
 
-typedef struct __packer DBP
+typedef struct __ly _ly;
+struct __ly {
+    char *tab;
+    int len;
+    _ly *next;
+};
+
+typedef struct __packer DBP;
 struct __packer{
     char *inBuf;
     size_t 		inBufSize;		/* allocated size of buffer */
@@ -143,7 +151,7 @@ struct __packer{
     int frontend;
 };
 
-typedef struct __deporule DEPR
+typedef struct __deporule DEPR;
 struct __deporule{
     char *table;
     size_t  len;		/* length for table */
@@ -163,7 +171,6 @@ typedef struct {
 }SESSION_SLOTS;
 
 SESSION_SLOTS *conn_session_slot;
-pthread_mutex_t session_slot_lock;
 
 #define SLOT_LOCK() do{\
     pthread_mutex_lock(&session_slot_lock); \

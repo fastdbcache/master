@@ -40,7 +40,6 @@ void hproc ( ){
  * =====================================================================================
  */
 void htlist (  ){
-    TLIST *_tlist, *_t;
     ULIST *_u, *_u_tmp;
     _ly *ply;
   
@@ -59,7 +58,7 @@ void htlist (  ){
             /* DEBUG("ply is null %s", _u->key);*/
             goto clear;
         }
-        pushList(ply->tab, ply->len, _u->utime);
+        pushList((ub1 *)ply->tab, ply->len, _u->utime);
 
         free(ply->tab);
         free(ply);
@@ -86,7 +85,7 @@ void htlist (  ){
  *  Description:  
  * =====================================================================================
  */
-void pushList ( ub1 key, ub4 keyl, ub4 utime ){
+void pushList ( ub1 *key, ub4 keyl, ub4 utime ){
     TLIST *_tlist, *_t;
 
     _tlist = pools_tlist;
@@ -106,7 +105,7 @@ void pushList ( ub1 key, ub4 keyl, ub4 utime ){
     if(!_tlist->next){        
         _t = calloc(1, sizeof(TLIST));
         if(_t){
-            _t->key = (ub1 *)calloc(keyl, sizeof(ub1));
+            _t->key = (char *)calloc(keyl, sizeof(char));
             if(_t->key){
                 memcpy(_t->key, key, keyl);
                 _t->keyl = keyl;

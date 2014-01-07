@@ -36,7 +36,7 @@ ol	: $(SL)
 	
 clean :
 	$(RM-F) *.o
-	$(RM-F) *.c
+	$(RM-F) Lexer.c Lexer.h Parser.c Parser.h
 	$(RM-F) *.gch
 	$(RM-F) $(OK)
 	$(RM-F) core.*

@@ -1,40 +1,32 @@
 /*
  * =====================================================================================
  *
- *       Filename:  da.h
+ *       Filename:  Expression.h
  *
  *    Description:  
  *
  *        Version:  1.0
- *        Created:  12/10/2013 10:21:44 AM
+ *        Created:  01/07/2014 06:23:03 PM
  *       Revision:  none
  *       Compiler:  gcc
  *
  *         Author:  vyouzhi (), 
  *   Organization:  
- * http://en.wikipedia.org/wiki/GNU_bison
+ *
  * =====================================================================================
  */
-#ifndef da_H
-#define da_H
+#ifndef Expression_H
+#define Expression_H
 #ifdef __cplusplus
  extern "C"
  {
 #endif
-#include "../config_global.h"
-#include "Parser.h"
-#include "Lexer.h"
 
-_ly *parser_do (char *str, int len);
-_ly  *_init_ly();
-/* void _len(int l);*/
-void _save(_ly *sly, char *s, int len);
-_ly *_get();
-
+#include "da.h"
 
 #ifdef __cplusplus
  }
 #endif
-#endif /* --- #da_H ---*/
+#endif /* --- #Expression_H ---*/
  /* vim: set ts=4 sw=4: */
 

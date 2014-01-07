@@ -27,7 +27,7 @@
 
 void hproc ( );
 void htlist (  );
-void pushList ( ub1 key, ub4 keyl, ub4 utime );
+void pushList ( ub1 *key, ub4 keyl, ub4 utime );
 void fetchdti (  );
 word haddHitem ( HDR *mhdr );
 void hrule ( HITEM *hitem, H_CHANGE stat );
