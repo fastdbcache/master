@@ -24,7 +24,15 @@ pid_file=/var/run/server.pid
 
 # work process
 [work_process]
-process_num=3
+process_num=8
+
+# cache for insert delete update 
+[deposit]
+enable_cache_dep = off
+dtype=mem
+dbyte=1024
+quotient=3
+deprule={"table_name1","table_name2"}
 
 # module include in here
 modules={"mod_class","mod_xxx"}
