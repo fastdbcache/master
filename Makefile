@@ -14,7 +14,7 @@ EXECUTABLE :=  -o server $(CXXFLAGS)
 SOURCE := $(wildcard *.c)
 OBJS := $(patsubst %.c,%.o,$(SOURCE))
 
-HASHDIR := ./hashtable/
+HASHDIR := ./hashtable/ ./deposit/
 FILTER  := $(HASHDIR)test_hashtable.c
 HASHSOUR :=  $(filter-out $(FILTER),$(wildcard $(HASHDIR)*.c))
 HASHPROG := $(patsubst $(HASHDIR)%.c,$(HASHDIR)%.o, $(HASHSOUR))
@@ -36,7 +36,7 @@ parsers :
 	$(foreach c,$(PARDIR),$(MAKE) -C $(c) && ) true
 
 hashtables :  
-	@echo "======= hashtable ========="
+	@echo "======= hashtable and deposit ========="
 	$(foreach c,$(HASHDIR),$(MAKE) -C $(c) && ) true
 
 deps : $(OBJS)
@@ -51,6 +51,8 @@ clean :
 	$(RM-F) modules/*.gch
 	$(RM-F) hashtable/*.o	
 	$(RM-F) hashtable/*.gch
+	$(RM-F) deposit/*.o	
+	$(RM-F) deposit/*.gch
 	$(RM-F) parser/*.o
 	$(RM-F) parser/*.c
 	$(RM-F) parser/*.gch
