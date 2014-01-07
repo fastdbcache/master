@@ -14,6 +14,12 @@
 	int subtok;
     _ly *lys;
 }
+%code requires {
+#ifndef YY_TYPEDEF_YY_SCANNER_T
+#define YY_TYPEDEF_YY_SCANNER_T
+typedef void* yyscan_t;
+#endif
+}
 %locations
 %pure-parser
 %define api.pure
