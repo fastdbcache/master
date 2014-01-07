@@ -52,27 +52,27 @@ DEST *mem_init ( size_t byte ){
 void mem_set ( ub1 *key, ub4 keyl ){
     DEST *_dest = pools_dest; 
     DEPO *_depo;
-    ub4 _end, _len;
+    ub4  _lens;
    
     if(!_dest)  return;
-    _len = keyl;
-    if (_len % CHUNK_ALIGN_BYTES)
-            _len += CHUNK_ALIGN_BYTES - (_len % CHUNK_ALIGN_BYTES);
+    _lens = keyl;
+    if (_lens % CHUNK_ALIGN_BYTES)
+            _lens += CHUNK_ALIGN_BYTES - (_lens % CHUNK_ALIGN_BYTES);
     /* _end = (LIMIT_SLAB_BYTE / _len); */
     DEPO_LOCK();
-    _depo = _dest->pool_depo[_dest->no];
-    if(_depo->se + _len > LIMIT_SLAB_BYTE){
+    _depo = _dest->pool_depo[_dest->sd];
+    if(_depo->se + _lens > LIMIT_SLAB_BYTE){
         if(_dest->fe == H_FREE){
-            _dest->no = 0; 
+            _dest->sd = 0; 
         }else{
-            _dest->pool_depo[_dest->no++] = deposit_init();            
+            _dest->pool_depo[_dest->sd++] = deposit_init();            
             _dest->count++;
         }
-        _depo = _dest->pool_depo[_dest->no];
+        _depo = _dest->pool_depo[_dest->sd];
     }
  
-    memcpy(_depo->sm+_dep->se, key, keyl);
-    _depo->se += _len;
+    memcpy(_depo->sm+_depo->se, key, keyl);
+    _depo->se += _lens;
     if(_dest->count * LIMIT_SLAB_BYTE >= _dest->maxbyte){
         _dest->isfull = H_TRUE;
     }
@@ -90,10 +90,7 @@ void mem_set ( ub1 *key, ub4 keyl ){
 void mem_pushdb (  ){
     DEST *_dest = pools_dest; 
     DEPO *_depo;      
-    ub4 _end, _point;
-    ub1 *_data, *_pack;
-    uint32 _len;
-    char table[256];
+    uint32 _lens;
     _ly *ply;
     long utime;
 
@@ -112,37 +109,37 @@ void mem_pushdb (  ){
         while(1){ 
             if(*(_depo->sm+_depo->ss) != 'Q') break;
              
-            memcpy(&_len, _depo->sm+_depo->ss+sizeof(char), sizeof(uint32));
-            _len = ntohl(_len);
+            memcpy(&_lens, _depo->sm+_depo->ss+sizeof(char), sizeof(uint32));
+            _lens = ntohl(_lens);
 
-            if(_depo->ss+sizeof(char)+_len > _depo->sp){
+            if(_depo->ss+sizeof(char)+_lens > _depo->sp){
                 break;
             }
-            _len -= sizeof(uint32);
-            ply = parser_do (_depo->sm+_depo->ss+sizeof(char)+sizeof(uint32), _len);
+            _lens -= sizeof(uint32);
+            ply = parser_do ((char *)(_depo->sm+_depo->ss+sizeof(char)+sizeof(uint32)), _lens);
 
             if(!ply){ 
                 /* DEBUG("ply is null %s", _u->key);*/
 
-                _depo->ss += _len + sizeof(char) + sizeof(uint32); 
+                _depo->ss += _lens + sizeof(char) + sizeof(uint32);
                 if(_depo->ss == _depo->sp) break;
 
                 continue;
             }
             /* update tlist  */
             utime = get_sec();
-            pushList(ply->tab, ply->len, utime);
+            pushList((ub1 *)ply->tab, ply->len, utime);
 
             free(ply->tab);
             free(ply);
 
-            Socket_Send(backend, _depo->sm+_depo->ss, _len+sizeof(char)+sizeof(uint32));
+            /*  Socket_Send(backend, _depo->sm+_depo->ss, _lens+sizeof(char)+sizeof(uint32));
             if(!_pack){
                 _pack = calloc(1, sizeof(char));
             }
 
-            Socket_Read(backend,_pack, sizeof(char));
-            _depo->ss += _len + sizeof(char) + sizeof(uint32); 
+            Socket_Read(backend,_pack, sizeof(char));*/
+            _depo->ss += _lens + sizeof(char) + sizeof(uint32); 
             if(_depo->ss == _depo->sp) break;
         }        
     }

@@ -26,6 +26,10 @@
 #include <pthread.h>
 
 #include "../config_global.h"
+#include "../parser/da.h"
+#include "../parser/sql1.h"
+#include "../time_lib.h"
+#include "../hashtable/pool_proc.h"
 
 struct __deposit
 {    
