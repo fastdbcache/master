@@ -66,8 +66,8 @@ void libevent_work_thread(int fd, short ev, void *arg){
 
     if(pg_len != pack_len) goto bad;
     
-   if(_slot->backend_fd == 0){
-       /*  pg_fds = Client_Init(conf_get("pg_host"), atoi(conf_get("pg_port")));
+   /*if(_slot->backend_fd == 0){
+         pg_fds = Client_Init(conf_get("pg_host"), atoi(conf_get("pg_port")));
         if(pg_fds == -1){
             if(start_pack->pack != NULL)free(start_pack->pack);
             start_pack->pack = NULL;
@@ -77,7 +77,6 @@ void libevent_work_thread(int fd, short ev, void *arg){
 
          */
         
-        if(pg_len != pack_len) goto bad;
         if(work_child->no == 0 &&
             conn_session_slot->verify-inBuf == NULL){
             _verify = conn_session_slot->verify;
@@ -98,7 +97,7 @@ void libevent_work_thread(int fd, short ev, void *arg){
             //                    }
         }else{
         }
-    }        
+   // }        
     
 
     work_child->isjob = JOB_FREE;

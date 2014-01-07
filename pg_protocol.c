@@ -249,7 +249,7 @@ int AuthPG(const int bfd,const int ffd, DBP *slot_dbp){
                 goto free_pack;
             
             case 'E':
-
+                
                 if(_hdr){
                     freeHdr(_hdr);
                     _hdr = NULL;

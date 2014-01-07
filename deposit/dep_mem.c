@@ -93,7 +93,21 @@ void mem_pushdb (  ){
     uint32 _lens;
     _ly *ply;
     long utime;
+    int backend, res;
+    DBP *_read, *_write;
 
+    backend = Client_Init(conn_global->pg_host, conn_global->pg_port);
+    if(backend == -1){
+        DEBUG(" client to pg error");
+        return;
+    }
+    _write = conn_session_slot->StartupPack;
+    res = Socket_Send(backend, _write->inBuf, _write->inEnd);
+    if(res != _write->inEnd){
+        DEBUG("send data to backend error");
+        return ;
+    }
+    
     while(1){
         _depo = _dest->pool_depo[_dest->sd];
         if(!_depo)break;
@@ -143,7 +157,7 @@ void mem_pushdb (  ){
             if(_depo->ss == _depo->sp) break;
         }        
     }
-     
+    close(backend);  
 }		/* -----  end of function mem_pushdb  ----- */
 
  /* vim: set ts=4 sw=4: */
