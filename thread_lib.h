@@ -47,7 +47,16 @@
     (cq) = rq_head;                       \
 }while(0)
 
-#define QR_COUNT(c)  do{    \
+#define RQ_BUSY(c)  do{    \
+    RQ_COUNT((c))               \
+    (c) = MAXCONN - (c)             \
+}while(0)
+
+#define RQ_FREE(c)  do{    \
+    RQ_COUNT((c))               \
+}while(0)
+
+#define RQ_COUNT(c)  do{    \
     (c) = 0;                \
     RQ *_rq = rq_queue_tail;    \
     while(rq!=rq_queue_head){   \

@@ -24,7 +24,7 @@
 
 static const char *Query_for_list[] = {
     "pg_",
-   /*   "pg_aggregate",
+   /*  {12, "pg_aggregate"},
     "pg_am",
     "pg_amop",
     "pg_amproc",

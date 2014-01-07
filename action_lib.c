@@ -21,6 +21,7 @@ void on_accept(int fd, short ev, void *arg){
     ssize_t s;
     extern NOTIFY_TOKEN_STATE notify_token_thread;
     extern int token_efd;
+    int isDep;
         
 	/* Accept the new connection. */
 	client_fd = accept(fd, (struct sockaddr *)&client_addr, &client_len);
@@ -52,7 +53,15 @@ void on_accept(int fd, short ev, void *arg){
     }
 
     if(proc_status == NT_FREE){
-        procThread();
+        proc_status = NT_HAS;
+        anyThread(fproc, NULL);
+    }
+
+    RQ_BUSY(isDep);
+
+    if(isDep < conn_global->quotient){
+        depo_status = NT_HAS;
+        anyThread(fdepo, NULL); 
     }
 }
 
@@ -66,27 +75,23 @@ void conn_new(int sfd, struct event_base *base){
 
 }
 
-
 /* 
  * ===  FUNCTION  ======================================================================
  *         Name:  procThread
  *  Description:  
  * =====================================================================================
  */
-void procThread (  ){
+void anyThread (void *(*func)(void *), void *arg  ){
     pthread_t       thread;
     pthread_attr_t  attr;
     int ret;
     pthread_attr_init(&attr);
     
-    proc_status = NT_HAS;
-            
-    if ((ret = pthread_create(&thread, &attr, fproc, NULL)) != 0) {
+    if ((ret = pthread_create(&thread, &attr, func, arg)) != 0) {
         d_log("Can't create thread");
         exit(1);
     }   
 }		/* -----  end of function procThread  ----- */
-
 
 /* 
  * ===  FUNCTION  ======================================================================
@@ -99,5 +104,18 @@ void *fproc ( void *arg){
     hproc();
     proc_status = NT_FREE;
 }		/* -----  end of function fproc  ----- */
+
+
+/* 
+ * ===  FUNCTION  ======================================================================
+ *         Name:  fdepo
+ *  Description:  
+ * =====================================================================================
+ */
+void *fdepo ( void *arg ){
+    depo_status = NT_WORKING;
+    mem_push();
+    depo_status = NT_FREE;
+}		/* -----  end of function fdepo  ----- */
 /* vim: set ts=4 sw=4: */
 

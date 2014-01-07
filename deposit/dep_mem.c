@@ -87,12 +87,12 @@ void mem_pushdb (  ){
     ub1 *_data, *_pack;
     uint32 _len;
     char table[256];
-    char keyword[] = {"insert","update","delete","only","into","from","."};
-    int i, move;
+    _ly *ply;
+    long utime;
 
-    while(){
+    while(1){
         _depo = _dest->pool_depo[_dest->sd];
-                    
+        if(!_depo)break;
         if(_depo->sp == _depo->se &&
             _depo->ss == _depo->se){
             if(_dest->sd == _dest->nd)
@@ -101,67 +101,45 @@ void mem_pushdb (  ){
                 _dest->sd++;
         }
         _depo->sp = _depo->se;       
-        _point = _depo->ss;
 
-        while(){ 
-                        
-            memcpy(&_len, _depo->sm+_point+sizeof(char), sizeof(uint32));
+        while(1){ 
+            if(*(_depo->sm+_depo->ss) != 'Q') break;
+             
+            memcpy(&_len, _depo->sm+_depo->ss+sizeof(char), sizeof(uint32));
             _len = ntohl(_len);
 
-            if(_point+sizeof(char)+_len > _depo->sp){
+            if(_depo->ss+sizeof(char)+_len > _depo->sp){
                 break;
             }
-            _point += sizeof(char)+sizeof(uint32);
-            _data = _depo->sm + _point;
-            _point += _len + sizeof(char);
+            _len -= sizeof(uint32);
+            ply = parser_do (_depo->sm+_depo->ss+sizeof(char)+sizeof(uint32), _len);
 
-            SPACE(_data);
-            for(i=0; i<6; i++){            
-                if(tolower(*_data) != keyword[0][i] ||
-                    tolower(*_data) != keyword[1][i] ||
-                    tolower(*_data) != keyword[2][i]
-                    ){
-                    goto error; 
-                }
+            if(!ply){ 
+                /* DEBUG("ply is null %s", _u->key);*/
+
+                _depo->ss += _len + sizeof(char) + sizeof(uint32); 
+                if(_depo->ss == _depo->sp) break;
+
+                continue;
             }
-            _data += 6;
-            SPACE(_data);
-            if(!memcmp(_data, keyword[3], 4)){
-                _data+=4;
-                SPACE(_data);
-            }
-            if(memcmp(_data, keyword[4], 4) ||
-                memcmp(_data, keyword[5], 4)
-                ){
-                goto error;
-            }
-            SPACE(_data);
-            move = 0;
-            while(*(_data+move) != ' '){
-                if(*(_data+move) == '.' ){
-                    _data += move+1;
-                    move = 0;
-                }else
-                    move ++;
-            
-            }
-            if(move==0) goto error;
             /* update tlist  */
-            pushList(_data, move, get_sec());
-        }
+            utime = get_sec();
+            pushList(ply->tab, ply->len, utime);
 
-        Socket_Send(backend, _depo->sm+_depo->ss, _depo->sp);
-        if(!_pack){
-            _pack = calloc(1, sizeof(char));
-        }
+            free(ply->tab);
+            free(ply);
 
-        Socket_Read(backend,_pack, sizeof(char));
-        
-        error:
-            break;            
+            Socket_Send(backend, _depo->sm+_depo->ss, _len+sizeof(char)+sizeof(uint32));
+            if(!_pack){
+                _pack = calloc(1, sizeof(char));
+            }
+
+            Socket_Read(backend,_pack, sizeof(char));
+            _depo->ss += _len + sizeof(char) + sizeof(uint32); 
+            if(_depo->ss == _depo->sp) break;
+        }        
     }
      
-    return <+return_value+>;
 }		/* -----  end of function mem_pushdb  ----- */
 
  /* vim: set ts=4 sw=4: */

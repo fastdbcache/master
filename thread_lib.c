@@ -53,7 +53,7 @@ void libevent_work_thread(int fd, short ev, void *arg){
     pack_len = PGStartupPacket3(ffd, start_pack);  /*  1. F -> B */
     if(pack_len == -1)goto ok; 
 
-    pg_fds = Client_Init(conf_get("pg_host"), atoi(conf_get("pg_port")));
+    pg_fds = Client_Init(conn_global->pg_host, conn_global->pg_port);
     if(pg_fds == -1){
         if(start_pack->pack != NULL)free(start_pack->pack);
         start_pack->pack = NULL;

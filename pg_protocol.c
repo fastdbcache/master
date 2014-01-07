@@ -147,7 +147,9 @@ int AuthPG(const int bfd,const int ffd, SESSION_SLOTS *slot){
     ULIST *_ulist;
     SLABPACK *mem_pack;
     E_SQL_TYPE cache;
- 
+    _ly *ply;
+    int isDep;
+
     #define FB(type) \
 	do \
 	{ \
@@ -226,7 +228,7 @@ int AuthPG(const int bfd,const int ffd, SESSION_SLOTS *slot){
 
         if(CheckBufSpace(totalsize, _apack) != 0)return -1;
                          
-        Socket_Read(rfd, _apack->inBuf+_apack->inCursor, total-sizeof(uint32));
+        Socket_Read(rfd, _apack->inBuf+_apack->inCursor, totalsize);
 
         if(*_apack->inBuf != 'Q')
             Socket_Send(wfd, _apack->inBuf, _apack->inEnd);
@@ -308,6 +310,28 @@ int AuthPG(const int bfd,const int ffd, SESSION_SLOTS *slot){
                     
                     free(mem_pack);
                 }else if(isSELECT==E_DELETE || isSELECT==E_UPDATE || isSELECT==E_INSERT){
+                   
+                    if(conn_global->hasdep == H_TRUE &&
+                        !conn_global->deprule){
+                        RQ_BUSY(isDep);
+                        if(isDep >= conn_global->quotient){                        
+                            ply = parser_do (_hdrtmp, total->sizeof(uint32));
+
+                            if(!ply){ 
+                                /* DEBUG("ply is null %s", _u->key);*/
+                               goto clear;
+                            }
+                            DEPR *_depr;
+                            for(_depr = conn_global->deprule; _depr; _depr=_depr->next){
+                                if(_depr->len == ply->len &&
+                                    memcmp(_depr->table, ply->tab, ply->len)){
+                                    mem_set ( (ub1)_apack->inBuf, (ub4)_apack->inEnd );        
+                                }else continue;
+                            }
+                            free(ply->tab);
+                            free(ply);
+                        }
+                    }
                     _ulist = initulist();
                     if(_ulist){
                         _ulist->keyl = total-sizeof(uint32);

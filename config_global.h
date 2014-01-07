@@ -124,7 +124,7 @@ typedef enum {
     H_UPDATE
 } H_CHANGE; 
 
-typedef struct __packer DBP;
+typedef struct __packer DBP
 struct __packer{
     char *inBuf;
     size_t 		inBufSize;		/* allocated size of buffer */
@@ -134,6 +134,13 @@ struct __packer{
 
     int backend;
     int frontend;
+};
+
+typedef struct __deporule DEPR
+struct __deporule{
+    char *table;
+    size_t  len;		/* length for table */
+    DEPR *next;
 };
 
 typedef struct __conn _conn;
@@ -160,7 +167,9 @@ struct __conn{
     size_t maxbytes;   /* max bytes for hslab */
 
     size_t dmaxbytes;   /* max bytes for deposit  */
-    H_STATE isdep;      /* is use deposit default FALSE */
+    H_STATE hasdep;      /* is use deposit default FALSE */
+    size_t quotient;    /* when client over quotient, deposit inure */
+    DEPR  **deprule;    /* table for depost */
 };
 
 _conn *conn_global;
