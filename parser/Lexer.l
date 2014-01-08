@@ -4,21 +4,36 @@
  * 2.3.7, pclex 2.0.5, and MKS lex 3.1a.
  * http://flex.sourceforge.net/manual/Bison-Bridge.html
  */
-#include "da.h"
+#include "../config_global.h"
+#include "Parser.h"
 
 #include <string.h>
 #include <stdlib.h>
+#include <stdio.h>
 int lineno = 1;
-void yyerror(char *s);
+void yyerror(const char *s);
 %}
 	/* MKS needs the next line to increase the NFA table */
-%e 1200
 %option outfile="Lexer.c" header-file="Lexer.h"
-%option warn nodefault
+%option warn nodefault 
  
 %option reentrant noyywrap never-interactive nounistd
-%option bison-bridge bison-locations
+%option bison-bridge
 
+
+FCOMPARISON  "="|"<>"|"<"|">"|"<="|">="
+ 
+FAPPROXNUM   [0-9]+[eE][+-]?[0-9]+|[0-9]+"."[0-9]*[eE][+-]?[0-9]+|"."[0-9]*[eE][+-]?[0-9]+
+
+FINTNUM [0-9]+"."[0-9]*|[0-9]+ 
+
+FNAME   [A-Za-z][A-Za-z0-9_]* 
+FNOTES   [-+*/:(),.;]
+FSTRINGS    '[^'\n]*'
+FUNTERMINATE    '[^'\n]*$
+FLINENO \n
+FSPACE  [ \t\r]+
+FCOMMENT    "--".*$
 %%
 
 	/* literal keyword tokens */
@@ -132,36 +147,23 @@ offset  |
 OFFSET      { return OFFSET; }
 	/* punctuation */
 
-"="	|
-"<>" 	|
-"<"	|
-">"	|
-"<="	|
-">="		{ return COMPARISON; }
-
-
+FCOMPARISON		{ return COMPARISON; }
 
 	/* names */
-[A-Za-z][A-Za-z0-9_]*	{
+{FNAME}	{
         _ly *c = calloc(1, sizeof(_ly));
         c->tab = yytext;
         c->len = yyleng;
-		yylval->tail = c;
+		yylval->myly = c;
         return NAME; 
         }
-
 	/* numbers */
+{FAPPROXNUM}	{ return APPROXNUM; }
+{FINTNUM}	{ return INTNUM; }
 
-[0-9]+	|
-[0-9]+"."[0-9]*	{ return INTNUM; }
-
-[0-9]+[eE][+-]?[0-9]+	|
-[0-9]+"."[0-9]*[eE][+-]?[0-9]+ |
-"."[0-9]*[eE][+-]?[0-9]+	{ return APPROXNUM; }
-[-+*/:(),.;]	{ return yytext[0]; }
-	/* strings */
-
-'[^'\n]*'	{
+{FNOTES}	{ return yytext[0]; }	
+            /* strings */
+{FSTRINGS}	{
 		int c = input();
 
 		unput(c);	/* just peeking */
@@ -169,20 +171,19 @@ OFFSET      { return OFFSET; }
 			return STRING;
 		} else
 			yymore();
-	}
-		
-'[^'\n]*$	{/* yyerror("Unterminated string");*/ }
+	}		
+{FUNTERMINATE}	{/* yyerror("Unterminated string");*/ }
 
-\n		lineno++;
+{FLINENO}		{lineno++;}
 
-[ \t\r]+	;	/* white space */
+{FSPACE}	{	/* white space */}
 
-"--".*$		;	/* comment */
+{FCOMMENT}   {	/* comment */}
 
 %%
 
 void
-yyerror(char *s)
+yyerror(const char *s)
 {
 	/*printf("%d: %s at %s\n", lineno, s, yytext);*/
 }

@@ -17,6 +17,7 @@
  */
 #include "Expression.h"
 
+int yyparse(_ly **myly, yyscan_t scanner);
 /* 
  * ===  FUNCTION  ======================================================================
  *         Name:  parser_do
@@ -26,17 +27,20 @@
 _ly *parser_do (char *str, int len){
     char *p = str;
     _ly *lys, *tail;
-    tail = _init_ly();
-    yyscan_t scanner;
+    yyscan_t scanner; 
+    YY_BUFFER_STATE state;
 
+    tail = _init_ly();
     if (yylex_init(&scanner)) {
         // couldn't initialize
         return NULL;
     }
-    YY_BUFFER_STATE state = yy_scan_bytes(p, len);
+
+    state = yy_scan_bytes(p, len);
+
     /*YY_BUFFER_STATE state = yy_scan_string(p, scanner);*/
-      yy_switch_to_buffer(state);
-    if(yyparse(&tail, scanner)){
+    yy_switch_to_buffer(state);
+    if(yyparse(&tail)){
         return NULL;
     }
     yy_delete_buffer(state, scanner);
@@ -64,33 +68,33 @@ void _len(int l){
     }
 }
 */
-void _save(_ly *sly, char *s, int len){
+void _lysave(_ly *myly, char *s, int len){
     _ly *_l;
 
     if( s == NULL || len < 0) return;
 
-    if(sly->tab == NULL){
-        sly->tab = calloc(1, len*sizeof(char));
-        memcpy(sly->tab, s, len);
-        sly->len = len;
+    if(myly->tab == NULL){
+        myly->tab = calloc(1, len*sizeof(char));
+        memcpy(myly->tab, s, len);
+        myly->len = len;
     }
-    /* because only parser change sql
+    /*   because only parser change sql*/
     else{
         _l = _init_ly(); 
         _l->tab = calloc(1, len*sizeof(char));
         memcpy(_l->tab, s, len);
         _l->len = len;
-        tail->next = _l;
-        tail = _l;
-    }*/
+        myly->next = _l;
+        myly = _l;
+    }
 }
-
+/*  
 _ly *_get(){
     if(ly != NULL && ly->tab != NULL){
         return ly;
     }else{
         return NULL;
     }
-}
+}*/
  /* vim: set ts=4 sw=4: */
 

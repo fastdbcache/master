@@ -1,19 +1,14 @@
 	/* symbolic tokens */
 %{
+#include "../config_global.h"
+#include "Parser.h"
+#include "Lexer.h"
 
-#include "da.h"
-
+void yyerror(_ly **myly, yyscan_t scanner, const char *s);
 #define YYDEBUG 1
-#define YYPARSE_PARAM scanner
-#define YYLEX_PARAM   scanner
+
 %}
-%union {
-	int intval;
-	double floatval;
-	char *strval;
-	int subtok;
-    _ly *tail;
-}
+
 %code requires {
 #ifndef YY_TYPEDEF_YY_SCANNER_T
 #define YY_TYPEDEF_YY_SCANNER_T
@@ -23,15 +18,23 @@ typedef void* yyscan_t;
 
 %output  "Parser.c"
 %defines "Parser.h"
-
+/*
 %locations
-%pure-parser
+%pure-parser*/
 %define api.pure
 %lex-param   { yyscan_t scanner }
-%parse-param { _ly **tail }
+%parse-param { _ly **myly }
 %parse-param { yyscan_t scanner }
 
-%token <tail> NAME
+%union {
+	int intval;
+	double floatval;
+	char *strval;
+	int subtok;
+    _ly *myly;
+}
+
+%token <myly> NAME
 %token STRING
 %token INTNUM APPROXNUM
 
@@ -584,8 +587,8 @@ literal:
 	/* miscellaneous */
 
 table:
-		NAME           {_save(*tail, $1->tab, $1->len);}
-	|	NAME '.' NAME  {_save(*tail, $1->tab, $1->len);}
+		NAME           {_lysave(*myly, $1->tab , $1->len);}
+	|	NAME '.' NAME  {_lysave(*myly, $1->tab , $1->len);}
 	;
 
 column_ref:
@@ -652,7 +655,7 @@ parameter:
 procedure:	NAME
 	;
 
-range_variable:	NAME { _save(*tail,$1->tab, $1->len);}
+range_variable:	NAME { _lysave(*myly, $1->tab , $1->len);}
 	;
 
 user:		NAME

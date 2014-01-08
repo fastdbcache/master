@@ -22,7 +22,16 @@
  {
 #endif
 
-#include "da.h"
+#include "../config_global.h"
+#include "Parser.h"
+#include "Lexer.h"
+
+_ly *parser_do (char *str, int len);
+_ly  *_init_ly();
+void _lysave(_ly *sly, char *s, int len);
+/* void _len(int l);
+
+_ly *_get();*/
 
 #ifdef __cplusplus
  }
