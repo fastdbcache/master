@@ -258,9 +258,6 @@ HARU *pools_haru_pool;
         pools_hitem = hitem_group->usable; \
 }while(0)
 
-void freeHdr ( HDR *fhdr );
-void freeUList ( ULIST *flist );
-
 #ifdef __cplusplus
  }
 #endif

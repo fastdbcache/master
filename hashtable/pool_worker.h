@@ -32,7 +32,8 @@ HITEM *hfind ( char *key, ub4 keyl );
 void getslab ( HITEM * hitem, SLABPACK *dest);
 int addHdr ( HDR *myhdr );
 int addUlist ( ULIST *mlist);
-
+void freeHdr ( HDR *fhdr );
+void freeUList ( ULIST *flist );
 
 #ifdef __cplusplus
  }
