@@ -46,18 +46,10 @@ objs : $(OBJS)
 
 clean :
 	$(RM-F) *.o
-	$(RM-F) *.gch
-	$(RM-F) modules/*.o
-	$(RM-F) modules/*.gch
-	$(RM-F) hashtable/*.o	
-	$(RM-F) hashtable/*.gch
-	$(RM-F) deposit/*.o	
-	$(RM-F) deposit/*.gch
-	$(RM-F) parser/*.o
-	$(RM-F) parser/*.c
-	$(RM-F) parser/*.gch
+	$(RM-F) *.gch	
 	$(RM-F) $(OK)
 	$(RM-F) core.*
-
+	$(foreach c,$(PARDIR),$(MAKE) clean -C $(c) && ) true
+	$(foreach c,$(HASHDIR),$(MAKE) clean -C $(c) && ) true
 
 # set noexpandtab
