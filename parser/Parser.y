@@ -589,8 +589,8 @@ literal:
 	/* miscellaneous */
 
 table:
-		NAME           {_lysave(*myly, $1);}
-	|	NAME '.' NAME  {_lysave(*myly, $1);}
+		NAME           {_lysave(*myly, $1);free($1)}
+	|	NAME '.' NAME  {_lysave(*myly, $1);free($1)}
 	;
 
 column_ref:
@@ -657,7 +657,7 @@ parameter:
 procedure:	NAME
 	;
 
-range_variable:	NAME { _lysave(*myly, $1);}
+range_variable:	NAME { _lysave(*myly, $1); free($1)}
 	;
 
 user:		NAME

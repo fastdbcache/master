@@ -28,7 +28,7 @@
 
 _ly *parser_do (char *str, int len);
 _ly  *_init_ly();
-void _lysave(_ly *sly, void *_src);
+void _lysave(_ly *sly, _ly *_src);
 
 #ifdef __cplusplus
  }

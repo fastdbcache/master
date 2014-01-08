@@ -62,14 +62,14 @@ _ly *_init_ly(){
     return _l;
 }
 
-void _lysave(_ly *myly, void *_src){
+void _lysave(_ly *myly, _ly *_src){
     _ly  *_des;
    
     if(!_src)return; 
-    _des = (_ly *)_src;
+    _des = _src;
 
     if( !_des->tab) {
-        free(_des);
+    
         return ;
     }
 
@@ -78,11 +78,6 @@ void _lysave(_ly *myly, void *_src){
         myly->tab = calloc(1, _des->len*sizeof(char));
         memcpy(myly->tab, _des->tab, _des->len);
         myly->len = _des->len;
-        free(_des->tab);
-        free(_des);
-    }else{
-        if(_des->tab) free(_des->tab);
-        free(_des);
     }
 
     /*   because only parser change sql
@@ -95,7 +90,7 @@ void _lysave(_ly *myly, void *_src){
         myly = _l;
     }*/
 }
-
+/*
 void
 main(int ac, char **av)
 {
@@ -110,23 +105,16 @@ main(int ac, char **av)
     }
    
       
-	/*  if(ac > 1 && (yyin = fopen(av[1], "r")) == NULL) {
-		perror(av[1]);
-		exit(1);
-	}*/
+	//if(ac > 1 && (yyin = fopen(av[1], "r")) == NULL) {
+	//	perror(av[1]);
+	//	exit(1);
+	//}
     printf("sql: %s\n", sql);
     tly = parser_do(sql, strlen(sql));
     for(;tly; tly=tly->next)
         printf("tab: %s\n", tly->tab);
-} /* main */
+}  main */
 
-/*  
-_ly *_get(){
-    if(ly != NULL && ly->tab != NULL){
-        return ly;
-    }else{
-        return NULL;
-    }
-}*/
+
  /* vim: set ts=4 sw=4: */
 
