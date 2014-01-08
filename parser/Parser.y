@@ -1,8 +1,10 @@
 	/* symbolic tokens */
 %{
 #include "../config_global.h"
+#include "Expression.h"
 #include "Parser.h"
 #include "Lexer.h"
+
 
 void yyerror(_ly **myly, yyscan_t scanner, const char *s);
 #define YYDEBUG 1
@@ -587,8 +589,8 @@ literal:
 	/* miscellaneous */
 
 table:
-		NAME           {_lysave(*myly, $1->tab , $1->len);}
-	|	NAME '.' NAME  {_lysave(*myly, $1->tab , $1->len);}
+		NAME           {_lysave(*myly, $1);}
+	|	NAME '.' NAME  {_lysave(*myly, $1);}
 	;
 
 column_ref:
@@ -655,7 +657,7 @@ parameter:
 procedure:	NAME
 	;
 
-range_variable:	NAME { _lysave(*myly, $1->tab , $1->len);}
+range_variable:	NAME { _lysave(*myly, $1);}
 	;
 
 user:		NAME

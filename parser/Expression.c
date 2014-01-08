@@ -36,11 +36,10 @@ _ly *parser_do (char *str, int len){
         return NULL;
     }
 
-    state = yy_scan_bytes(p, len);
+    state = yy_scan_bytes(p, len, scanner);
 
-    /*YY_BUFFER_STATE state = yy_scan_string(p, scanner);*/
-    yy_switch_to_buffer(state);
-    if(yyparse(&tail)){
+    yy_switch_to_buffer(state, scanner);
+    if(yyparse(&tail, scanner)){
         return NULL;
     }
     yy_delete_buffer(state, scanner);
@@ -49,6 +48,7 @@ _ly *parser_do (char *str, int len){
     if(tail != NULL && tail->tab != NULL){
         return tail;
     }else{
+        free(tail);
         return NULL;
     }
 }		/* -----  end of function parser_do  ----- */
@@ -61,24 +61,31 @@ _ly *_init_ly(){
     _l->len = 0;
     return _l;
 }
-/*
-void _len(int l){
-    if(ly != NULL){
-       ly->len = l;
-    }
-}
-*/
-void _lysave(_ly *myly, char *s, int len){
-    _ly *_l;
 
-    if( s == NULL || len < 0) return;
+void _lysave(_ly *myly, void *_src){
+    _ly  *_des;
+   
+    if(!_src)return; 
+    _des = (_ly *)_src;
+
+    if( !_des->tab) {
+        free(_des);
+        return ;
+    }
 
     if(myly->tab == NULL){
-        myly->tab = calloc(1, len*sizeof(char));
-        memcpy(myly->tab, s, len);
-        myly->len = len;
+        
+        myly->tab = calloc(1, _des->len*sizeof(char));
+        memcpy(myly->tab, _des->tab, _des->len);
+        myly->len = _des->len;
+        free(_des->tab);
+        free(_des);
+    }else{
+        if(_des->tab) free(_des->tab);
+        free(_des);
     }
-    /*   because only parser change sql*/
+
+    /*   because only parser change sql
     else{
         _l = _init_ly(); 
         _l->tab = calloc(1, len*sizeof(char));
@@ -86,8 +93,33 @@ void _lysave(_ly *myly, char *s, int len){
         _l->len = len;
         myly->next = _l;
         myly = _l;
-    }
+    }*/
 }
+
+void
+main(int ac, char **av)
+{
+    extern int yydebug ;
+    yydebug = 1;
+    _ly *tly;
+    char sql[]="select * from table;";
+
+    tly = NULL;
+    if(ac < 1){
+        return;
+    }
+   
+      
+	/*  if(ac > 1 && (yyin = fopen(av[1], "r")) == NULL) {
+		perror(av[1]);
+		exit(1);
+	}*/
+    printf("sql: %s\n", sql);
+    tly = parser_do(sql, strlen(sql));
+    for(;tly; tly=tly->next)
+        printf("tab: %s\n", tly->tab);
+} /* main */
+
 /*  
 _ly *_get(){
     if(ly != NULL && ly->tab != NULL){

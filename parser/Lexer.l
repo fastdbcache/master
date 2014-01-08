@@ -148,30 +148,30 @@ OFFSET      { return OFFSET; }
 	/* punctuation */
 
 FCOMPARISON		{ return COMPARISON; }
-
+{FNOTES}	{ return yytext[0]; }
 	/* names */
 {FNAME}	{
-        _ly *c = calloc(1, sizeof(_ly));
-        c->tab = yytext;
-        c->len = yyleng;
-		yylval->myly = c;
+        _ly *_lc = calloc(1, sizeof(_ly));
+        _lc->tab = yytext;
+        _lc->len = yyleng;
+		yylval->myly = _lc;
         return NAME; 
         }
 	/* numbers */
 {FAPPROXNUM}	{ return APPROXNUM; }
 {FINTNUM}	{ return INTNUM; }
 
-{FNOTES}	{ return yytext[0]; }	
+	
             /* strings */
 {FSTRINGS}	{
-		int c = input();
+                int c = input(yyscanner);
 
-		unput(c);	/* just peeking */
-		if(c != '\'') {
-			return STRING;
-		} else
-			yymore();
-	}		
+                unput(c);	/* just peeking */
+                if(c != '\'') {
+                    return STRING;
+                } else
+                    yymore();
+	        }		
 {FUNTERMINATE}	{/* yyerror("Unterminated string");*/ }
 
 {FLINENO}		{lineno++;}
@@ -187,27 +187,6 @@ yyerror(const char *s)
 {
 	/*printf("%d: %s at %s\n", lineno, s, yytext);*/
 }
-/*
-main(int ac, char **av)
-{
-    extern int yydebug ;
-    yydebug = 1;
-    ly = _init_ly();
-    tail = ly;
-    _ly *tly;
 
-	if(ac > 1 && (yyin = fopen(av[1], "r")) == NULL) {
-		perror(av[1]);
-		exit(1);
-	}
-
-	if(!yyparse())
-		printf("SQL parse worked\n");
-	else
-		printf("SQL parse failed\n");
-    tly = _get();
-    for(;tly; tly=tly->next)
-        printf("tab: %s\n", tly->tab);
-}  main */
 
 
