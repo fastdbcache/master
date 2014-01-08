@@ -165,9 +165,7 @@ int AuthPG(const int bfd,const int ffd, DBP *slot_dbp){
             }                                                   \
         }                                                       \
     }while (0)
-    type = 1;
-    FB(type);
-        
+            
     _hdr = NULL;
     _ulist = NULL;
     _apack = initdbp();
@@ -185,9 +183,9 @@ int AuthPG(const int bfd,const int ffd, DBP *slot_dbp){
             CheckBufSpace(sizeof(char), _apack);
 
         }else _apack->inEnd = sizeof(char);
-
+        
         bzero(_apack->inBuf, _apack->inBufSize);
-                 
+
         cmd_size = Socket_Read(rfd, _apack->inBuf, sizeof(char));
 
         if(cmd_size != sizeof(char)) {            
@@ -197,8 +195,8 @@ int AuthPG(const int bfd,const int ffd, DBP *slot_dbp){
 
         if(CheckBufSpace(sizeof(uint32), _apack) != 0)return -1;
             
-       /* DEBUG("ask: %c", *_apack->inBuf);*/
-
+        DEBUG("ask: %c", *_apack->inBuf);
+        DEBUG("inCursor: %d, char:%d", _apack->inCursor, sizeof(char));
         total_size = Socket_Read(rfd, _apack->inBuf + _apack->inCursor, sizeof(uint32));
 
         if(total_size != sizeof(uint32)){
@@ -211,14 +209,16 @@ int AuthPG(const int bfd,const int ffd, DBP *slot_dbp){
         getInt(&total, 4, _apack);
         
         totalsize = total-sizeof(uint32);
-
         if(CheckBufSpace(totalsize, _apack) != 0)return -1;
                          
         Socket_Read(rfd, _apack->inBuf+_apack->inCursor, totalsize);
 
-        if(*_apack->inBuf != 'Q')
-            Socket_Send(wfd, _apack->inBuf, _apack->inEnd);
-
+        if(*_apack->inBuf != 'Q'){
+            
+            if(Socket_Send(wfd, _apack->inBuf, _apack->inEnd) != _apack->inEnd){
+                DEBUG("error");
+            }
+        }
         if (slot_dbp !=NULL &&
              slot_dbp->inBuf == NULL && 
              *_apack->inBuf == 'p') {

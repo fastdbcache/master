@@ -54,7 +54,7 @@ void libevent_work_thread(int fd, short ev, void *arg){
     }
 
     pack_len = PGStartupPacket3(ffd, _dbp);  /*  1. F -> B */
-
+    
     if(pack_len == -1)goto ok; 
 
     pg_fds = Client_Init(conn_global->pg_host, conn_global->pg_port);
@@ -63,7 +63,6 @@ void libevent_work_thread(int fd, short ev, void *arg){
         goto bad;
     }
     pg_len = Socket_Send(pg_fds, _dbp->inBuf, _dbp->inEnd);
-
     if(pg_len != pack_len) goto bad;
     
    /*if(_slot->backend_fd == 0){
@@ -84,7 +83,6 @@ void libevent_work_thread(int fd, short ev, void *arg){
             _verify = NULL;
             freedbp(_dbp);
         }
-
         if(AuthPG(pg_fds, ffd, _verify)==-1){
             //printf("auth error\n");
             //            goto bad;
