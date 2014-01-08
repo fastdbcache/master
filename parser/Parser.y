@@ -12,7 +12,7 @@
 	double floatval;
 	char *strval;
 	int subtok;
-    _ly *lys;
+    _ly *tail;
 }
 %code requires {
 #ifndef YY_TYPEDEF_YY_SCANNER_T
@@ -20,14 +20,18 @@
 typedef void* yyscan_t;
 #endif
 }
+
+%output  "Parser.c"
+%defines "Parser.h"
+
 %locations
 %pure-parser
 %define api.pure
 %lex-param   { yyscan_t scanner }
-%parse-param { _ly **lys }
+%parse-param { _ly **tail }
 %parse-param { yyscan_t scanner }
 
-%token <lys> NAME
+%token <tail> NAME
 %token STRING
 %token INTNUM APPROXNUM
 
@@ -580,8 +584,8 @@ literal:
 	/* miscellaneous */
 
 table:
-		NAME           {_save(*lys, $1->tab, $1->len);}
-	|	NAME '.' NAME  {_save(*lys, $1->tab, $1->len);}
+		NAME           {_save(*tail, $1->tab, $1->len);}
+	|	NAME '.' NAME  {_save(*tail, $1->tab, $1->len);}
 	;
 
 column_ref:
@@ -648,7 +652,7 @@ parameter:
 procedure:	NAME
 	;
 
-range_variable:	NAME { _save($1->tab, $1->len);}
+range_variable:	NAME { _save(*tail,$1->tab, $1->len);}
 	;
 
 user:		NAME

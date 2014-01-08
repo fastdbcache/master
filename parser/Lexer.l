@@ -146,7 +146,7 @@ OFFSET      { return OFFSET; }
         _ly *c = calloc(1, sizeof(_ly));
         c->tab = yytext;
         c->len = yyleng;
-		yylval->lys = c;
+		yylval->tail = c;
         return NAME; 
         }
 
