@@ -48,21 +48,21 @@
 }while(0)
 
 #define RQ_BUSY(c)  do{    \
-    RQ_COUNT((c))               \
-    (c) = MAXCONN - (c)             \
+    RQ_COUNT((c));               \
+    (c) = MAXCONN - (c);             \
 }while(0)
 
 #define RQ_FREE(c)  do{    \
-    RQ_COUNT((c))               \
+    RQ_COUNT((c));               \
 }while(0)
 
 #define RQ_COUNT(c)  do{    \
     (c) = 0;                \
-    RQ *_rq = rq_queue_tail;    \
-    while(rq!=rq_queue_head){   \
-        if(rq->isjob == JOB_FREE) \
+    RQ *_trq = rq_queue_tail;    \
+    while(_trq!=rq_queue_head){   \
+        if(_trq->isjob == JOB_FREE) \
             (c)++;               \
-        rq = rq->next;          \
+        _trq = _trq->next;          \
     }                           \
 }while(0)
 
@@ -118,7 +118,6 @@ struct work_thread_queue{
     RING_JOB_STATE isjob; 
     pthread_t pid;
     int no;
-    SESSION_SLOTS *slots[MAX_BACKEND_SESSION];
     RQ *rq_item;
     WTQ *next;
 };

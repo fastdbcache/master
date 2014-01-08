@@ -17,7 +17,7 @@ OL := $(patsubst %.l,%.c,$(SL))
 OJY := $(patsubst %.y,%.o,$(SY))
 OJL	:=	$(patsubst %.l,%.o,$(SL))
 
-SOURCE := $(wildcard *.c) 
+SOURCE := Expression.c 
 EXOBJ	:=	$(patsubst %.c,%.o,$(SOURCE))
 
 ly :  oy ol 

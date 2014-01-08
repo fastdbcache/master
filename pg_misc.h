@@ -24,7 +24,10 @@
 
 #include "config_global.h"
 
-int getInt ( int *result, size_t bytes, char *pak )
+DBP *initdbp (  );
+void freedbp ( DBP *_dbp );
+int CheckBufSpace ( ssize_t endPos, DBP *_dbp );
+int getInt ( int *result, size_t bytes, DBP *_dbp );
 
 #ifdef __cplusplus
  }

@@ -28,7 +28,6 @@
 #include "../config_global.h"
 #include "../parser/Expression.h"
 #include "../time_lib.h"
-#include "../hashtable/pool_proc.h"
 
 struct __deposit
 {    

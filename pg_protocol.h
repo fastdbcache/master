@@ -23,6 +23,7 @@
 #include <sys/types.h>
 
 #include "socket_lib.h"
+#include "thread_lib.h"
 #include "./hashtable/pool_init.h"
 #include "./hashtable/pool_worker.h"
 #include "./hashtable/pool_demand.h"
@@ -45,21 +46,6 @@
 #define AUTH_REQ_GSS        7   /* GSSAPI without wrap() */
 #define AUTH_REQ_GSS_CONT   8   /* Continue GSS exchanges */
 #define AUTH_REQ_SSPI       9   /* SSPI negotiate without wrap() */
-
-typedef struct _msg_format MSGFORMAT;
-struct _msg_format{
-    char *format;
-    ssize_t format_len;
-    MSGFORMAT *next;
-};
-
-
-struct pg_conn {
-    int frontend;  /* frontend fd */
-    int backend;    /* backend fd */
-};				/* ----------  end of struct pg_conn  ---------- */
-
-typedef struct pg_conn Pg_conn;
 
 int PGStartupPacket3(int fd, DBP *_dbp); /* 1. F -> B 
 SESSION_SLOTS *resolve_slot(const char *buf);*/

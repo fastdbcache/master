@@ -8,8 +8,6 @@
  */
 
 #include "action_lib.h"
-#include "log_lib.h"
-#include "conf_lib.h"
 
 void on_accept(int fd, short ev, void *arg){
 	int client_fd, err_len;
@@ -79,7 +77,7 @@ void conn_new(int sfd, struct event_base *base){
 
 /* 
  * ===  FUNCTION  ======================================================================
- *         Name:  procThread
+ *         Name:  anyThread
  *  Description:  
  * =====================================================================================
  */
@@ -93,7 +91,7 @@ void anyThread (void *(*func)(void *), void *arg  ){
         d_log("Can't create thread");
         exit(1);
     }   
-}		/* -----  end of function procThread  ----- */
+}		/* -----  end of function anyThread  ----- */
 
 /* 
  * ===  FUNCTION  ======================================================================

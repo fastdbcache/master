@@ -18,7 +18,7 @@ NOTIFY_TOKEN_STATE depo_status;
 
 void do_dispatch(int fd, short ev, void *arg);
 void conn_new(int sfd, struct event_base *base);
-void anyThread ( void );
+void anyThread (void *(*func)(void *), void *arg  );
 void *fproc ( void *arg );
 void *fdepo ( void *arg );
 #endif /* LIBEVENT_LIB_H_ */

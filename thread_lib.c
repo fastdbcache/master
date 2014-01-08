@@ -78,7 +78,7 @@ void libevent_work_thread(int fd, short ev, void *arg){
          */
         
         if(work_child->no == 0 &&
-            conn_session_slot->verify-inBuf == NULL){
+            conn_session_slot->verify->inBuf == NULL){
             _verify = conn_session_slot->verify;
         }else {
             _verify = NULL;
@@ -435,7 +435,6 @@ WTQ *wtq_init(){
     WTQ *work_child;
     work_child = (WTQ *)calloc(1, sizeof(WTQ));
     work_child->rq_item = NULL;
-    bzero(work_child->slots, MAX_BACKEND_SESSION);
     work_child->next = NULL;
     
     return work_child;

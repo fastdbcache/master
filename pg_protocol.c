@@ -129,7 +129,6 @@ int AuthPG(const int bfd,const int ffd, DBP *slot_dbp){
     size_t totalsize,  total_size, cmd_size, pack_len;
     uint32 total;
     int rfd, wfd;
-    MSGFORMAT *_mf;
     int type, isDATA;
     E_SQL_TYPE isSELECT;
     HDR *_hdr;
@@ -192,7 +191,7 @@ int AuthPG(const int bfd,const int ffd, DBP *slot_dbp){
         cmd_size = Socket_Read(rfd, _apack->inBuf, sizeof(char));
 
         if(cmd_size != sizeof(char)) {            
-            freeDBP(_apack); 
+            freedbp(_apack); 
             return -1;
         }
 
@@ -204,7 +203,7 @@ int AuthPG(const int bfd,const int ffd, DBP *slot_dbp){
 
         if(total_size != sizeof(uint32)){
             
-            freeDBP(_apack);
+            freedbp(_apack);
             return -1;
         }
         total = 0;
@@ -293,21 +292,18 @@ int AuthPG(const int bfd,const int ffd, DBP *slot_dbp){
                         !conn_global->deprule){
                         RQ_BUSY(isDep);
                         if(isDep >= conn_global->quotient){                        
-                            ply = parser_do (_hdrtmp, total->sizeof(uint32));
-
-                            if(!ply){ 
-                                /* DEBUG("ply is null %s", _u->key);*/
-                               goto clear;
+                            ply = parser_do (_hdrtmp, total-sizeof(uint32));                            
+                            if(ply){ 
+                                DEPR *_depr;
+                                for(_depr = conn_global->deprule; _depr; _depr=_depr->next){
+                                    if(_depr->len == ply->len &&
+                                        memcmp(_depr->table, ply->tab, ply->len)){
+                                        leadadd ( (ub1)_apack->inBuf, (ub4)_apack->inEnd );        
+                                    }
+                                }
+                                free(ply->tab);
+                                free(ply);
                             }
-                            DEPR *_depr;
-                            for(_depr = conn_global->deprule; _depr; _depr=_depr->next){
-                                if(_depr->len == ply->len &&
-                                    memcmp(_depr->table, ply->tab, ply->len)){
-                                    leadadd ( (ub1)_apack->inBuf, (ub4)_apack->inEnd );        
-                                }else continue;
-                            }
-                            free(ply->tab);
-                            free(ply);
                         }
                     }
                     _ulist = initulist();

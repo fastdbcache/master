@@ -16,7 +16,7 @@
  * =====================================================================================
  */
 
-
+#include "pg_misc.h"
 /* 
  * ===  FUNCTION  ======================================================================
  *         Name:  initdbp
@@ -36,7 +36,7 @@ DBP *initdbp (  ){
 
 /* 
  * ===  FUNCTION  ======================================================================
- *         Name:  freeDBP
+ *         Name:  freedbp
  *  Description:  
  * =====================================================================================
  */
@@ -44,7 +44,7 @@ void freedbp ( DBP *_dbp ){
     if(!_dbp) return;
     if(_dbp->inBuf) free(_dbp->inBuf);
     free(_dbp);
-}		/* -----  end of function freeDBP  ----- */
+}		/* -----  end of function freedbp  ----- */
 
 /* 
  * ===  FUNCTION  ======================================================================
@@ -61,7 +61,7 @@ int CheckBufSpace ( ssize_t endPos, DBP *_dbp ){
     }
 
     _dbp->inEnd += endPos;
-    if(_dbp->inBufSize > _dep->inEnd) return 0;
+    if(_dbp->inBufSize > _dbp->inEnd) return 0;
 
     newbuf = (char *)realloc(_dbp->inBuf, _dbp->inEnd);
     _dbp->inBufSize += endPos; 
@@ -69,22 +69,11 @@ int CheckBufSpace ( ssize_t endPos, DBP *_dbp ){
     if(newbuf){
         _dbp->inBuf = newbuf;
     } else{
-        freeDBP(_dbp); 
+        freedbp(_dbp); 
         return -1;
     }
     return 0;
 }		/* -----  end of function CheckBufSpace  ----- */
-
-/* 
- * ===  FUNCTION  ======================================================================
- *         Name:  getCmd
- *  Description:  
- * =====================================================================================
- */
-void getCmd ( <+argument_list+> ){
-    return <+return_value+>;
-}		/* -----  end of function getCmd  ----- */
-
 
 /* 
  * ===  FUNCTION  ======================================================================
@@ -120,8 +109,8 @@ int getInt ( int *result, size_t bytes, DBP *_dbp ){
  *  Description:  
  * =====================================================================================
  */
-void getCont ( <+argument_list+> ){
-    return <+return_value+>;
+void getCont (  ){
+    return ;
 }		/* -----  end of function getCont  ----- */
 
  /* vim: set ts=4 sw=4: */

@@ -15,21 +15,23 @@ SOURCE := $(wildcard *.c)
 OBJS := $(patsubst %.c,%.o,$(SOURCE))
 
 HASHDIR := ./hashtable/ ./deposit/
-FILTER  := $(HASHDIR)test_hashtable.c
-HASHSOUR :=  $(filter-out $(FILTER),$(wildcard $(HASHDIR)*.c))
-HASHPROG := $(patsubst $(HASHDIR)%.c,$(HASHDIR)%.o, $(HASHSOUR))
+FILTER  := $(firstword $(HASHDIR))test_hashtable.o
+HASHSOUR := $(foreach cd,$(HASHDIR), $(patsubst $(cd)%.c,$(cd)%.o, $(wildcard $(cd)*.c)))
+HASHPROG := $(filter-out $(FILTER),$(HASHSOUR))
 
 PARDIR := ./parser/
 LEXSOUR :=  $(wildcard $(PARDIR)*.l)
 LEXPROG := $(patsubst $(PARDIR)%.l,$(PARDIR)%.o, $(LEXSOUR))
 YACCSOUR :=  $(wildcard $(PARDIR)*.y)
 YACCPROG := $(patsubst $(PARDIR)%.y,$(PARDIR)%.o, $(YACCSOUR))
+EXSOURCE := $(PARDIR)Expression.c 
+EXOBJ	:=	$(patsubst %.c,%.o,$(EXSOURCE))
 
 .PHONY : deps everything objs clean 
 
 $(OK) :   parsers hashtables $(OBJS) 
 	@echo "======== ok ========="
-	$(CC)  $(OBJS) $(PARPROG) $(HASHPROG) $(LEXPROG) $(YACCPROG)  $(HASHROG)  $(EXECUTABLE)
+	$(CC)  $(OBJS) $(PARPROG) $(HASHPROG) $(LEXPROG) $(YACCPROG) $(EXOBJ)  $(HASHROG)  $(EXECUTABLE)
 
 parsers :  
 	@echo "======= parser ========="
