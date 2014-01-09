@@ -241,7 +241,7 @@ int AuthPG(const int bfd,const int ffd){
                 depo_pack = H_FALSE;
                 leadexit(depo_pack);
             }
-
+            DEBUG("depo_sql:%s", depo_pack->inBuf+sizeof(char)+sizeof(uint32));
             Socket_Send(bfd, depo_pack->inBuf, depo_pack->inEnd);
             FB(1);
             goto free_pack;
@@ -316,22 +316,28 @@ int AuthPG(const int bfd,const int ffd){
                     
                     free(mem_pack);
                 }else if(isSELECT==E_DELETE || isSELECT==E_UPDATE || isSELECT==E_INSERT){
-                   
+                    DEBUG("deprule:%s", conn_global->deprule); 
                     if(conn_global->hasdep == H_TRUE &&
-                        !conn_global->deprule){
+                        conn_global->deprule){
                         RQ_BUSY(isDep);
+                        DEBUG("isDep:%d", isDep);
                         if(isDep > conn_global->quotient){                        
                             ply = parser_do (_hdrtmp, _apack->inEnd-_apack->inCursor);
                             if(ply){ 
-                                DEPR *_depr;
+                                /*  DEPR *_depr;
                                 for(_depr = conn_global->deprule; _depr; _depr=_depr->next){
                                     if(_depr->len == ply->len &&
                                         !memcmp(_depr->table, ply->tab, ply->len)){
+                                 */
+                                DEBUG("tab:%s", ply->tab);
+                                if(strstr(conn_global->deprule, ply->tab)){
                                         leadadd ( (ub1)_apack->inBuf, (ub4)_apack->inEnd );        
-                                    }
+                                    
                                 }
                                 free(ply->tab);
                                 free(ply);
+                                FB(0);
+                                goto free_pack;
                             }
                         }
                     }

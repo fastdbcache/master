@@ -21,6 +21,7 @@
 #define  PG_PROTOCOL_H_
 
 #include <sys/types.h>
+#include <string.h>
 
 #include "socket_lib.h"
 #include "thread_lib.h"

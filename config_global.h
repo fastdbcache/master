@@ -71,8 +71,8 @@ typedef                 int  word;  /* fastest type available */
 #define MAX_HARU_POOL 1024
 #define MAX_SLAB_CLASS  200
 #define CHUNK_ALIGN_BYTES 8
-#define MAX_SLAB_BYTE 128*1024 * 1024
-#define LIMIT_SLAB_BYTE 1024 * 1024
+#define MAX_SLAB_BYTE (128*1024 * 1024)
+#define LIMIT_SLAB_BYTE (1024 * 1024)
 #define SLAB_BEGIN 88
 #define LIMIT_PERCENT 0.1
 
@@ -211,14 +211,15 @@ struct __conn{
     size_t dmaxbytes;   /* max bytes for deposit  */
     H_STATE hasdep;      /* is use deposit default FALSE */
     size_t quotient;    /* when client over quotient, deposit inure */
-    DEPR  **deprule;    /* table for deposit */
+    /*DEPR  **deprule;     table for deposit */
+    char *deprule;
 };
 
 _conn *conn_global;
 
 void conn_init_global();
 void conn_get_global ();
-
+void initDeposit ( );
 #ifdef __cplusplus
  }
 #endif

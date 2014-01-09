@@ -77,8 +77,34 @@ void conn_get_global (  ){
     conn_global->factor = 1.25;
     conn_global->maxbytes = 64 * 1024 * 1024;
 
+    
+    initDeposit(); 
     return ;
 }		/* -----  end of function conn_get_global  ----- */
+
+
+/* 
+ * ===  FUNCTION  ======================================================================
+ *         Name:  initDeposit
+ *  Description:  
+ * =====================================================================================
+ */
+void initDeposit ( ){
+    if(memcmp(conf_get("deposit_enable_cache"), "on", 2)) return;
+    
+    if(memcmp(conf_get("deposit_method"),"mem", 3))return;
+    conn_global->deptype = D_MEM;
+
+    if(atol(conf_get("deposit_maxbytes")) <=0 )return;
+    conn_global->dmaxbytes = atol(conf_get("deposit_maxbytes"));
+     
+    if(atoi(conf_get("deposit_quotient")) <= 0) return;
+    conn_global->quotient = atoi(conf_get("deposit_quotient"));
+
+    conn_global->deprule = conf_get("deposit_rule");
+     
+    conn_global->hasdep = H_TRUE;
+}		/* -----  end of function initDeposit  ----- */
 
  /* vim: set ts=4 sw=4: */
 
