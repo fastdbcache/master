@@ -48,11 +48,11 @@ int PGStartupPacket3(int fd, DBP *_dbp){
     pv_len = Socket_Read(fd, _dbp->inBuf+_dbp->inCursor, pv-sizeof(uint32));
 
     if(pv_len == (pv-sizeof(uint32))){
-        /*uint32  v=0;
-        memcpy(&v, pa->pack+sizeof(uint32), sizeof(uint32));
+        uint32  v=0;
+        memcpy(&v, _dbp->inBuf+sizeof(uint32), sizeof(uint32));
         printf("pv major: %d pv minor:%d\n", ntohl(v)>>16, ntohl(v)&0x0000ffff);
-        printf("param: %s\n", pa->pack+sizeof(uint32)+sizeof(uint32));
-        printf("pv:%d\n", pv);*/
+        printf("param: %s\n", _dbp->inBuf+sizeof(uint32)+sizeof(uint32));
+        printf("pv:%d\n", pv);
         return pv;
     }
     
@@ -180,7 +180,7 @@ int AuthPG(const int bfd,const int ffd, DBP *slot_dbp){
                 
         if(!_apack->inBuf){
             
-            CheckBufSpace(sizeof(char), _apack);
+            if(CheckBufSpace(sizeof(char), _apack)!=0)return -1;
 
         }else _apack->inEnd = sizeof(char);
         
@@ -193,14 +193,13 @@ int AuthPG(const int bfd,const int ffd, DBP *slot_dbp){
             return -1;
         }
 
-        if(CheckBufSpace(sizeof(uint32), _apack) != 0)return -1;
-            
-        DEBUG("ask: %c", *_apack->inBuf);
-        DEBUG("inCursor: %d, char:%d", _apack->inCursor, sizeof(char));
+        if(CheckBufSpace(sizeof(uint32), _apack) != 0){
+            return -1;
+        }
+                    
         total_size = Socket_Read(rfd, _apack->inBuf + _apack->inCursor, sizeof(uint32));
 
         if(total_size != sizeof(uint32)){
-            
             freedbp(_apack);
             return -1;
         }
@@ -212,9 +211,8 @@ int AuthPG(const int bfd,const int ffd, DBP *slot_dbp){
         if(CheckBufSpace(totalsize, _apack) != 0)return -1;
                          
         Socket_Read(rfd, _apack->inBuf+_apack->inCursor, totalsize);
-
         if(*_apack->inBuf != 'Q'){
-            
+                   
             if(Socket_Send(wfd, _apack->inBuf, _apack->inEnd) != _apack->inEnd){
                 DEBUG("error");
             }
@@ -222,7 +220,7 @@ int AuthPG(const int bfd,const int ffd, DBP *slot_dbp){
         if (slot_dbp !=NULL &&
              slot_dbp->inBuf == NULL && 
              *_apack->inBuf == 'p') {
-            CheckBufSpace(_apack->inEnd, slot_dbp);                       
+            if(CheckBufSpace(_apack->inEnd, slot_dbp)!=0)return -1;
             memcpy(slot_dbp->inBuf, _apack->inBuf, _apack->inEnd);               
         }
 

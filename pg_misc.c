@@ -55,16 +55,17 @@ void freedbp ( DBP *_dbp ){
 int CheckBufSpace ( ssize_t endPos, DBP *_dbp ){
     char *newbuf;
 
+    if(!_dbp)return -1;
     
     if(_dbp->inEnd != 0){
-        _dbp->inCursor += _dbp->inEnd;
+        _dbp->inCursor = _dbp->inEnd;
     }
 
     _dbp->inEnd += endPos;
     if(_dbp->inBufSize > _dbp->inEnd) return 0;
 
     newbuf = (char *)realloc(_dbp->inBuf, _dbp->inEnd);
-    _dbp->inBufSize += endPos; 
+    _dbp->inBufSize = _dbp->inEnd; 
     
     if(newbuf){
         _dbp->inBuf = newbuf;
