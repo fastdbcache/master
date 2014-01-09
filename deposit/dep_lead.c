@@ -83,11 +83,13 @@ void leadadd ( ub1 *key, ub4 keyl ){
  *  Description:  
  * =====================================================================================
  */
-void leadpush ( DBP *_dbp ){
+int leadpush ( DBP *_dbp ){
+    int i;
+    i = -1;
 
     switch ( conn_global->deptype ) {
         case D_MEM:	
-            mem_pushdb ( _dbp );
+            i = mem_pushdb ( _dbp );
             break;
 
         case D_MMAP:	
@@ -99,6 +101,7 @@ void leadpush ( DBP *_dbp ){
         default:	
             break;
     }				/* -----  end switch  ----- */
+    return i;
 }		/* -----  end of function leadpush  ----- */
 
 

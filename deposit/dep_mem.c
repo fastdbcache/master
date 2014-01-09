@@ -35,11 +35,14 @@ DEST *mem_init ( size_t byte ){
     _dest->sd = 0;
     _dest->nd = 0;
     _dest->fe = H_USE;
+    _dest->doing = H_FALSE;
     _dest->pool_depo = (DEPO **)calloc(num, sizeof(DEPO));
     for(i=0; i< num; i++){
         _dest->pool_depo[i] = deposit_init();
     }
-
+    
+    pthread_mutex_init(&work_lock_depo, NULL);
+    pthread_mutex_init(&work_lock_deps_do, NULL);
     return _dest;
 }		/* -----  end of function mem_init  ----- */
 
@@ -76,7 +79,7 @@ void mem_set ( ub1 *key, ub4 keyl ){
     if(_dest->count * LIMIT_SLAB_BYTE >= _dest->maxbyte){
         _dest->isfull = H_TRUE;
     }
-    DEOP_UNLOCK();
+    DEPO_UNLOCK();
 
 }		/* -----  end of function mem_set  ----- */
 
@@ -87,7 +90,7 @@ void mem_set ( ub1 *key, ub4 keyl ){
  *  Description:  
  * =====================================================================================
  */
-void mem_pushdb ( DBP *_dbp ){
+int mem_pushdb ( DBP *_dbp ){
     DEST *_dest = pools_dest; 
     DEPO *_depo;      
     uint32 _lens;
@@ -142,7 +145,7 @@ void mem_pushdb ( DBP *_dbp ){
         free(ply);
         _dbp->inBuf = _depo->sm+_depo->ss;
         _dbp->inEnd = _lens+sizeof(char)+sizeof(uint32);
-        _depo->ss += _dep->inEnd;
+        _depo->ss += _dbp->inEnd;
         
     return 0;
 }		/* -----  end of function mem_pushdb  ----- */

@@ -159,6 +159,7 @@ struct __deporule{
     DEPR *next;
 };
 
+/* 
 typedef struct {
    DBP *StartupPack;
    DBP *verify; 
@@ -182,7 +183,7 @@ pthread_mutex_t session_slot_lock;
 #define SLOT_UNLOCK() do{\
     pthread_mutex_unlock(&session_slot_lock); \
 }while(0)
-
+ */
 typedef struct __conn _conn;
 struct __conn{
     char *fdbc;  /* version for fastdbcache */
@@ -217,7 +218,6 @@ _conn *conn_global;
 
 void conn_init_global();
 void conn_get_global ();
-void slotinit ( );
 
 #ifdef __cplusplus
  }

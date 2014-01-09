@@ -47,7 +47,7 @@ void conn_init_global ( void ){
     conn_global->dmaxbytes = 8 * 1024 * 1024;
     conn_global->deptype = D_MEM;
     conn_global->hasdep = H_FALSE;
-    conn_global->quotient = 3;
+    conn_global->quotient = 2;
     conn_global->deprule = NULL;
 }		/* -----  end of function conn_init_global  ----- */
 
@@ -79,33 +79,6 @@ void conn_get_global (  ){
 
     return ;
 }		/* -----  end of function conn_get_global  ----- */
-
-
-/* 
- * ===  FUNCTION  ======================================================================
- *         Name:  slotinit
- *  Description:  
- * =====================================================================================
- */
-void slotinit ( ){
-    conn_session_slot = (SESSION_SLOTS *)calloc(1, sizeof(SESSION_SLOTS));
-    if(!conn_session_slot){
-        DEBUG("conn_session_slot init error");
-        exit(1);
-    }
-    conn_session_slot->StartupPack = initdbp();
-    if(!conn_session_slot->StartupPack){
-        DEBUG("conn_session_slot startuppack init error");
-        exit(1);
-    }
-    conn_session_slot->verify = initdbp();
-    if(!conn_session_slot->verify){
-        DEBUG("conn_session_slot verify init error");
-        exit(1);
-    }
-    pthread_mutex_init(&session_slot_lock, NULL);
-    conn_session_slot->doing = H_FALSE;
-}		/* -----  end of function slotinit  ----- */
 
  /* vim: set ts=4 sw=4: */
 

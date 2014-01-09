@@ -63,7 +63,6 @@ int main(int argc, char* argv[]){
 
     if(conn_global->hasdep == H_TRUE)
         leadinit(conn_global->dmaxbytes);
-    slotinit ( );
 
     hcreate(8);
     /*rq_init(MAXCONN);*/

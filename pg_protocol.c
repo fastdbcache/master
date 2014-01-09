@@ -193,7 +193,7 @@ int AuthPG(const int bfd,const int ffd){
             freedbp(_apack); 
             return -1;
         }
-          DEBUG("ask:%c", *(_apack->inBuf));
+        /*  DEBUG("ask:%c", *(_apack->inBuf));  */
         if(CheckBufSpace(sizeof(uint32), _apack) != 0){
             return -1;
         }
@@ -218,13 +218,13 @@ int AuthPG(const int bfd,const int ffd){
             RQ_BUSY(isDep);
 
             if(isDep < conn_global->quotient &&
-                conn_session_slot->doing == H_FALSE){
-                SLOT_LOCK();
-                if(conn_session_slot->doing == H_FALSE){
-                    conn_session_slot->doing = H_TRUE;
+                pools_dest->doing == H_FALSE){
+                DEP_DO_LOCK();
+                if(pools_dest->doing == H_FALSE){
+                    pools_dest->doing = H_TRUE;
                     depo_lock = H_TRUE;                    
                 }
-                SLOT_UNLOCK();                
+                DEP_DO_UNLOCK();                
             }
         }
 
@@ -233,10 +233,12 @@ int AuthPG(const int bfd,const int ffd){
                 *_apack->inBuf == 'E')
                 goto free_pack;
 
-            if(!depo_lock)
-                depo_lock = initdbp();
+            if(!depo_pack)
+                depo_pack = initdbp();
 
-            if(leadpush(depo_pack) == -1){                         
+            if(leadpush(depo_pack) == -1){
+                pools_dest->doing = H_FALSE;
+                depo_pack = H_FALSE;
                 leadexit(depo_pack);
             }
 
@@ -408,11 +410,8 @@ int AuthPG(const int bfd,const int ffd){
                 STORE(); 
                 /*    DEBUG("C:%s", _apack+sizeof(char)+sizeof(uint32));*/
                 goto free_pack;
-            case 'Z':
-                if(depo_lock == H_TRUE){
-                    FB(1)
-                }else
-                    FB(0);
+            case 'Z':                
+                FB(0);
                 STORE();
                 if(isSELECT == E_SELECT 
                     && _hdr
