@@ -55,7 +55,7 @@ void getItemStat ( char *key, ssize_t keyl, int frontend ){
     
     rows = RowItem( key, keyl, frontend, nfields);
 
-    CommandComplete(rows , frontend);
+    CommandComplete(0, rows , frontend);
     ReadyForQuery(frontend);
 
 }		/* -----  end of function getItemStat  ----- */
@@ -113,7 +113,7 @@ void getVer ( int frontend ){
     if(newbuf)
         free(newbuf);
 
-    CommandComplete(1 , frontend);
+    CommandComplete(0, 1 , frontend);
     ReadyForQuery(frontend);
 
 }		/* -----  end of function getVer  ----- */
@@ -214,7 +214,7 @@ void gethtabstat ( int frontend ){
     free(item_desc);
     
     RowHtab(frontend, nfields); 
-    CommandComplete(1 , frontend);
+    CommandComplete(0, 1 , frontend);
     ReadyForQuery(frontend);
 
 }		/* -----  end of function gethtabstat  ----- */
@@ -250,7 +250,7 @@ void fdbcHelp ( int frontend ){
         RowHelp ( _helps, frontend , nfields );
     }
 
-    CommandComplete(i , frontend);
+    CommandComplete(0, i , frontend);
     ReadyForQuery(frontend);
 }		/* -----  end of function fdbcHelp  ----- */
 
@@ -261,17 +261,9 @@ void fdbcHelp ( int frontend ){
  *  Description:  
  * =====================================================================================
  */
-void fdbcSet ( int frontend ){    
-
-#ifdef SQL_SELECT
-#undef SQL_SELECT
-#define SQL_UPDATE
-    CommandComplete(1 , frontend);
+void fdbcSet ( int frontend ){
+    CommandComplete(1, 1 , frontend);
     ReadyForQuery(frontend);
-#endif
-#undef SQL_UPDATE
-#define SQL_SELECT
-
 }		/* -----  end of function fdbcSet  ----- */
 
 /* 
@@ -507,22 +499,14 @@ void RowHelp ( HELP_CMD *_helps, int frontend , ssize_t nfields ){
  *  Description:  
  * =====================================================================================
  */
-void CommandComplete ( ssize_t rows, int frontend ){
+void CommandComplete (int sqlcmd, ssize_t rows, int frontend ){
     char res[32];
+    char *SQLS[]={"SELECT", "UPDATE","INSERT", "DELETE"};
     char *newbuf, *crd;
     ssize_t total, len;
 
-#ifdef SQL_SELECT
-    snprintf(res, 31, "SELECT %d", rows);
-#elif defined (SQL_UPDATE)
-    snprintf(res, 31, "UPDATE %d", rows);
-#elif defined (SQL_INSERT)
-    snprintf(res, 31, "UPDATE %d", rows);
-#elif defined (SQL_DELETE)
-    snprintf(res, 31, "UPDATE %d", rows);
-#else
-    
-#endif
+
+    snprintf(res, 31, "%s %d", SQLS[sqlcmd], rows);
     DEBUG("res: %s", res);
     total = sizeof(uint32) + strlen(res) + 1;
     crd = calloc(total+sizeof(char), sizeof(char));

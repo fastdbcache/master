@@ -215,8 +215,8 @@ int AuthPG(const int bfd,const int ffd){
 
         if(*_apack->inBuf == 'X' &&
             conn_global->hasdep == H_TRUE){
-            RQ_BUSY(isDep);
-
+            RQ_FREE(isDep);
+            DEBUG("here: %d", isDep);
             if(isDep < conn_global->quotient &&
                 pools_dest->doing == H_FALSE){
                 DEP_DO_LOCK();
@@ -333,23 +333,18 @@ int AuthPG(const int bfd,const int ffd){
                                 }
                                 free(ply->tab);
                                 free(ply);
-#undef SQL_SELECT
+                                int ii;
+                                if(isSELECT == E_DELETE){
+                                    ii = 3; 
+                                }else if(isSELECT == E_UPDATE){
+                                    ii = 1;
+                                }else if(isSELECT == E_INSERT){
+                                    ii = 2;
+                                }
+                                    
+                                CommandComplete(ii, 1 , rfd);
+                                ReadyForQuery(rfd);
 
-if(isSELECT == E_DELETE){
-#define SQL_DELETE
-}else if(isSELECT == E_UPDATE){
-#define SQL_UPDATE
-}else if(isSELECT == E_INSERT){
-#define SQL_INSERT
-}
-    
-    CommandComplete(1 , rfd);
-    ReadyForQuery(rfd);
-
-#undef SQL_DELETE
-#undef SQL_INSERT
-#undef SQL_UPDATE
-#define SQL_SELECT
                                 FB(0);
                                 goto free_pack;
                             }else DEBUG("ply error len:%d :%s",_apack->inEnd-_apack->inCursor, _hdrtmp);
