@@ -28,11 +28,11 @@ process_num=8
 
 # cache for insert delete update 
 [deposit]
-enable_cache_dep = off
-dtype=mem
-dbyte=1024
-quotient=3
-deprule={"table_name1","table_name2"}
+deposit_enable_cache=on
+deposit_method=mem
+deposit_maxbytes=2097152
+deposit_quotient=3
+deposit_rule={"statistics"}
 
 # module include in here
 modules={"mod_class","mod_xxx"}
