@@ -257,8 +257,7 @@ int AuthPG(const int bfd,const int ffd, DBP *slot_dbp){
                 }
 
                 goto free_pack; 
-            case 'Q':
-                
+            case 'Q':                
                 isDATA = FALSE;
                 _hdrtmp = _apack->inBuf + _apack->inCursor;
                 isSELECT = findSQL(_hdrtmp, total-sizeof(uint32));
