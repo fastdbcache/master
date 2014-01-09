@@ -117,8 +117,10 @@ int leadexit ( DBP *_dbp ){
 
     if(!_dbp) return -1;
 
-    CheckBufSpace(len, _dbp);
-    memcpy(_dbp->inBuf, 'X', sizeof(char));
+    _dbp->inBuf  = (char *)calloc(len, sizeof(char));
+    if(!_dbp->inBuf) return -1;
+    _dbp->inEnd = len;
+    memcpy(_dbp->inBuf, "X", sizeof(char));
     blen = htonl(sizeof(uint32));
     memcpy(_dbp->inBuf+sizeof(char), &blen, sizeof(uint32));
 

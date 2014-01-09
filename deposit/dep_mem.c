@@ -116,6 +116,7 @@ int mem_pushdb ( DBP *_dbp ){
 
     loop_depo: 
 
+        if(!_depo->sm) return -1;
         if(_depo->ss == _depo->sp) return -1;
 
         if(*(_depo->sm+_depo->ss) != 'Q'){

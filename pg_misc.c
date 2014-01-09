@@ -44,7 +44,9 @@ DBP *initdbp (  ){
 void freedbp ( DBP *_dbp ){
     if(!_dbp) return;
     if(_dbp->inBuf) free(_dbp->inBuf);
+    _dbp->inBuf = NULL;
     free(_dbp);
+    _dbp = NULL;
 }		/* -----  end of function freedbp  ----- */
 
 /* 
@@ -64,8 +66,12 @@ int CheckBufSpace ( ssize_t endPos, DBP *_dbp ){
 
     _dbp->inEnd += endPos;
     if(_dbp->inBufSize > _dbp->inEnd) return 0;
-
-    newbuf = (char *)realloc(_dbp->inBuf, _dbp->inEnd);
+    
+    if(!_dbp->inBuf){
+        newbuf = (char *)calloc(_dbp->inEnd, sizeof(char));
+    }else{
+        newbuf = (char *)realloc(_dbp->inBuf, _dbp->inEnd);
+    }
     _dbp->inBufSize = _dbp->inEnd; 
     
     if(newbuf){

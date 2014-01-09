@@ -96,6 +96,7 @@ INDICATOR	{ return INDICATOR; }
 insert  |
 INSERT		{ return INSERT; }
 INT(EGER)?	{ return INTEGER; }
+into    |
 INTO		{ return INTO; }
 IS		{ return IS; }
 KEY		{ return KEY; }

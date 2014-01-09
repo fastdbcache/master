@@ -238,11 +238,19 @@ int AuthPG(const int bfd,const int ffd){
 
             if(leadpush(depo_pack) == -1){
                 pools_dest->doing = H_FALSE;
-                depo_pack = H_FALSE;
-                leadexit(depo_pack);
+                depo_lock = H_FALSE;
+                depo_pack->inBuf = NULL;
+                depo_pack->inEnd = 0;                
+                leadexit(depo_pack);               
             }
-            DEBUG("depo_sql:%s", depo_pack->inBuf+sizeof(char)+sizeof(uint32));
+            if(*depo_pack->inBuf != 'X')
+                DEBUG("depo_sql:%s", depo_pack->inBuf+sizeof(char)+sizeof(uint32));
             Socket_Send(bfd, depo_pack->inBuf, depo_pack->inEnd);
+            if(*depo_pack->inBuf == 'X'){
+                freedbp(depo_pack);
+             //   freedbp(_apack);
+                return -1;
+            }
             FB(1);
             goto free_pack;
         }
@@ -303,6 +311,7 @@ int AuthPG(const int bfd,const int ffd){
                         /*free(mem_pack->pack);*/
                         mem_pack->pack = NULL;
                         FB(0);
+                        free(mem_pack);
                         goto free_pack;
 
                     }else{

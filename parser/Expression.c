@@ -94,14 +94,14 @@ void _lysave(_ly *myly, _ly *_src){
         myly = _l;
     }*/
 }
-/*
+/* 
 void
 main(int ac, char **av)
 {
     extern int yydebug ;
     yydebug = 1;
     _ly *tly;
-    char sql[]="insert INTO statistics (selects , updates , inserts , deletes)values(1,2,2,222);";
+    char sql[]="insert into a(c)values(111);";
 
     tly = NULL;
     if(ac < 1){
@@ -117,7 +117,7 @@ main(int ac, char **av)
     tly = parser_do(sql, strlen(sql));
     for(;tly; tly=tly->next)
         printf("tab: %s\n", tly->tab);
-}  main */
+} main */
 
 
  /* vim: set ts=4 sw=4: */
