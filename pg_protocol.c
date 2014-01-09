@@ -316,11 +316,9 @@ int AuthPG(const int bfd,const int ffd){
                     
                     free(mem_pack);
                 }else if(isSELECT==E_DELETE || isSELECT==E_UPDATE || isSELECT==E_INSERT){
-                    DEBUG("deprule:%s", conn_global->deprule); 
                     if(conn_global->hasdep == H_TRUE &&
                         conn_global->deprule){
                         RQ_BUSY(isDep);
-                        DEBUG("isDep:%d", isDep);
                         if(isDep > conn_global->quotient){                        
                             ply = parser_do (_hdrtmp, _apack->inEnd-_apack->inCursor);
                             if(ply){ 
@@ -329,16 +327,32 @@ int AuthPG(const int bfd,const int ffd){
                                     if(_depr->len == ply->len &&
                                         !memcmp(_depr->table, ply->tab, ply->len)){
                                  */
-                                DEBUG("tab:%s", ply->tab);
                                 if(strstr(conn_global->deprule, ply->tab)){
-                                        leadadd ( (ub1)_apack->inBuf, (ub4)_apack->inEnd );        
+                                        leadadd ( (ub1 *)_apack->inBuf, (ub4)_apack->inEnd );
                                     
                                 }
                                 free(ply->tab);
                                 free(ply);
+#undef SQL_SELECT
+
+if(isSELECT == E_DELETE){
+#define SQL_DELETE
+}else if(isSELECT == E_UPDATE){
+#define SQL_UPDATE
+}else if(isSELECT == E_INSERT){
+#define SQL_INSERT
+}
+    
+    CommandComplete(1 , rfd);
+    ReadyForQuery(rfd);
+
+#undef SQL_DELETE
+#undef SQL_INSERT
+#undef SQL_UPDATE
+#define SQL_SELECT
                                 FB(0);
                                 goto free_pack;
-                            }
+                            }else DEBUG("ply error len:%d :%s",_apack->inEnd-_apack->inCursor, _hdrtmp);
                         }
                     }
                     _ulist = initulist();

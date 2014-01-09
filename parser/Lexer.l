@@ -93,6 +93,7 @@ GROUP		{ return GROUP; }
 HAVING		{ return HAVING; }
 IN		{ return IN; }
 INDICATOR	{ return INDICATOR; }
+insert  |
 INSERT		{ return INSERT; }
 INT(EGER)?	{ return INTEGER; }
 INTO		{ return INTO; }
@@ -132,6 +133,7 @@ TABLE		{ return TABLE; }
 TO		{ return TO; }
 UNION		{ return UNION; }
 UNIQUE		{ return UNIQUE; }
+update  |
 UPDATE		{ return UPDATE; }
 USER		{ return USER; }
 VALUES		{ return VALUES; }

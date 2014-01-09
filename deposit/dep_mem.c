@@ -73,7 +73,10 @@ void mem_set ( ub1 *key, ub4 keyl ){
         }
         _depo = _dest->pool_depo[_dest->sd];
     }
- 
+    if(!_depo->sm) {
+        _depo->sm = calloc(1, LIMIT_SLAB_BYTE*sizeof(char));
+    }
+    DEBUG("se:%d key:%s, keyl:%d", _depo->se, key, keyl);
     memcpy(_depo->sm+_depo->se, key, keyl);
     _depo->se += _lens;
     if(_dest->count * LIMIT_SLAB_BYTE >= _dest->maxbyte){

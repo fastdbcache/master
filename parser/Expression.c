@@ -33,15 +33,19 @@ _ly *parser_do (char *str, int len){
     tail = _init_ly();
     if (yylex_init(&scanner)) {
         // couldn't initialize
+        DEBUG("ly 0");
         return NULL;
     }
 
     state = yy_scan_bytes(p, len, scanner);
 
     yy_switch_to_buffer(state, scanner);
-    if(yyparse(&tail, scanner)){
+    yyparse(&tail, scanner);
+    /*     if(yyparse(&tail, scanner)){
+        DEBUG("1 tab:%s", tail->tab);
         return NULL;
-    }
+    } */
+
     yy_delete_buffer(state, scanner);
     yylex_destroy(scanner);
 
@@ -97,7 +101,7 @@ main(int ac, char **av)
     extern int yydebug ;
     yydebug = 1;
     _ly *tly;
-    char sql[]="select * from table;";
+    char sql[]="insert INTO statistics (selects , updates , inserts , deletes)values(1,2,2,222);";
 
     tly = NULL;
     if(ac < 1){
@@ -109,7 +113,7 @@ main(int ac, char **av)
 	//	perror(av[1]);
 	//	exit(1);
 	//}
-    printf("sql: %s\n", sql);
+    printf("sql: %s, len:%d\n", sql, strlen(sql));
     tly = parser_do(sql, strlen(sql));
     for(;tly; tly=tly->next)
         printf("tab: %s\n", tly->tab);

@@ -126,15 +126,6 @@ int leadexit ( DBP *_dbp ){
 }		/* -----  end of function leadexit  ----- */
 
 
-/* 
- * ===  FUNCTION  ======================================================================
- *         Name:  leadsave
- *  Description:  
- * =====================================================================================
- */
-void leadsave ( <+argument_list+> ){
-    return <+return_value+>;
-}		/* -----  end of function leadsave  ----- */
 
  /* vim: set ts=4 sw=4: */
 

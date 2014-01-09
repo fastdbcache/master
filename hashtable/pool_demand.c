@@ -265,9 +265,11 @@ void fdbcSet ( int frontend ){
 
 #ifdef SQL_SELECT
 #undef SQL_SELECT
+#define SQL_UPDATE
     CommandComplete(1 , frontend);
     ReadyForQuery(frontend);
 #endif
+#undef SQL_UPDATE
 #define SQL_SELECT
 
 }		/* -----  end of function fdbcSet  ----- */
@@ -512,9 +514,16 @@ void CommandComplete ( ssize_t rows, int frontend ){
 
 #ifdef SQL_SELECT
     snprintf(res, 31, "SELECT %d", rows);
-#else
+#elif defined (SQL_UPDATE)
     snprintf(res, 31, "UPDATE %d", rows);
+#elif defined (SQL_INSERT)
+    snprintf(res, 31, "UPDATE %d", rows);
+#elif defined (SQL_DELETE)
+    snprintf(res, 31, "UPDATE %d", rows);
+#else
+    
 #endif
+    DEBUG("res: %s", res);
     total = sizeof(uint32) + strlen(res) + 1;
     crd = calloc(total+sizeof(char), sizeof(char));
     newbuf = crd;
