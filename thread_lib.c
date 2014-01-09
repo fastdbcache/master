@@ -22,7 +22,7 @@ void libevent_work_thread(int fd, short ev, void *arg){
     int ffd;
     WTQ *work_child; 
     int pg_fds, m, pg_len, client_len, pack_len;
-    DBP *_dbp, *_verify;
+    DBP *_dbp;
 
     if (read(fd, buf, 1) != 1)
 	    d_log("error Can't read from libevent pipe");
@@ -39,20 +39,10 @@ void libevent_work_thread(int fd, short ev, void *arg){
     else{
          goto err;
     }
-    //rq_child = child->rqchild;
-    //pg_fds = Client_Init(conf_get("pg_host"), atoi(conf_get("pg_port")));
-    //cmd = (char *)calloc(1, sizeof(char));
-    
+       
     ffd = work_child->rq_item->frontend->ffd;
-
-    /* i only set child 0 can set conn_session_slot */
-    if(work_child->no == 0 &&
-        conn_session_slot->StartupPack->inBuf == NULL){
-        _dbp = conn_session_slot->StartupPack;
-    }else{
-        _dbp = initdbp();
-    }
-
+    _dbp = initdbp();
+    
     pack_len = PGStartupPacket3(ffd, _dbp);  /*  1. F -> B */
     
     if(pack_len == -1)goto ok; 
@@ -63,47 +53,14 @@ void libevent_work_thread(int fd, short ev, void *arg){
         goto bad;
     }
     pg_len = Socket_Send(pg_fds, _dbp->inBuf, _dbp->inEnd);
+    freedbp(_dbp);
+
     if(pg_len != pack_len) goto bad;
-    
-   /*if(_slot->backend_fd == 0){
-         pg_fds = Client_Init(conf_get("pg_host"), atoi(conf_get("pg_port")));
-        if(pg_fds == -1){
-            if(start_pack->pack != NULL)free(start_pack->pack);
-            start_pack->pack = NULL;
-            goto bad;
-        }
-        pg_len = Socket_Send(pg_fds, start_pack->pack, pack_len);
-
-         */
-        
-        if(work_child->no == 0 &&
-            conn_session_slot->verify->inBuf == NULL){
-            _verify = conn_session_slot->verify;
-        }else {
-            _verify = NULL;
-            freedbp(_dbp);
-        }
-        if(AuthPG(pg_fds, ffd, _verify)==-1){
-            //printf("auth error\n");
-            //            goto bad;
-            //                    }else{
-            //
-            //                            }
-            //                                }
-            //
-            //                                 
-            //                    }
-        }else{
-        }
-   // }        
-    
-
+               
+    AuthPG(pg_fds, ffd);
+                  
     work_child->isjob = JOB_FREE;
-
-    //rq_free(rq_child);
-
-    //child->rqchild = NULL;
-      
+          
     if(notify_token_thread == NT_FREE){
         uint64_t u;
         ssize_t s;
@@ -125,14 +82,7 @@ void libevent_work_thread(int fd, short ev, void *arg){
         work_child->rq_item->isjob = JOB_FREE;
         work_child->isjob = JOB_FREE;
         printf("end\n");
-        //rq_free(rq_child);
-
-        //(void)0;
-
-    /* clean_sfd:
-        if(Socket_Close(rq_child->client->cfd) == -1) d_log("close fd error!\n");
-        rq_child->isjob = JOB_FREE;	
-    */
+        
 }
 
 void work_thread_init(int nthreads){

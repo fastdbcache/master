@@ -332,7 +332,7 @@ int RowItem ( char *key, ssize_t keyl, int frontend , ssize_t nfields ){
     amiss_len = strlen(nlen);
 
     total = sizeof(uint32) + sizeof(uint16) + _h->keyl
-            + sizeof(_h->utime) + sizeof(_h->ahit) + sizeof(_h->amiss) + sizeof(uint32)*nfields;
+            + utime_len + ahit_len + amiss_len + sizeof(uint32)*nfields;
     newbuf = calloc(total+sizeof(char), sizeof(char));
 
     if(!newbuf) return 0;

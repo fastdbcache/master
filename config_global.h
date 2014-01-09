@@ -162,6 +162,7 @@ struct __deporule{
 typedef struct {
    DBP *StartupPack;
    DBP *verify; 
+   H_STATE doing;
    ssize_t pw_len;
    char *user;
    char *database;
@@ -172,6 +173,7 @@ typedef struct {
 }SESSION_SLOTS;
 
 SESSION_SLOTS *conn_session_slot;
+pthread_mutex_t session_slot_lock;
 
 #define SLOT_LOCK() do{\
     pthread_mutex_lock(&session_slot_lock); \
@@ -203,7 +205,7 @@ struct __conn{
 
     float factor;       /* for hslab default 1.25  */
     size_t maxbytes;   /* max bytes for hslab */
-
+    
     D_TYPE deptype;     /* deposit type */
     size_t dmaxbytes;   /* max bytes for deposit  */
     H_STATE hasdep;      /* is use deposit default FALSE */

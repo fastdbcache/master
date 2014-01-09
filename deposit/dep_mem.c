@@ -87,77 +87,64 @@ void mem_set ( ub1 *key, ub4 keyl ){
  *  Description:  
  * =====================================================================================
  */
-void mem_pushdb (  ){
+void mem_pushdb ( DBP *_dbp ){
     DEST *_dest = pools_dest; 
     DEPO *_depo;      
     uint32 _lens;
     _ly *ply;
     long utime;
-    int backend, res;
-    DBP *_read, *_write;
-
-    backend = Client_Init(conn_global->pg_host, conn_global->pg_port);
-    if(backend == -1){
-        DEBUG(" client to pg error");
-        return;
-    }
-    _write = conn_session_slot->StartupPack;
-    res = Socket_Send(backend, _write->inBuf, _write->inEnd);
-    if(res != _write->inEnd){
-        DEBUG("send data to backend error");
-        return ;
-    }
+        
+    if(!_dbp) return -1;
     
-    while(1){
-        _depo = _dest->pool_depo[_dest->sd];
-        if(!_depo)break;
-        if(_depo->sp == _depo->se &&
-            _depo->ss == _depo->se){
-            if(_dest->sd == _dest->nd)
-                break;
-            else
-                _dest->sd++;
-        }
-        _depo->sp = _depo->se;       
-
-        while(1){ 
-            if(*(_depo->sm+_depo->ss) != 'Q') break;
-             
-            memcpy(&_lens, _depo->sm+_depo->ss+sizeof(char), sizeof(uint32));
-            _lens = ntohl(_lens);
-
-            if(_depo->ss+sizeof(char)+_lens > _depo->sp){
-                break;
-            }
-            _lens -= sizeof(uint32);
-            ply = parser_do ((char *)(_depo->sm+_depo->ss+sizeof(char)+sizeof(uint32)), _lens);
-
-            if(!ply){ 
-                /* DEBUG("ply is null %s", _u->key);*/
-
-                _depo->ss += _lens + sizeof(char) + sizeof(uint32);
-                if(_depo->ss == _depo->sp) break;
-
-                continue;
-            }
-            /* update tlist  */
-            utime = get_sec();
-            pushList((ub1 *)ply->tab, ply->len, utime);
-
-            free(ply->tab);
-            free(ply);
-
-            /*  Socket_Send(backend, _depo->sm+_depo->ss, _lens+sizeof(char)+sizeof(uint32));
-            if(!_pack){
-                _pack = calloc(1, sizeof(char));
-            }
-
-            Socket_Read(backend,_pack, sizeof(char));*/
-            _depo->ss += _lens + sizeof(char) + sizeof(uint32); 
-            if(_depo->ss == _depo->sp) break;
-        }        
+    _depo = _dest->pool_depo[_dest->sd];
+    if(!_depo) return -1;
+    
+    if(_depo->sp == _depo->se &&
+        _depo->ss == _depo->se){
+        if(_dest->sd == _dest->nd)
+            return -1;
+        else
+            _dest->sd++;
     }
-    close(backend);  
+    _depo->sp = _depo->se;       
+
+    loop_depo: 
+
+        if(_depo->ss == _depo->sp) return -1;
+
+        if(*(_depo->sm+_depo->ss) != 'Q'){
+            _depo->ss++;
+            goto loop_depo;
+        }
+         
+        memcpy(&_lens, _depo->sm+_depo->ss+sizeof(char), sizeof(uint32));
+        _lens = ntohl(_lens);
+
+        if(_depo->ss+sizeof(char)+_lens > _depo->sp){
+            return -1;
+        }
+        _lens -= sizeof(uint32);
+        ply = parser_do ((char *)(_depo->sm+_depo->ss+sizeof(char)+sizeof(uint32)), _lens);
+
+        if(!ply){ 
+            /* DEBUG("ply is null %s", _u->key);*/
+
+            _depo->ss += _lens + sizeof(char) + sizeof(uint32);
+            if(_depo->ss == _depo->sp) return -1;
+
+            goto loop_depo;
+        }
+        /* update tlist  */
+        utime = get_sec();
+        pushList((ub1 *)ply->tab, ply->len, utime);
+
+        free(ply->tab);
+        free(ply);
+        _dbp->inBuf = _depo->sm+_depo->ss;
+        _dbp->inEnd = _lens+sizeof(char)+sizeof(uint32);
+        _depo->ss += _dep->inEnd;
+        
+    return 0;
 }		/* -----  end of function mem_pushdb  ----- */
 
  /* vim: set ts=4 sw=4: */

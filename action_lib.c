@@ -55,14 +55,7 @@ void on_accept(int fd, short ev, void *arg){
         anyThread(fproc, NULL);
     }
 
-    if(conn_global->hasdep == H_TRUE){
-        RQ_BUSY(isDep);
-
-        if(isDep < conn_global->quotient){
-            depo_status = NT_HAS;
-            anyThread(fdepo, NULL); 
-        }
-    }
+    
 }
 
 void conn_new(int sfd, struct event_base *base){
@@ -105,17 +98,5 @@ void *fproc ( void *arg){
     proc_status = NT_FREE;
 }		/* -----  end of function fproc  ----- */
 
-
-/* 
- * ===  FUNCTION  ======================================================================
- *         Name:  fdepo
- *  Description:  
- * =====================================================================================
- */
-void *fdepo ( void *arg ){
-    depo_status = NT_WORKING;
-    leadpush();
-    depo_status = NT_FREE;
-}		/* -----  end of function fdepo  ----- */
 /* vim: set ts=4 sw=4: */
 

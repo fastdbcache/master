@@ -48,11 +48,11 @@ int PGStartupPacket3(int fd, DBP *_dbp){
     pv_len = Socket_Read(fd, _dbp->inBuf+_dbp->inCursor, pv-sizeof(uint32));
 
     if(pv_len == (pv-sizeof(uint32))){
-        uint32  v=0;
+        /*uint32  v=0;
         memcpy(&v, _dbp->inBuf+sizeof(uint32), sizeof(uint32));
         printf("pv major: %d pv minor:%d\n", ntohl(v)>>16, ntohl(v)&0x0000ffff);
         printf("param: %s\n", _dbp->inBuf+sizeof(uint32)+sizeof(uint32));
-        printf("pv:%d\n", pv);
+        printf("pv:%d\n", pv);  */
         return pv;
     }
     
@@ -122,9 +122,9 @@ SESSION_SLOTS *resolve_slot(const char *buf){
 }	*/	/* -----  end of function resolve_slot  ----- */
 
 
-int AuthPG(const int bfd,const int ffd, DBP *slot_dbp){
+int AuthPG(const int bfd,const int ffd){
     char *newbuf,  *_hdrtmp;
-    DBP *_apack; 
+    DBP *_apack, *depo_pack; 
     ub1 *_drtmp;
     size_t totalsize,  total_size, cmd_size, pack_len;
     uint32 total;
@@ -137,7 +137,7 @@ int AuthPG(const int bfd,const int ffd, DBP *slot_dbp){
     E_SQL_TYPE cache;
     _ly *ply;
     int isDep;
-
+    H_STATE depo_lock;
     #define FB(type) \
 	do \
 	{ \
@@ -154,11 +154,11 @@ int AuthPG(const int bfd,const int ffd, DBP *slot_dbp){
     do                      \
     {                           \
         if(isSELECT == E_SELECT && _hdr){                    \
-            _drtmp = (ub1 *)realloc(_hdr->dr, _hdr->drl+totalsize);    \
+            _drtmp = (ub1 *)realloc(_hdr->dr, _hdr->drl+_apack->inEnd);    \
             if(_drtmp){                                         \
                 _hdr->dr = _drtmp;                              \
-                memcpy(_hdr->dr+_hdr->drl, _apack->inBuf, totalsize);  \
-                _hdr->drl += totalsize;                         \
+                memcpy(_hdr->dr+_hdr->drl, _apack->inBuf, _apack->inEnd);  \
+                _hdr->drl += _apack->inEnd;                         \
             }else{                                              \
                 freeHdr(_hdr);                                  \
                 return -1;                                      \
@@ -172,7 +172,8 @@ int AuthPG(const int bfd,const int ffd, DBP *slot_dbp){
     pack_len = 0;
     isSELECT = E_OTHER;
     isDATA = FALSE;
-
+    depo_lock = H_FALSE;
+     
     FB(1);
     
     auth_loop:
@@ -192,7 +193,7 @@ int AuthPG(const int bfd,const int ffd, DBP *slot_dbp){
             freedbp(_apack); 
             return -1;
         }
-
+          DEBUG("ask:%c", *(_apack->inBuf));
         if(CheckBufSpace(sizeof(uint32), _apack) != 0){
             return -1;
         }
@@ -211,18 +212,46 @@ int AuthPG(const int bfd,const int ffd, DBP *slot_dbp){
         if(CheckBufSpace(totalsize, _apack) != 0)return -1;
                          
         Socket_Read(rfd, _apack->inBuf+_apack->inCursor, totalsize);
-        if(*_apack->inBuf != 'Q'){
-                   
+
+        if(*_apack->inBuf == 'X' &&
+            conn_global->hasdep == H_TRUE){
+            RQ_BUSY(isDep);
+
+            if(isDep < conn_global->quotient &&
+                conn_session_slot->doing == H_FALSE){
+                SLOT_LOCK();
+                if(conn_session_slot->doing == H_FALSE){
+                    conn_session_slot->doing = H_TRUE;
+                    depo_lock = H_TRUE;                    
+                }
+                SLOT_UNLOCK();                
+            }
+        }
+
+        if(depo_lock == H_TRUE){
+            if(*_apack->inBuf == 'C' |
+                *_apack->inBuf == 'E')
+                goto free_pack;
+
+            if(!depo_lock)
+                depo_lock = initdbp();
+
+            if(leadpush(depo_pack) == -1){                         
+                leadexit(depo_pack);
+            }
+
+            Socket_Send(bfd, depo_pack->inBuf, depo_pack->inEnd);
+            FB(1);
+            goto free_pack;
+        }
+
+        if(*_apack->inBuf != 'Q' ){
+            
             if(Socket_Send(wfd, _apack->inBuf, _apack->inEnd) != _apack->inEnd){
                 DEBUG("error");
             }
         }
-        if (slot_dbp !=NULL &&
-             slot_dbp->inBuf == NULL && 
-             *_apack->inBuf == 'p') {
-            if(CheckBufSpace(_apack->inEnd, slot_dbp)!=0)return -1;
-            memcpy(slot_dbp->inBuf, _apack->inBuf, _apack->inEnd);               
-        }
+        
 
         switch ( *_apack->inBuf ) {
             case 'R':	
@@ -245,7 +274,7 @@ int AuthPG(const int bfd,const int ffd, DBP *slot_dbp){
                 FB(1);
                 goto free_pack;
             
-            case 'E':
+            case 'E':                
                 
                 if(_hdr){
                     freeHdr(_hdr);
@@ -260,11 +289,12 @@ int AuthPG(const int bfd,const int ffd, DBP *slot_dbp){
             case 'Q':                
                 isDATA = FALSE;
                 _hdrtmp = _apack->inBuf + _apack->inCursor;
-                isSELECT = findSQL(_hdrtmp, total-sizeof(uint32));
+                
+                isSELECT = findSQL(_hdrtmp, _apack->inEnd-_apack->inCursor);
                 if(isSELECT == E_SELECT){
                     mem_pack = (SLABPACK *)calloc(1, sizeof(SLABPACK));
                         
-                    hkey(_hdrtmp, total-sizeof(uint32), mem_pack);
+                    hkey(_hdrtmp,_apack->inEnd-_apack->inCursor , mem_pack);
                     
                     if(mem_pack->len > 0){                        
                         Socket_Send(rfd, mem_pack->pack, mem_pack->len);
@@ -276,7 +306,7 @@ int AuthPG(const int bfd,const int ffd, DBP *slot_dbp){
                     }else{
                         
                         _hdr = hdrcreate(); 
-                        _hdr->keyl = total-sizeof(uint32);
+                        _hdr->keyl = _apack->inEnd-_apack->inCursor;
                         _hdr->key = (ub1 *)calloc(_hdr->keyl, sizeof(ub1));
                         memcpy(_hdr->key, _hdrtmp, _hdr->keyl);
                         _hdr->stime = get_sec(); 
@@ -288,13 +318,13 @@ int AuthPG(const int bfd,const int ffd, DBP *slot_dbp){
                     if(conn_global->hasdep == H_TRUE &&
                         !conn_global->deprule){
                         RQ_BUSY(isDep);
-                        if(isDep >= conn_global->quotient){                        
-                            ply = parser_do (_hdrtmp, total-sizeof(uint32));                            
+                        if(isDep > conn_global->quotient){                        
+                            ply = parser_do (_hdrtmp, _apack->inEnd-_apack->inCursor);
                             if(ply){ 
                                 DEPR *_depr;
                                 for(_depr = conn_global->deprule; _depr; _depr=_depr->next){
                                     if(_depr->len == ply->len &&
-                                        memcmp(_depr->table, ply->tab, ply->len)){
+                                        !memcmp(_depr->table, ply->tab, ply->len)){
                                         leadadd ( (ub1)_apack->inBuf, (ub4)_apack->inEnd );        
                                     }
                                 }
@@ -305,7 +335,7 @@ int AuthPG(const int bfd,const int ffd, DBP *slot_dbp){
                     }
                     _ulist = initulist();
                     if(_ulist){
-                        _ulist->keyl = total-sizeof(uint32);
+                        _ulist->keyl = _apack->inEnd-_apack->inCursor;
                         _ulist->key = calloc(_ulist->keyl, sizeof(char));
                         if(_ulist->key){
                             memcpy(_ulist->key, _hdrtmp, _ulist->keyl);
@@ -321,7 +351,8 @@ int AuthPG(const int bfd,const int ffd, DBP *slot_dbp){
                     int clen=0; 
                     cache = findCache(_hdrtmp, &clen);
                     if(cache == E_CACHE_ITEM){
-                        getItemStat(_hdrtmp+clen, total-sizeof(uint32)-clen , rfd);
+                        DEBUG("sql:%s, len:%d", _hdrtmp+clen, _apack->inEnd-_apack->inCursor-clen);
+                        getItemStat(_hdrtmp+clen, _apack->inEnd-_apack->inCursor-clen , rfd);
                         FB(0);
                         goto free_pack;
                     }else if(cache == E_CACHE_VERSION){
@@ -359,10 +390,10 @@ int AuthPG(const int bfd,const int ffd, DBP *slot_dbp){
                 FB(1);
                                             
                 if(isSELECT == E_SELECT && _hdr){
-                    _hdr->dr = (ub1 *)calloc(totalsize, sizeof(ub1));
+                    _hdr->dr = (ub1 *)calloc(_apack->inEnd, sizeof(ub1));
                     
                     memcpy(_hdr->dr, _apack->inBuf, _apack->inEnd);
-                    _hdr->drl = totalsize;
+                    _hdr->drl = _apack->inEnd;
                 }
                 goto free_pack;
             case 'D':
@@ -378,7 +409,10 @@ int AuthPG(const int bfd,const int ffd, DBP *slot_dbp){
                 /*    DEBUG("C:%s", _apack+sizeof(char)+sizeof(uint32));*/
                 goto free_pack;
             case 'Z':
-                FB(0);
+                if(depo_lock == H_TRUE){
+                    FB(1)
+                }else
+                    FB(0);
                 STORE();
                 if(isSELECT == E_SELECT 
                     && _hdr

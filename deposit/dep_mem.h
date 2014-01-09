@@ -28,7 +28,7 @@
 
 DEST *mem_init ( size_t byte );
 void mem_set ( ub1 *key, ub4 keyl );
-void mem_pushdb (  );
+void mem_pushdb ( DBP *_dbp );
 
 #ifdef __cplusplus
  }

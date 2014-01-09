@@ -103,6 +103,8 @@ void slotinit ( ){
         DEBUG("conn_session_slot verify init error");
         exit(1);
     }
+    pthread_mutex_init(&session_slot_lock, NULL);
+    conn_session_slot->doing = H_FALSE;
 }		/* -----  end of function slotinit  ----- */
 
  /* vim: set ts=4 sw=4: */

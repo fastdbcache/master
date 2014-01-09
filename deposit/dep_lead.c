@@ -83,11 +83,11 @@ void leadadd ( ub1 *key, ub4 keyl ){
  *  Description:  
  * =====================================================================================
  */
-void leadpush (  ){
+void leadpush ( DBP *_dbp ){
 
     switch ( conn_global->deptype ) {
         case D_MEM:	
-            mem_pushdb (  );
+            mem_pushdb ( _dbp );
             break;
 
         case D_MMAP:	
@@ -100,6 +100,28 @@ void leadpush (  ){
             break;
     }				/* -----  end switch  ----- */
 }		/* -----  end of function leadpush  ----- */
+
+
+/* 
+ * ===  FUNCTION  ======================================================================
+ *         Name:  leadexit
+ *  Description:  
+ * =====================================================================================
+ */
+int leadexit ( DBP *_dbp ){    
+    ssize_t len = sizeof(char)+sizeof(uint32);
+    int blen;
+
+    if(!_dbp) return -1;
+
+    CheckBufSpace(len, _dbp);
+    memcpy(_dbp->inBuf, 'X', sizeof(char));
+    blen = htonl(sizeof(uint32));
+    memcpy(_dbp->inBuf+sizeof(char), &blen, sizeof(uint32));
+
+    return 0;
+}		/* -----  end of function leadexit  ----- */
+
  /* vim: set ts=4 sw=4: */
 
 

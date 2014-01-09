@@ -49,7 +49,7 @@
 
 int PGStartupPacket3(int fd, DBP *_dbp); /* 1. F -> B 
 SESSION_SLOTS *resolve_slot(const char *buf);*/
-int AuthPG(const int bfd,const int ffd, DBP *slot_dbp);
+int AuthPG(const int bfd,const int ffd);
 E_SQL_TYPE findSQL (  const char *sql , int len);
 E_SQL_TYPE findCache ( const char *spl, int *offset);
 

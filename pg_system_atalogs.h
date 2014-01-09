@@ -88,6 +88,7 @@ typedef enum {
     E_OTHER
 } E_SQL_TYPE;
 
+
 #ifdef __cplusplus
  }
 #endif
