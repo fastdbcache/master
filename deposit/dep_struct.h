@@ -47,6 +47,7 @@ struct __depstat
     sb2         sd;     /* now start DEPO */
     sb2         nd;    /* now doing DEPO */
     H_USESTAT   fe;     /* the first deposit is free default H_USE , H_FREE is free */
+    H_STATE doing;      /* H_TRUE one thread to do, H_FALSE none to do */
     DEPO        **pool_depo;
 };
 typedef  struct __depstat  DEST;
@@ -54,18 +55,27 @@ typedef  struct __depstat  DEST;
 DEST *pools_dest;
 
 pthread_mutex_t work_lock_depo;
+pthread_mutex_t work_lock_deps_do;
 
 #define DEPO_LOCK() do{\
     pthread_mutex_lock(&work_lock_depo); \
 }while(0)
 
-#define DEOP_UNLOCK() do{\
+#define DEPO_UNLOCK() do{\
     pthread_mutex_unlock(&work_lock_depo); \
+}while(0)
+
+#define DEP_DO_LOCK() do{\
+    pthread_mutex_lock(&work_lock_deps_do); \
+}while(0)
+
+#define DEP_DO_UNLOCK() do{\
+    pthread_mutex_unlock(&work_lock_deps_do); \
 }while(0)
 
 void leadinit ( size_t byte );
 void leadadd ( ub1 *key, ub4 keyl );
-void leadpush (  );
+int leadpush ( DBP *_dbp );
 DEPO *deposit_init (  );
 
 #ifdef __cplusplus
