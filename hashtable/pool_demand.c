@@ -501,13 +501,11 @@ void RowHelp ( HELP_CMD *_helps, int frontend , ssize_t nfields ){
  */
 void CommandComplete (int sqlcmd, ssize_t rows, int frontend ){
     char res[32];
-    char *SQLS[]={"SELECT", "UPDATE","INSERT", "DELETE"};
+    char *SQLS[]={"SELECT", "UPDATE","INSERT 0", "DELETE"};
     char *newbuf, *crd;
     ssize_t total, len;
 
-
     snprintf(res, 31, "%s %d", SQLS[sqlcmd], rows);
-    DEBUG("res: %s", res);
     total = sizeof(uint32) + strlen(res) + 1;
     crd = calloc(total+sizeof(char), sizeof(char));
     newbuf = crd;

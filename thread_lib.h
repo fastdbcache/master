@@ -49,7 +49,7 @@
 
 #define RQ_BUSY(c)  do{    \
     RQ_COUNT((c));               \
-    (c) = MAXCONN - (c);             \
+    (c) = (256 - (c));             \
 }while(0)
 
 #define RQ_FREE(c)  do{    \
@@ -58,12 +58,12 @@
 
 #define RQ_COUNT(c)  do{    \
     (c) = 0;                \
-    RQ *_trq = rq_queue_tail;    \
-    while(_trq!=rq_queue_head){   \
+    RQ *_trq = rq_queue_head;    \
+    do{   \
         if(_trq->isjob == JOB_FREE) \
             (c)++;               \
-        _trq = _trq->next;          \
-    }                           \
+        _trq = _trq->next;        \
+    } while(_trq!=rq_queue_tail);  \
 }while(0)
 
 typedef enum {

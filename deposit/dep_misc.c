@@ -27,7 +27,7 @@
 DEPO *deposit_init (  ){
     DEPO *_depo;
     _depo = calloc(1, sizeof(DEPO));
-    _depo->sm = calloc(LIMIT_SLAB_BYTE, sizeof(char));
+    _depo->sm = NULL;
     _depo->ss = 0;
     _depo->sp = 0;
     _depo->se = 0;

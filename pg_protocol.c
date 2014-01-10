@@ -173,7 +173,8 @@ int AuthPG(const int bfd,const int ffd){
     isSELECT = E_OTHER;
     isDATA = FALSE;
     depo_lock = H_FALSE;
-     
+    depo_pack = NULL; 
+
     FB(1);
     
     auth_loop:
@@ -217,7 +218,7 @@ int AuthPG(const int bfd,const int ffd){
             conn_global->hasdep == H_TRUE){
             RQ_FREE(isDep);
             DEBUG("here: %d", isDep);
-            if(isDep < conn_global->quotient &&
+            if(isDep > conn_global->quotient &&
                 pools_dest->doing == H_FALSE){
                 DEP_DO_LOCK();
                 if(pools_dest->doing == H_FALSE){
@@ -236,6 +237,8 @@ int AuthPG(const int bfd,const int ffd){
             if(!depo_pack)
                 depo_pack = initdbp();
 
+            depo_pack->inBuf = NULL;
+
             if(leadpush(depo_pack) == -1){
                 pools_dest->doing = H_FALSE;
                 depo_lock = H_FALSE;
@@ -248,7 +251,7 @@ int AuthPG(const int bfd,const int ffd){
             Socket_Send(bfd, depo_pack->inBuf, depo_pack->inEnd);
             if(*depo_pack->inBuf == 'X'){
                 freedbp(depo_pack);
-             //   freedbp(_apack);
+                freedbp(_apack);
                 return -1;
             }
             FB(1);
@@ -327,8 +330,11 @@ int AuthPG(const int bfd,const int ffd){
                 }else if(isSELECT==E_DELETE || isSELECT==E_UPDATE || isSELECT==E_INSERT){
                     if(conn_global->hasdep == H_TRUE &&
                         conn_global->deprule){
+                       
                         RQ_BUSY(isDep);
-                        if(isDep > conn_global->quotient){                        
+                        DEBUG("busy %d, quotient:%d", isDep, conn_global->quotient);
+                        if(isDep > conn_global->quotient){
+                            DEBUG("leadadd isDep:%d, quotient:%d", isDep, conn_global->quotient);
                             ply = parser_do (_hdrtmp, _apack->inEnd-_apack->inCursor);
                             if(ply){ 
                                 /*  DEPR *_depr;
@@ -337,8 +343,7 @@ int AuthPG(const int bfd,const int ffd){
                                         !memcmp(_depr->table, ply->tab, ply->len)){
                                  */
                                 if(strstr(conn_global->deprule, ply->tab)){
-                                        leadadd ( (ub1 *)_apack->inBuf, (ub4)_apack->inEnd );
-                                    
+                                    leadadd ( (ub1 *)_apack->inBuf, (ub4)_apack->inEnd );                                    
                                 }
                                 free(ply->tab);
                                 free(ply);

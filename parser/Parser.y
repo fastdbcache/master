@@ -7,7 +7,7 @@
 
 
 void yyerror(_ly **myly, yyscan_t scanner, const char *s);
-#define YYDEBUG 1
+/*#define YYDEBUG 1*/
 
 %}
 

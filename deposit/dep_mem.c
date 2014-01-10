@@ -76,7 +76,6 @@ void mem_set ( ub1 *key, ub4 keyl ){
     if(!_depo->sm) {
         _depo->sm = calloc(1, LIMIT_SLAB_BYTE*sizeof(char));
     }
-    DEBUG("se:%d key:%s, keyl:%d", _depo->se, key, keyl);
     memcpy(_depo->sm+_depo->se, key, keyl);
     _depo->se += _lens;
     if(_dest->count * LIMIT_SLAB_BYTE >= _dest->maxbyte){
@@ -147,6 +146,7 @@ int mem_pushdb ( DBP *_dbp ){
 
         free(ply->tab);
         free(ply);
+        DEBUG("sm:%c, ss:%d", *_depo->sm, _depo->ss);
         _dbp->inBuf = _depo->sm+_depo->ss;
         _dbp->inEnd = _lens+sizeof(char)+sizeof(uint32);
         _depo->ss += _dbp->inEnd;

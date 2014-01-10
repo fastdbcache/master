@@ -11,7 +11,9 @@
 #include <stdlib.h>
 #include <stdio.h>
 int lineno = 1;
+#define YY_FATAL_ERROR(msg) yyerror(msg)
 void yyerror(const char *s);
+
 %}
 	/* MKS needs the next line to increase the NFA table */
 %option outfile="Lexer.c" header-file="Lexer.h"
