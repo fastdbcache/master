@@ -1,16 +1,17 @@
 
 CC := cc
-OK := server
+OK := fdbc
 MAKE	:= make
 LIBS	:=	-ll -ly 
 #LIBS := -L/usr/local/mysql/lib/mysql -I/usr/local/mysql/include/mysql -DUNIV_LINUX
 CFLAGS := $(LIBS)  -Wall -O -g -pedantic -Wshadow -Wunused -Wstrict-aliasing  
-
-RM-F := rm -f
+DESTDIR :=
+PREFIX	:=    /usr/local
+RM-F	:= rm -f
 #CXXFLAGS := $(CFLAGS) -lmysqlclient_r -lpthread -lz -lcrypt -lnsl -lm -levent 
 CXXFLAGS := $(CFLAGS) -lpthread -lz -lcrypt -lnsl -lm -levent  
 
-EXECUTABLE :=  -o server $(CXXFLAGS)
+EXECUTABLE :=  -o $(OK) $(CXXFLAGS)
 SOURCE := $(wildcard *.c)
 OBJS := $(patsubst %.c,%.o,$(SOURCE))
 
@@ -45,6 +46,13 @@ deps : $(OBJS)
 		$(CC) $(OBJS) $(CFLAGS)  $(CXXFLAGS)
 
 objs : $(OBJS)
+
+install: $(OK)
+	install -s $(OK) $(DESTDIR)$(PREFIX)/bin 
+#	install -m 644 webbench.1 $(DESTDIR)$(PREFIX)/man/man1  
+#	install -d $(DESTDIR)$(PREFIX)/share/doc/webbench
+#	install -m 644 debian/copyright $(DESTDIR)$(PREFIX)/share/doc/webbench
+#	install -m 644 debian/changelog $(DESTDIR)$(PREFIX)/share/doc/webbench
 
 clean :
 	$(RM-F) *.o

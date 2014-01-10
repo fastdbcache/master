@@ -332,16 +332,12 @@ int AuthPG(const int bfd,const int ffd){
                         conn_global->deprule){
                        
                         RQ_BUSY(isDep);
-                        DEBUG("busy %d, quotient:%d", isDep, conn_global->quotient);
+                        
                         if(isDep > conn_global->quotient){
-                            DEBUG("leadadd isDep:%d, quotient:%d", isDep, conn_global->quotient);
+
                             ply = parser_do (_hdrtmp, _apack->inEnd-_apack->inCursor);
                             if(ply){ 
-                                /*  DEPR *_depr;
-                                for(_depr = conn_global->deprule; _depr; _depr=_depr->next){
-                                    if(_depr->len == ply->len &&
-                                        !memcmp(_depr->table, ply->tab, ply->len)){
-                                 */
+                               
                                 if(strstr(conn_global->deprule, ply->tab)){
                                     leadadd ( (ub1 *)_apack->inBuf, (ub4)_apack->inEnd );                                    
                                 }
