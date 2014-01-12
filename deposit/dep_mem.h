@@ -24,7 +24,7 @@
 
 #include "../config_global.h"
 #include "dep_struct.h"
-#include "../hashtable/pool_proc.h"
+#include "../hashtable/pool_worker.h"
 
 DEST *mem_init ( size_t byte );
 void mem_set ( ub1 *key, ub4 keyl );
