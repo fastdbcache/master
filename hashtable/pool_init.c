@@ -73,9 +73,6 @@ void hcreate ( int isize ){
 
     pools_tlist = (TLIST *)calloc(1, sizeof(TLIST));
 
-    pools_ulist_head = initulist();
-    pools_ulist_tail = pools_ulist_head;
-
     max_slab = hslabclass();
 
     if(max_slab > 0){

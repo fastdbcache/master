@@ -174,20 +174,56 @@ int addHdr ( HDR *myhdr){
 int addUlist ( ULIST *mlist){
     
     if(mlist){
-        ULIST_LOCK();
-
-        pools_ulist_head->next = mlist;
-        pools_ulist_head = mlist;
-
-        ULIST_UNLOCK();
+        pushList(mlist->key, mlist->keyl, mlist->utime);
         
+        freeUList(mlist);
         return 0;
     }
 
     return -1;
 }		/* -----  end of function addulist  ----- */
 
+/*  
+* ===  FUNCTION  ======================================================================
+*         Name:  pushList
+*  Description:  
+* =====================================================================================
+*/
+void pushList ( ub1 *key, ub4 keyl, ub4 utime ){
+    TLIST *_tlist, *_t;
+
+    _tlist = pools_tlist;
+    TLIST_LOCK();
+    while ( _tlist->next ) {
+        _tlist = _tlist->next;
+        if( _tlist->keyl == keyl &&
+            !memcmp(_tlist->key, key, keyl)
+            ){
+            if(_tlist->utime < utime){
+                _tlist->utime = utime;
+            }
+            break;
+        }
+    }
+
+    if(!_tlist->next){
+        _t = calloc(1, sizeof(TLIST));
+        if(_t){
+            _t->key = (char *)calloc(keyl, sizeof(char));
+            if(_t->key){
+                memcpy(_t->key, key, keyl);
+                _t->keyl = keyl;
+                _t->utime = utime;
+                _tlist->next = _t;
+                _tlist = _t;
+            }
+        }
+    }
+    TLIST_UNLOCK();
+}       /*  -----  end of function pushList  ----- */ 
+
 /* change end */
+
 /* 
  * ===  FUNCTION  ======================================================================
  *         Name:  freeHdr

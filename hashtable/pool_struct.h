@@ -182,7 +182,6 @@ ub4 *pools_hitem_row;
 pthread_mutex_t work_lock_hit;
 pthread_mutex_t work_lock_miss;
 pthread_mutex_t work_lock_bytes;
-pthread_mutex_t work_lock_ulist;
 pthread_mutex_t work_lock_tlist;
 pthread_mutex_t work_lock_hdr;
 
@@ -191,8 +190,6 @@ HG *hitem_group;
 HDR *pools_hdr_tail;
 HDR *pools_hdr_head;
 TLIST *pools_tlist;
-ULIST *pools_ulist_head;
-ULIST *pools_ulist_tail;
 HSLAB **pools_hslab;
 
 pthread_mutex_t work_lock_fslab;
