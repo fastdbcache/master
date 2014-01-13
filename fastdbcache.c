@@ -7,6 +7,8 @@
  *
  */
 #include <error.h>
+#include <limits.h>
+#include <sys/resource.h>
 
 #include "log_lib.h"
 #include "thread_lib.h"
@@ -23,6 +25,7 @@ int main(int argc, char* argv[]){
     int listen_fd, unix_sock;
 	int h;
 	char *c, pid_file[500];
+    struct rlimit rlim;
 	ssize_t do_daemonize = 0;
     char help[]="%s -c /usr/local/etc/fdbc.conf\n \
                 Usage: \n \
@@ -64,6 +67,26 @@ int main(int argc, char* argv[]){
     if(conn_global->hasdep == H_TRUE)
         leadinit(conn_global->dmaxbytes);
 
+	if(do_daemonize == 1 || conn_global->do_daemonize == 1){
+		daemon_init(argv[0], 0);	
+		if(strlen(conn_global->pid_file) > 0)strcpy(pid_file, conn_global->pid_file);
+		else strcpy(pid_file, "/var/run/fdbcd.pid");
+
+		save_pid(getpid(), pid_file);
+	}
+    
+    if (getrlimit(RLIMIT_NOFILE, &rlim) != 0) { 
+        DEBUG("failed to getrlimit number of files");
+        exit(1);
+    } else {
+        rlim.rlim_cur = conn_global->maxconns;
+        rlim.rlim_max = conn_global->maxconns;
+        if (setrlimit(RLIMIT_NOFILE, &rlim) != 0) { 
+            DEBUG("failed to set rlimit for open files. Try starting as root or requesting smaller maxconns value.");
+            exit(1);
+        }    
+    } 
+
     hcreate(8);
     /*rq_init(MAXCONN);*/
     rq_init(256);
@@ -74,15 +97,6 @@ int main(int argc, char* argv[]){
     notify_token_thread = NT_FREE;
 
     main_base = event_init();
-
-	if(do_daemonize == 1 || conn_global->do_daemonize == 1){
-		daemon_init(argv[0], 0);	
-		if(strlen(conn_global->pid_file) > 0)strcpy(pid_file, conn_global->pid_file);
-		else strcpy(pid_file, "/var/run/fdbcd.pid");
-
-		save_pid(getpid(), pid_file);
-	}
-
     /* register moduels 
 	modules_register();*/
 
@@ -103,6 +117,8 @@ int main(int argc, char* argv[]){
 
     return 0;
 }
+
+
 
 /* vim: set ts=4 sw=4: */
 

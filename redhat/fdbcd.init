@@ -91,7 +91,6 @@ start(){
 	FDBC_START=$"Starting ${NAME} service: "
 
 	echo -n "$FDBC_START"
-
 	$SU -l postgres -c "$FDBCDAEMON -c $FDBCCONF $OPTS & " >> "$FDBCLOG" 2>&1 < /dev/null
 	sleep 2
 
@@ -114,7 +113,7 @@ stop(){
                 RETVAL=1
                 failure
         else
-		killproc /usr/bin/fdbcd
+		killproc /usr/local/bin/fdbc
 #		$FDBCDAEMON stop & >> "$FDBCLOG" 2>&1 < /dev/null
                 RETVAL=$?
                 [ $RETVAL -eq 0 ] && rm -f /var/lock/subsys/${NAME}

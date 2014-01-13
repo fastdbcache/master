@@ -52,7 +52,7 @@ HITEM *hfind ( char *key, ub4 keyl ){
 
     i = 0;
     if(!key){DEBUG("key error %d",i); return NULL;}
-
+    /*
     bzero(md5, MD5_LENG);
      
     ctx = calloc(1, sizeof(MD5_CTX));
@@ -60,9 +60,9 @@ HITEM *hfind ( char *key, ub4 keyl ){
     MD5_Update(ctx, key, keyl);
     MD5_Final(md5, ctx);
     free(ctx);
-
-    hval = lookup(md5, MD5_LENG, 0);
-    hjval = jenkins_one_at_a_time_hash(md5, MD5_LENG);
+    */
+    hval = lookup(key, keyl, 0);
+    hjval = jenkins_one_at_a_time_hash(key, keyl);
 
     tlist = pools_tlist->next;
 

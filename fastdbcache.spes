@@ -19,7 +19,6 @@ FastDBCache is for PostgreSQL to NOSQL
 %setup -c 
 #%setup -q -n %{name}-0.0.1
 
-
 %build
 make 
 

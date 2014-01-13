@@ -24,12 +24,12 @@ void on_accept(int fd, short ev, void *arg){
 	/* Accept the new connection. */
 	client_fd = accept(fd, (struct sockaddr *)&client_addr, &client_len);
 	if (client_fd == -1) {
-        err = strerror(errno);
+        /*  err = strerror(errno);
         err_len = strlen(err);
         err_log = calloc(1, err_len+10);
         sprintf(err_log, "accept-- %s", err);
 		d_log(err_log);
-        free(err_log);
+        free(err_log);*/
 		return;
 	}
     if(rq_push(client_fd) == 0){

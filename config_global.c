@@ -23,8 +23,10 @@
  *  Description:  
  * =====================================================================================
  */
-void conn_init_global ( void ){
+void conn_init_global ( void ){    
     conn_global = (_conn *)calloc(1, sizeof(_conn));
+    conn_global->maxconns = MAXCONNS; 
+
     conn_global->server_ip = "localhost";
     conn_global->server_port = 2345;
 
@@ -59,7 +61,8 @@ void conn_init_global ( void ){
  * =====================================================================================
  */
 void conn_get_global (  ){
-
+    conn_global->maxconns = atoi(conf_get("max_openfile"));
+    
     conn_global->server_ip = conf_get("server_ip");
     conn_global->server_port = atoi(conf_get("server_port"));
 

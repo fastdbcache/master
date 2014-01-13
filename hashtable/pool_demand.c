@@ -285,7 +285,7 @@ int RowItem ( char *key, ssize_t keyl, int frontend , ssize_t nfields ){
 
     if(!key) return 0;
     if(keyl<1) return 0;
-
+    /*
     bzero(md5, MD5_LENG);
 
     ctx = calloc(1, sizeof(MD5_CTX));
@@ -293,9 +293,9 @@ int RowItem ( char *key, ssize_t keyl, int frontend , ssize_t nfields ){
     MD5_Update(ctx, key, keyl);
     MD5_Final(md5, ctx);
     free(ctx);
-
-    hval = lookup(md5, MD5_LENG, 0);
-    hjval = jenkins_one_at_a_time_hash(md5, MD5_LENG);
+  */
+    hval = lookup(key, keyl, 0);
+    hjval = jenkins_one_at_a_time_hash(key, keyl);
 
 
     HITEM_SWITCH((y=(hval&pools_htab->mask)));
