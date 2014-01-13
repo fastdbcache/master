@@ -35,27 +35,7 @@ cp %{_topdir}/BUILD/%{name}-%{version}/etc/fdbc.conf %{buildroot}/usr/local/etc/
 mkdir -p %{buildroot}/etc/init.d/
 cp %{_topdir}/BUILD/%{name}-%{version}/redhat/fdbcd.init %{buildroot}/etc/init.d/fdbcd
 
-# remove memcached-debug
-#rm -f /usr/local/bin/fdbc
 
-# Perl script for monitoring memcached
-#install -Dp -m0755 scripts/memcached-tool %{buildroot}%{_bindir}/memcached-tool
-
-# Init script
-#install -Dp -m0755 scripts/memcached.sysv %{buildroot}%{_initrddir}/memcached
-
-# Default configs
-#mkdir -p %{buildroot}/%{_sysconfdir}/sysconfig
-#cat <<EOF >%{buildroot}/%{_sysconfdir}/sysconfig/%{name}
-#PORT="11211"
-#USER="nobody"
-#MAXCONN="1024"
-#CACHESIZE="64"
-#OPTIONS=""
-#EOF
-
-# pid directory
-#mkdir -p %{buildroot}/%{_localstatedir}/run/memcached
 
 %clean
 rm -rf  /usr/local/bin/fdbc
@@ -85,12 +65,6 @@ exit 0
 /usr/local/etc/fdbc.conf
 /etc/init.d/fdbcd
 
-%dir %attr(750,nobody,nobody)
-#%{_bindir}/memcached-tool
-/usr/local/bin/fdbc
-#%{_mandir}/man1/memcached.1*
-#%{_initrddir}/memcached
-#%{_includedir}/memcached
 
 %changelog
 * Sun Jan 12 2014 vyouzhi <vyouzhi@gmail.com> - 0.0.1
