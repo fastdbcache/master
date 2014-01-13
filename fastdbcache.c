@@ -24,9 +24,9 @@ int main(int argc, char* argv[]){
 	int h;
 	char *c, pid_file[500];
 	ssize_t do_daemonize = 0;
-    char help[]="%s -c /usr/local/etc/fdbc.cnf\n \
+    char help[]="%s -c /usr/local/etc/fdbc.conf\n \
                 Usage: \n \
-                -c which loading fdbc.cnf \n \
+                -c which loading fdbc.conf \n \
                 -d daemon run \n";
 
 
@@ -78,7 +78,7 @@ int main(int argc, char* argv[]){
 	if(do_daemonize == 1 || conn_global->do_daemonize == 1){
 		daemon_init(argv[0], 0);	
 		if(strlen(conn_global->pid_file) > 0)strcpy(pid_file, conn_global->pid_file);
-		else strcpy(pid_file, "/var/run/strawberry.pid");
+		else strcpy(pid_file, "/var/run/fdbcd.pid");
 
 		save_pid(getpid(), pid_file);
 	}

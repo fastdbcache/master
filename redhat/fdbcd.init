@@ -1,0 +1,197 @@
+#!/bin/sh
+# fdbcd    This is the init script for starting up fdbcd for PostgreSQL
+#
+# chkconfig: - 64 36
+# description: Starts and stops the fdbcd daemon
+# processname: 
+# pidfile:	/var/run/fdbcd.pid
+#
+# v0.0.1 vyouzhi <vyouzhi@gmail.com>
+# - Initial version of Red Hat / Fedora init script
+#
+# - Fix logging.
+
+if [ -r /etc/sysconfig/fdbcd ]; then
+    . /etc/sysconfig/fdbcd
+fi
+
+# Source function library.
+INITD=/etc/rc.d/init.d
+. $INITD/functions
+
+# Get function listing for cross-distribution logic.
+TYPESET=`typeset -f|grep "declare"`
+
+# Get config.
+. /etc/sysconfig/network
+
+# Check that networking is up.
+# We need it for fdbcd
+[ "${NETWORKING}" = "no" ] && exit 0
+
+# Find the name of the script
+NAME=`basename $0`
+if [ ${NAME:0:1} = "S" -o ${NAME:0:1} = "K" ]
+then
+	NAME=${NAME:3}
+fi
+
+# For SELinux we need to use 'runuser' not 'su'
+if [ -x /sbin/runuser ]
+then
+    SU=runuser
+else
+    SU=su
+fi
+
+# Set defaults for configuration variables
+FDBCENGINE=/usr/local/bin
+FDBCDAEMON=$FDBCENGINE/fdbc
+FDBCCONF=/usr/local/etc/fdbc.conf
+FDBCPIDDIR=/var/run/
+FDBCLOG=/var/log/fdbcd.log
+OPTS=-d 
+test -x $FDBCDAEMON || exit 5
+
+# Check whether the config file exists or not
+if [ ! -r $FDBCCONF ]
+then
+	echo "$FDBCCONF not found"
+	RETVAL=1
+	failure	
+	exit
+fi
+
+# Create the log file if it does not exist
+if [ ! -x $FDBCLOG ]
+then
+	touch $FDBCLOG
+	chown postgres: $FDBCLOG
+fi
+
+if [ ! -d $FDBCPIDDIR ]
+then
+	mkdir $FDBCPIDDIR
+	chown postgres: $FDBCPIDDIR
+fi
+
+script_result=0
+
+start(){
+	pid=`pidof -s "$FDBCDAEMON"`
+	if [ $pid ]
+	then
+		echo "fdbcd is already running with pid $pid"
+		failure "$FDBC_START"
+		echo
+		script_result=1
+		exit 1
+	fi
+
+	FDBC_START=$"Starting ${NAME} service: "
+
+	echo -n "$FDBC_START"
+
+	$SU -l postgres -c "$FDBCDAEMON -c $FDBCCONF $OPTS & " >> "$FDBCLOG" 2>&1 < /dev/null
+	sleep 2
+
+	pid=`pidof -s "$FDBCDAEMON"`
+	if [ $pid ] 
+	then
+		success "$FDBC_START"
+		touch /var/lock/subsys/${NAME}
+		echo
+	else
+		failure "$FDBC_START"
+		echo
+		script_result=1
+	fi
+}
+
+stop(){
+	echo -n $"Stopping ${NAME} service: "
+        if [ $UID -ne 0 ]; then
+                RETVAL=1
+                failure
+        else
+		killproc /usr/bin/fdbcd
+#		$FDBCDAEMON stop & >> "$FDBCLOG" 2>&1 < /dev/null
+                RETVAL=$?
+                [ $RETVAL -eq 0 ] && rm -f /var/lock/subsys/${NAME}
+        fi;
+        echo
+        return $RETVAL
+}
+
+switch() {
+	echo -n $"Sending switchover request to $NAME "
+	$FDBCDAEMON -f $FDBCCONF switch >> "$FDBCLOG" 2>&1 < /dev/null
+	RETVAL=$?
+	echo
+	if [ $RETVAL -eq 0 ] 
+	then
+		echo_success
+	else
+		echo_failure
+	fi
+	echo
+}
+
+restart(){
+    stop
+    start
+}
+
+reload(){
+	echo -n $"Reloading ${NAME}: "
+
+	if [ -n "`pidfileofproc $FDBCDAEMON`" ] ; then
+		killproc $FDBCDAEMON -HUP
+	else
+		failure $"Reloading ${NAME}"
+	fi
+	RETVAL=$?
+	echo
+}
+
+condrestart(){
+	[ -e /var/lock/subsys/${NAME} ] && restart
+}
+
+condstop(){
+	[ -e /var/lock/subsys/${NAME} ] && stop
+}
+
+# See how we were called.
+case "$1" in
+  start)
+        start
+        ;;
+  stop)
+        stop
+        ;;
+  switch)
+        switch
+        ;;
+  status)
+        status fdbcd
+        script_result=$?
+        ;;
+  restart)
+        restart
+        ;;
+  reload|force-reload)
+        reload
+        ;;
+  condrestart)
+        condrestart
+        ;;
+  condstop)
+        condstop
+        ;;
+  *)
+        echo $"Usage: $0 {start|stop|switch|status|restart|condrestart|condstop|reload|force-reload}"
+        exit 1
+esac
+
+exit $script_result
