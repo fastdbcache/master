@@ -31,7 +31,8 @@ rm -rf /usr/local/bin/fdbc
 rm -rf %{buildroot}
 mkdir -p %{buildroot}/usr/local/bin
 make install DESTDIR=$RPM_BUILD_ROOT
-#cp fdbc %{buildroot}/usr/local/bin/fdbc
+mkdir -p %{buildroot}/usr/local/etc
+cp %{_topdir}/BUILD/%{name}-%{version}/etc/fdbc.cnf %{buildroot}/usr/local/etc/fdbc.cnf
 
 
 # remove memcached-debug
@@ -81,7 +82,7 @@ rm -rf  /usr/local/bin/fdbc
 %defattr(-,root,root,-)
 %doc ReadMe
 /usr/local/bin/fdbc
-
+/usr/local/etc/fdbc.cnf
 
 %dir %attr(750,nobody,nobody)
 #%{_bindir}/memcached-tool
