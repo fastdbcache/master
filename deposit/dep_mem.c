@@ -149,10 +149,10 @@ int mem_pushdb ( DBP *_dbp ){
         _dbp->inBuf = _depo->sm+_depo->ss;
         _dbp->inEnd = _lens+sizeof(char)+sizeof(uint32);
         _depo->ss += _dbp->inEnd;
-        
+
+        pools_dest->isfull = H_FALSE; 
+
     return 0;
 }		/* -----  end of function mem_pushdb  ----- */
 
  /* vim: set ts=4 sw=4: */
-
-
