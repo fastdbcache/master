@@ -67,6 +67,7 @@ void mem_set ( ub1 *key, ub4 keyl ){
     if(_depo->se + _lens > LIMIT_SLAB_BYTE){
         if(_dest->fe == H_FREE){
             _dest->sd = 0; 
+            _dest->fe=H_USE;
         }else{
             _dest->pool_depo[_dest->sd++] = deposit_init();            
             _dest->count++;
@@ -102,14 +103,19 @@ int mem_pushdb ( DBP *_dbp ){
     if(!_dbp) return -1;
      
     _depo = _dest->pool_depo[_dest->sd];
-    if(!_depo) return -1;
+    if(!_depo){
+        pools_dest->fe = H_FREE;
+        return -1;
+    }
     
     if(_depo->sp == _depo->se &&
         _depo->ss == _depo->se){
-        if(_dest->sd == _dest->nd)
+        if(_dest->sd == _dest->nd){
+            pools_dest->fe = H_FREE;
             return -1;
-        else
+        }else{`
             _dest->sd++;
+        }
     }
     _depo->sp = _depo->se;       
 
