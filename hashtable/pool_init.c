@@ -83,7 +83,6 @@ void hcreate ( int isize ){
     pthread_mutex_init(&work_lock_hit, NULL);
     pthread_mutex_init(&work_lock_miss, NULL);
     pthread_mutex_init(&work_lock_bytes, NULL);
-    pthread_mutex_init(&work_lock_ulist, NULL);
     pthread_mutex_init(&work_lock_tlist, NULL);
     pthread_mutex_init(&work_lock_hdr, NULL);
 
