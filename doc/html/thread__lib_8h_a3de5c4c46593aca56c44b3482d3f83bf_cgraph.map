@@ -1,7 +1,0 @@
-<map id="G" name="G">
-<area shape="rect" id="node3" href="$log__lib_8c.html#a2b52cdbe46ce30c842d4ab36ca9fe052" title="d_log" alt="" coords="424,111,480,140"/>
-<area shape="rect" id="node5" href="$thread__lib_8c.html#a3fbea3c610df1ca3573dbeba2a6bc828" title="libevent_token_thread" alt="" coords="196,5,369,35"/>
-<area shape="rect" id="node9" href="$thread__lib_8c.html#a21be82a7539e180dc095cde37e71185d" title="main_token_thread" alt="" coords="207,109,359,139"/>
-<area shape="rect" id="node11" href="$thread__lib_8c.html#aa386ef0ef688eeeaccbc7d36dba660e3" title="setup_token" alt="" coords="229,163,336,192"/>
-<area shape="rect" id="node7" href="$thread__lib_8c.html#a27f32dd63f1b359c3f46c70afb2c053c" title="rq_pop" alt="" coords="419,5,485,35"/>
-</map>

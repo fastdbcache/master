@@ -146,7 +146,6 @@ int mem_pushdb ( DBP *_dbp ){
 
         free(ply->tab);
         free(ply);
-        DEBUG("sm:%c, ss:%d", *_depo->sm, _depo->ss);
         _dbp->inBuf = _depo->sm+_depo->ss;
         _dbp->inEnd = _lens+sizeof(char)+sizeof(uint32);
         _depo->ss += _dbp->inEnd;

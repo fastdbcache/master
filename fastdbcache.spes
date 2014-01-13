@@ -2,12 +2,15 @@ Name:           fastdbcache
 Version:        0.0.1
 Release:        1%{?dist}
 Summary:        High Performance, Distributed Memory Object Cache
-
+Vendor:		vyouzhi
 Group:          System Environment/Daemons
 License:        BSD
 URL:            http://www.0101.com
 Source0:        fastdbcache-0.0.1.tar.gz
 BuildRoot:      %{_tmppath}/%{name}-%{version}-%(%{__id_u} -n)
+Autoreq : yes
+Autoreqprov : yes
+Autoprov : yes
 
 %description
 FastDBCache is for PostgreSQL to NOSQL
@@ -16,7 +19,6 @@ FastDBCache is for PostgreSQL to NOSQL
 %setup -c 
 #%setup -q -n %{name}-0.0.1
 
-
 %build
 make 
 
@@ -24,64 +26,45 @@ make
 #make test
 
 %install
-#rm -rf /usr/local/bin/fdbc
-#make install
-cp fdbc /usr/local/bin/
+rm -rf /usr/local/bin/fdbc
+rm -rf %{buildroot}
+mkdir -p %{buildroot}/usr/local/bin
+make install DESTDIR=$RPM_BUILD_ROOT
+mkdir -p %{buildroot}/usr/local/etc
+cp %{_topdir}/BUILD/%{name}-%{version}/etc/fdbc.conf %{buildroot}/usr/local/etc/fdbc.conf
+mkdir -p %{buildroot}/etc/init.d/
+cp %{_topdir}/BUILD/%{name}-%{version}/redhat/fdbcd.init %{buildroot}/etc/init.d/fdbcd
 
-# remove memcached-debug
-#rm -f /usr/local/bin/fdbc
 
-# Perl script for monitoring memcached
-#install -Dp -m0755 scripts/memcached-tool %{buildroot}%{_bindir}/memcached-tool
-
-# Init script
-#install -Dp -m0755 scripts/memcached.sysv %{buildroot}%{_initrddir}/memcached
-
-# Default configs
-#mkdir -p %{buildroot}/%{_sysconfdir}/sysconfig
-#cat <<EOF >%{buildroot}/%{_sysconfdir}/sysconfig/%{name}
-#PORT="11211"
-#USER="nobody"
-#MAXCONN="1024"
-#CACHESIZE="64"
-#OPTIONS=""
-#EOF
-
-# pid directory
-#mkdir -p %{buildroot}/%{_localstatedir}/run/memcached
 
 %clean
 rm -rf  /usr/local/bin/fdbc
 
 
-#%post
-#/sbin/chkconfig --add %{name}
+%post
+/sbin/chkconfig --add fdbcd
 
-#%preun
-#if [ "$1" = 0 ] ; then
-#    /sbin/service %{name} stop > /dev/null 2>&1
-#    /sbin/chkconfig --del %{name}
-#fi
-#exit 0
+%preun
+if [ "$1" = 0 ] ; then
+    /sbin/service fdbcd stop > /dev/null 2>&1
+    /sbin/chkconfig --del fdbcd
+fi
+exit 0
 
-#%postun
-#if [ "$1" -ge 1 ]; then
-#    /sbin/service %{name} condrestart > /dev/null 2>&1
-#fi
-#exit 0
+%postun
+if [ "$1" -ge 1 ]; then
+    /sbin/service fdbcd condrestart > /dev/null 2>&1
+fi
+exit 0
 
 
 %files
-%doc README
+%defattr(-,root,root,-)
+%doc ReadMe
 /usr/local/bin/fdbc
+/usr/local/etc/fdbc.conf
+/etc/init.d/fdbcd
 
-
-#%dir %attr(750,nobody,nobody) %{_localstatedir}/run/memcached
-#%{_bindir}/memcached-tool
-#%{_bindir}/memcached
-#%{_mandir}/man1/memcached.1*
-#%{_initrddir}/memcached
-#%{_includedir}/memcached
 
 %changelog
 * Sun Jan 12 2014 vyouzhi <vyouzhi@gmail.com> - 0.0.1

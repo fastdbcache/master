@@ -1,9 +1,0 @@
-<map id="G" name="G">
-<area shape="rect" id="node3" href="$config__global_8h.html#ab3fdc9ba0f0da4db729cec9b295fb6fb" title="conn_get_global" alt="" coords="352,5,483,35"/>
-<area shape="rect" id="node7" href="$thread__lib_8h.html#ae1cbb978768e1e410de39dd9adf3ce2e" title="libevent_work_thread" alt="" coords="137,59,303,88"/>
-<area shape="rect" id="node14" href="$socket__lib_8h.html#adbc6d31b97579067da5bcf680e1803b5" title="server_socket_unix" alt="" coords="531,111,683,140"/>
-<area shape="rect" id="node17" href="$socket__lib_8h.html#ae4aca315d84a8a70bd60f11280048efe" title="Socket_Init" alt="" coords="171,163,269,192"/>
-<area shape="rect" id="node5" href="$strawberry_8c.html#a0ddf1224851353fc92bfbff6f499fa97" title="main" alt="" coords="732,84,785,113"/>
-<area shape="rect" id="node9" href="$thread__lib_8h.html#abca92f29174fa6b30f9b90458ffb5982" title="setup_thread" alt="" coords="361,59,473,88"/>
-<area shape="rect" id="node11" href="$thread__lib_8h.html#a91d70880b8de5d73665d2d9a7e46cd72" title="work_thread_init" alt="" coords="540,57,673,87"/>
-</map>

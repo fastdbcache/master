@@ -23,19 +23,21 @@
  *  Description:  
  * =====================================================================================
  */
-void conn_init_global ( void ){
+void conn_init_global ( void ){    
     conn_global = (_conn *)calloc(1, sizeof(_conn));
+    conn_global->maxconns = MAXCONNS; 
+
     conn_global->server_ip = "localhost";
-    conn_global->server_port = 8008;
+    conn_global->server_port = 2345;
 
     conn_global->unix_sock = 0;
-    conn_global->path = "/tmp/sqlproxy.sock";
+    conn_global->path = "/tmp/fdbcd.sock";
 
     conn_global->pg_host = "localhost";
     conn_global->pg_port = 5432;
 
     conn_global->do_daemonize = 0;
-    conn_global->pid_file = "/var/run/server.pid";
+    conn_global->pid_file = "/var/run/fdbcd.pid";
 
     conn_global->process_num = 2;
 
@@ -59,7 +61,8 @@ void conn_init_global ( void ){
  * =====================================================================================
  */
 void conn_get_global (  ){
-
+    conn_global->maxconns = atoi(conf_get("max_openfile"));
+    
     conn_global->server_ip = conf_get("server_ip");
     conn_global->server_port = atoi(conf_get("server_port"));
 

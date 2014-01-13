@@ -80,9 +80,7 @@ void libevent_work_thread(int fd, short ev, void *arg){
     err:
         if(close(work_child->rq_item->frontend->ffd) == -1)DEBUG("close fd error");
         work_child->rq_item->isjob = JOB_FREE;
-        work_child->isjob = JOB_FREE;
-        printf("end\n");
-        
+        work_child->isjob = JOB_FREE;        
 }
 
 void work_thread_init(int nthreads){

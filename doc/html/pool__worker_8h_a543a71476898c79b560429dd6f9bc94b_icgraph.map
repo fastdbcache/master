@@ -1,9 +1,0 @@
-<map id="G" name="G">
-<area shape="rect" id="node3" href="$pool__worker_8h.html#aba06a56a40ecc27b63d4d3851902d882" title="addHdr" alt="" coords="131,5,200,35"/>
-<area shape="rect" id="node7" href="$pg__protocol_8h.html#a2e80fd727d460b3d797b3ec4b2620f52" title="AuthPG" alt="" coords="129,59,201,88"/>
-<area shape="rect" id="node5" href="$test__hashtable_8c.html#a0ddf1224851353fc92bfbff6f499fa97" title="main" alt="" coords="308,5,361,35"/>
-<area shape="rect" id="node9" href="$thread__lib_8h.html#ae1cbb978768e1e410de39dd9adf3ce2e" title="libevent_work_thread" alt="" coords="252,59,417,88"/>
-<area shape="rect" id="node11" href="$thread__lib_8h.html#abca92f29174fa6b30f9b90458ffb5982" title="setup_thread" alt="" coords="468,59,580,88"/>
-<area shape="rect" id="node13" href="$thread__lib_8h.html#a91d70880b8de5d73665d2d9a7e46cd72" title="work_thread_init" alt="" coords="629,59,763,88"/>
-<area shape="rect" id="node15" href="$strawberry_8c.html#a0ddf1224851353fc92bfbff6f499fa97" title="main" alt="" coords="812,59,865,88"/>
-</map>

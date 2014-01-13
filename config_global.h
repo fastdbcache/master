@@ -78,6 +78,8 @@ typedef                 int  word;  /* fastest type available */
 
 #define MD5_LENG 33
 
+#define MAXCONNS 1024
+
 #define bis(target,mask)  ((target) |=  (mask))
 #define bic(target,mask)  ((target) &= ~(mask))
 #define bit(target,mask)  ((target) &   (mask))
@@ -187,6 +189,7 @@ pthread_mutex_t session_slot_lock;
 typedef struct __conn _conn;
 struct __conn{
     char *fdbc;  /* version for fastdbcache */
+    int maxconns;  /* rlimit */
 
     char *server_ip;   /* server listen ip */
     ssize_t server_port; /* server listen port */
