@@ -31,7 +31,7 @@ rm -rf %{buildroot}
 mkdir -p %{buildroot}/usr/local/bin
 make install DESTDIR=$RPM_BUILD_ROOT
 mkdir -p %{buildroot}/usr/local/etc
-cp %{_topdir}/BUILD/%{name}-%{version}/etc/fdbc.cnf %{buildroot}/usr/local/etc/fdbc.cnf
+cp %{_topdir}/BUILD/%{name}-%{version}/etc/fdbc.conf %{buildroot}/usr/local/etc/fdbc.conf
 mkdir -p %{buildroot}/etc/init.d/
 cp %{_topdir}/BUILD/%{name}-%{version}/redhat/fdbcd.init %{buildroot}/etc/init.d/fdbcd
 
@@ -82,7 +82,7 @@ exit 0
 %defattr(-,root,root,-)
 %doc ReadMe
 /usr/local/bin/fdbc
-/usr/local/etc/fdbc.cnf
+/usr/local/etc/fdbc.conf
 /etc/init.d/fdbcd
 
 %dir %attr(750,nobody,nobody)
