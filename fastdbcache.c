@@ -24,16 +24,16 @@ int main(int argc, char* argv[]){
 	int h;
 	char *c, pid_file[500];
 	ssize_t do_daemonize = 0;
-    char help[]=" -c etc/suning.cnf\n \
+    char help[]="%s -c etc/fdbc.cnf\n \
                 Usage: \n \
-                -c which loading suning.cnf \n \
+                -c which loading fdbc.cnf \n \
                 -d daemon run \n";
 
 
     set_signal();
 
     if(argc < 2){
-        printf("%s%s\n", argv[0], help);
+        printf(help, argv[0]);
         exit(-1);
     }
     c = NULL;
