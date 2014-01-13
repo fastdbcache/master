@@ -1,6 +1,0 @@
-<map id="G" name="G">
-<area shape="rect" id="node3" href="$conf__lib_8c.html#aa34b509b14cc5e81b12c856549b62525" title="conf_get" alt="" coords="233,5,316,35"/>
-<area shape="rect" id="node5" href="$socket__lib_8c.html#ae96501e49e830c477c501bafe9c83137" title="new_socket_unix" alt="" coords="207,59,343,88"/>
-<area shape="rect" id="node7" href="$log__lib_8c.html#a2b52cdbe46ce30c842d4ab36ca9fe052" title="d_log" alt="" coords="568,59,624,88"/>
-<area shape="rect" id="node9" href="$socket__lib_8c.html#afc68895a1a9ae77b37396a038760c81b" title="SetNonBlocking" alt="" coords="393,84,519,113"/>
-</map>
