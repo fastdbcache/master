@@ -2,12 +2,15 @@ Name:           fastdbcache
 Version:        0.0.1
 Release:        1%{?dist}
 Summary:        High Performance, Distributed Memory Object Cache
-
+Vendor:		vyouzhi
 Group:          System Environment/Daemons
 License:        BSD
 URL:            http://www.0101.com
 Source0:        fastdbcache-0.0.1.tar.gz
 BuildRoot:      %{_tmppath}/%{name}-%{version}-%(%{__id_u} -n)
+Autoreq : yes
+Autoreqprov : yes
+Autoprov : yes
 
 %description
 FastDBCache is for PostgreSQL to NOSQL
@@ -24,9 +27,12 @@ make
 #make test
 
 %install
-#rm -rf /usr/local/bin/fdbc
-#make install
-cp fdbc /usr/local/bin/
+rm -rf /usr/local/bin/fdbc
+rm -rf %{buildroot}
+mkdir -p %{buildroot}/usr/local/bin
+make install DESTDIR=$RPM_BUILD_ROOT
+#cp fdbc %{buildroot}/usr/local/bin/fdbc
+
 
 # remove memcached-debug
 #rm -f /usr/local/bin/fdbc
@@ -72,13 +78,14 @@ rm -rf  /usr/local/bin/fdbc
 
 
 %files
-%doc README
+%defattr(-,root,root,-)
+%doc ReadMe
 /usr/local/bin/fdbc
 
 
-#%dir %attr(750,nobody,nobody) %{_localstatedir}/run/memcached
+%dir %attr(750,nobody,nobody)
 #%{_bindir}/memcached-tool
-#%{_bindir}/memcached
+/usr/local/bin/fdbc
 #%{_mandir}/man1/memcached.1*
 #%{_initrddir}/memcached
 #%{_includedir}/memcached
