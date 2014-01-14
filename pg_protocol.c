@@ -218,11 +218,14 @@ int AuthPG(const int bfd,const int ffd){
             conn_global->hasdep == H_TRUE){
             
             if(pools_dest->isfull == H_TRUE){                
+                
                 isDep = conn_global->quotient+1;
+                DEBUG("isDep:%d", isDep);
             }else{
-                RQ_FREE(isDep);
+                RQ_BUSY(isDep);
+                DEBUG("free isDep:%d", isDep);
             }
-            if(isDep > conn_global->quotient &&
+            if(isDep < conn_global->quotient &&
                 pools_dest->doing == H_FALSE){                                
                 DEP_DO_LOCK();
                 if(pools_dest->doing == H_FALSE){

@@ -111,7 +111,7 @@ int mem_set ( ub1 *key, ub4 keyl ){
     _depo->se += _lens;
  
     DEPO_UNLOCK();
-
+    DEBUG("nd:%d, sp:%d, ss:%d, se:%d",_dest->nd, _depo->sp, _depo->ss, _depo->se);
     return 0;
 }		/* -----  end of function mem_set  ----- */
 
@@ -125,7 +125,7 @@ int mem_set ( ub1 *key, ub4 keyl ){
 int mem_pushdb ( DBP *_dbp ){
     DEST *_dest = pools_dest; 
     DEPO *_depo;      
-    uint32 _lens;
+    uint32 _lens, offset;
     _ly *ply;
     long utime;
         
@@ -136,7 +136,7 @@ int mem_pushdb ( DBP *_dbp ){
         DEBUG("_depo is null");
         return -1;
     }
-    
+    DEBUG("nd:%d, sp:%d, ss:%d, se:%d",_dest->nd, _depo->sp, _depo->ss, _depo->se); 
     if(_depo->sp == _depo->se &&
         _depo->ss == _depo->se){
 
@@ -201,7 +201,10 @@ int mem_pushdb ( DBP *_dbp ){
         free(ply);
         _dbp->inBuf = _depo->sm+_depo->ss;
         _dbp->inEnd = _lens+sizeof(char)+sizeof(uint32);
-        _depo->ss += _dbp->inEnd;
+        offset = _dbp->inEnd;
+        if (offset % CHUNK_ALIGN_BYTES)
+            offset += CHUNK_ALIGN_BYTES - (offset % CHUNK_ALIGN_BYTES);
+        _depo->ss += offset;
 
        // pools_dest->isfull = H_FALSE; 
 
