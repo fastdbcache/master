@@ -58,8 +58,14 @@ int mem_set ( ub1 *key, ub4 keyl ){
     DEPO *_depo;
     ub4  _lens;
    
-    if(!_dest)  return -1;
-    if(keyl > LIMIT_SLAB_BYTE) return -1;
+    if(!_dest){  
+        DEBUG("pools_dest is null");
+        return -1;
+    }
+    if(keyl > (LIMIT_SLAB_BYTE)){ 
+        DEBUG("keyl is too big %d", keyl);
+        return -1;
+    }
 
     _lens = keyl;
     if (_lens % CHUNK_ALIGN_BYTES)
@@ -76,7 +82,7 @@ int mem_set ( ub1 *key, ub4 keyl ){
                 _depo->ss == _depo->se){
             _dest->sd = 0;
             _dest->nd = 0;
-            _depo->isfull = H_FALSE;
+            _dest->isfull = H_FALSE;
         }else {
             _dest->isfull = H_TRUE;
             DEBUG("sd is eq total");
@@ -133,19 +139,19 @@ int mem_pushdb ( DBP *_dbp ){
     if(_depo->sp == _depo->se &&
         _depo->ss == _depo->se){
 
-            if(_dest->sd == _dest->nd){                
-                return -1;
-            }else if(_dest->nd < (_dest->total-1)){
-                
-                _depo->sp=0;
-                _depo->ss=0;
-                _depo->se=0;
-                _dest->nd++;
-            }else{
-                _dest->nd = 0;                
-            }
-            _depo = _dest->pool_depo[_dest->nd];
+        if(_dest->sd == _dest->nd){                
+            return -1;
+        }else if(_dest->nd < (_dest->total-1)){
+            
+            _depo->sp=0;
+            _depo->ss=0;
+            _depo->se=0;
+            _dest->nd++;
+        }else{
+            _dest->nd = 0;                
         }
+        _depo = _dest->pool_depo[_dest->nd];
+        
     }
     _depo->sp = _depo->se;       
 
