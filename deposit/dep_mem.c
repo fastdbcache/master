@@ -133,13 +133,15 @@ int mem_pushdb ( DBP *_dbp ){
      
     _depo = _dest->pool_depo[_dest->nd];
     if(!_depo){
+        DEBUG("_depo is null");
         return -1;
     }
     
     if(_depo->sp == _depo->se &&
         _depo->ss == _depo->se){
 
-        if(_dest->sd == _dest->nd){                
+        if(_dest->sd == _dest->nd){
+            DEBUG("sd eq nd");
             return -1;
         }else if(_dest->nd < (_dest->total-1)){
             
@@ -157,8 +159,14 @@ int mem_pushdb ( DBP *_dbp ){
 
     loop_depo: 
 
-        if(!_depo->sm) return -1;
-        if(_depo->ss == _depo->sp) return -1;
+        if(!_depo->sm){ 
+            DEBUG("sm is null");
+            return -1;
+        }
+        if(_depo->ss == _depo->sp){
+            DEBUG("ss eq sp");
+            return -1;
+        }
 
         if(*(_depo->sm+_depo->ss) != 'Q'){
             _depo->ss++;
@@ -178,7 +186,10 @@ int mem_pushdb ( DBP *_dbp ){
             /* DEBUG("ply is null %s", _u->key);*/
 
             _depo->ss += _lens + sizeof(char) + sizeof(uint32);
-            if(_depo->ss == _depo->sp) return -1;
+            if(_depo->ss == _depo->sp){ 
+                DEBUG("ply is null");
+                return -1;
+            }
 
             goto loop_depo;
         }
