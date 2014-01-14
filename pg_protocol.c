@@ -342,7 +342,9 @@ int AuthPG(const int bfd,const int ffd){
                             if(ply){ 
                                
                                 if(strstr(conn_global->deprule, ply->tab)){
-                                    leadadd ( (ub1 *)_apack->inBuf, (ub4)_apack->inEnd );                                    
+                                    if(-1 == leadadd ( (ub1 *)_apack->inBuf, (ub4)_apack->inEnd )){
+                                        goto leaderr;
+                                    }                                    
                                 }
                                 
                                 int ii;
@@ -362,7 +364,9 @@ int AuthPG(const int bfd,const int ffd){
                             }else DEBUG("ply error len:%d :%s",_apack->inEnd-_apack->inCursor, _hdrtmp);
                         }
                     }
-                    
+                    leaderr:
+                        DEBUG("deposit is full");
+
                     _ulist = initulist();
                     if(_ulist &&
                         ply){

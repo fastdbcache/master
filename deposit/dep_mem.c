@@ -29,6 +29,7 @@ DEST *mem_init ( size_t byte ){
 
     num = (int)(byte / (LIMIT_SLAB_BYTE));
     _dest = calloc(1, sizeof(DEST));
+    _dest->total = num;
     _dest->maxbyte = byte;
     _dest->count = 1;
     _dest->isfull = H_FALSE;
@@ -52,38 +53,60 @@ DEST *mem_init ( size_t byte ){
  *  Description:  
  * =====================================================================================
  */
-void mem_set ( ub1 *key, ub4 keyl ){
+int mem_set ( ub1 *key, ub4 keyl ){
     DEST *_dest = pools_dest; 
     DEPO *_depo;
     ub4  _lens;
    
-    if(!_dest)  return;
+    if(!_dest)  return -1;
+    if(keyl > LIMIT_SLAB_BYTE) return -1;
+
     _lens = keyl;
     if (_lens % CHUNK_ALIGN_BYTES)
             _lens += CHUNK_ALIGN_BYTES - (_lens % CHUNK_ALIGN_BYTES);
     /* _end = (LIMIT_SLAB_BYTE / _len); */
     DEPO_LOCK();
     _depo = _dest->pool_depo[_dest->sd];
-    if(_depo->se + _lens > LIMIT_SLAB_BYTE){
-        if(_dest->fe == H_FREE){
-            _dest->sd = 0; 
-            _dest->fe=H_USE;
-        }else{
-            _dest->pool_depo[_dest->sd++] = deposit_init();            
-            _dest->count++;
+    if(_depo->se + _lens > LIMIT_SLAB_BYTE){        
+
+        if(_dest->sd < (_dest->total-1) &&
+            (_dest->sd+1) != _dest->nd){
+            _dest->sd++;
+        }else if(_dest->sd == _dest->nd &&
+                _depo->ss == _depo->se){
+            _dest->sd = 0;
+            _dest->nd = 0;
+            _depo->isfull = H_FALSE;
+        }else {
+            _dest->isfull = H_TRUE;
+            DEBUG("sd is eq total");
+            return -1;
         }
+        
         _depo = _dest->pool_depo[_dest->sd];
+        _depo->ss=0;
+        _depo->sp=0;
+        _depo->se=0;
     }
     if(!_depo->sm) {
+        if(_dest->count * LIMIT_SLAB_BYTE > _dest->maxbyte) {
+            DEBUG("isfull is H_TRUE, can't malloc");
+            return -1;    
+        }
         _depo->sm = calloc(1, LIMIT_SLAB_BYTE*sizeof(char));
+        if(!_depo->sm){
+            DEBUG("malloc error");
+            return -1;
+        }
+        _dest->count++;
     }
+    
     memcpy(_depo->sm+_depo->se, key, keyl);
     _depo->se += _lens;
-    if(_dest->count * LIMIT_SLAB_BYTE >= _dest->maxbyte){
-        _dest->isfull = H_TRUE;
-    }
+ 
     DEPO_UNLOCK();
 
+    return 0;
 }		/* -----  end of function mem_set  ----- */
 
 
@@ -102,19 +125,26 @@ int mem_pushdb ( DBP *_dbp ){
         
     if(!_dbp) return -1;
      
-    _depo = _dest->pool_depo[_dest->sd];
+    _depo = _dest->pool_depo[_dest->nd];
     if(!_depo){
-        pools_dest->fe = H_FREE;
         return -1;
     }
     
     if(_depo->sp == _depo->se &&
         _depo->ss == _depo->se){
-        if(_dest->sd == _dest->nd){
-            pools_dest->fe = H_FREE;
-            return -1;
-        }else{`
-            _dest->sd++;
+
+            if(_dest->sd == _dest->nd){                
+                return -1;
+            }else if(_dest->nd < (_dest->total-1)){
+                
+                _depo->sp=0;
+                _depo->ss=0;
+                _depo->se=0;
+                _dest->nd++;
+            }else{
+                _dest->nd = 0;                
+            }
+            _depo = _dest->pool_depo[_dest->nd];
         }
     }
     _depo->sp = _depo->se;       
@@ -156,7 +186,7 @@ int mem_pushdb ( DBP *_dbp ){
         _dbp->inEnd = _lens+sizeof(char)+sizeof(uint32);
         _depo->ss += _dbp->inEnd;
 
-        pools_dest->isfull = H_FALSE; 
+       // pools_dest->isfull = H_FALSE; 
 
     return 0;
 }		/* -----  end of function mem_pushdb  ----- */

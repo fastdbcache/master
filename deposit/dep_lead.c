@@ -58,11 +58,12 @@ void leadinit ( size_t byte ){
  *  Description:  
  * =====================================================================================
  */
-void leadadd ( ub1 *key, ub4 keyl ){
-        
+int leadadd ( ub1 *key, ub4 keyl ){
+    int i;
+    i = -1;
     switch ( conn_global->deptype ) {
         case D_MEM:	
-            mem_set ( key, keyl );
+            i = mem_set ( key, keyl );
             break;
 
         case D_MMAP:	
@@ -74,6 +75,7 @@ void leadadd ( ub1 *key, ub4 keyl ){
         default:	
             break;
     }				/* -----  end switch  ----- */
+    return i;
 }		/* -----  end of function leadadd  ----- */
 
 

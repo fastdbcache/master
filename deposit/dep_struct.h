@@ -43,6 +43,7 @@ struct __depstat
 { 
     ub4         maxbyte;  /* max  byte for deposit  */
     H_STATE     isfull;   /* default H_FALSE , H_TRUE is full */
+    sb2         total;    /* total >= count  */
     sb2         count;   /* how much malloc depo sm */
     sb2         sd;     /* now start DEPO */
     sb2         nd;    /* now doing DEPO */
@@ -74,7 +75,7 @@ pthread_mutex_t work_lock_deps_do;
 }while(0)
 
 void leadinit ( size_t byte );
-void leadadd ( ub1 *key, ub4 keyl );
+int leadadd ( ub1 *key, ub4 keyl );
 int leadpush ( DBP *_dbp );
 DEPO *deposit_init (  );
 

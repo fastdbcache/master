@@ -200,7 +200,7 @@ void pushList ( ub1 *key, ub4 keyl, ub4 utime ){
             !memcmp(_tlist->key, key, keyl)
             ){
             if(_tlist->utime < utime){
-                _tlist->utime = utime;
+                _tlist->utime = utime + conn_global->delaytime;  /* delay any time for update */
             }
             break;
         }
@@ -213,7 +213,7 @@ void pushList ( ub1 *key, ub4 keyl, ub4 utime ){
             if(_t->key){
                 memcpy(_t->key, key, keyl);
                 _t->keyl = keyl;
-                _t->utime = utime;
+                _t->utime = utime + conn_global->delaytime; /* delay any time for update */
                 _tlist->next = _t;
                 _tlist = _t;
             }

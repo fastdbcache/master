@@ -209,6 +209,7 @@ struct __conn{
 
     float factor;       /* for hslab default 1.25  */
     size_t maxbytes;   /* max bytes for hslab */
+    int delaytime;     /* delay time for update */
     
     D_TYPE deptype;     /* deposit type */
     size_t dmaxbytes;   /* max bytes for deposit  */

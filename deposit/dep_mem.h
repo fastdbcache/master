@@ -27,7 +27,7 @@
 #include "../hashtable/pool_worker.h"
 
 DEST *mem_init ( size_t byte );
-void mem_set ( ub1 *key, ub4 keyl );
+int mem_set ( ub1 *key, ub4 keyl );
 int mem_pushdb ( DBP *_dbp );
 
 #ifdef __cplusplus
