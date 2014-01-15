@@ -85,6 +85,7 @@ int mem_set ( ub1 *key, ub4 keyl ){
         }else {
             _dest->isfull = H_TRUE;
             DEBUG("sd is eq total");
+            DEPO_UNLOCK();
             return -1;
         }
         
@@ -96,11 +97,13 @@ int mem_set ( ub1 *key, ub4 keyl ){
     if(!_depo->sm) {
         if(_dest->count * LIMIT_SLAB_BYTE > _dest->maxbyte) {
             DEBUG("isfull is H_TRUE, can't malloc");
+            DEPO_UNLOCK();
             return -1;    
         }
         _depo->sm = calloc(1, LIMIT_SLAB_BYTE*sizeof(char));
         if(!_depo->sm){
             DEBUG("malloc error");
+            DEPO_UNLOCK();
             return -1;
         }
         _dest->count++;
