@@ -20,7 +20,7 @@ void on_accept(int fd, short ev, void *arg){
     extern NOTIFY_TOKEN_STATE notify_token_thread;
     extern int token_efd;
     int isDep;
-        
+
 	/* Accept the new connection. */
 	client_fd = accept(fd, (struct sockaddr *)&client_addr, &client_len);
 	if (client_fd == -1) {
@@ -30,6 +30,7 @@ void on_accept(int fd, short ev, void *arg){
         sprintf(err_log, "accept-- %s", err);
 		d_log(err_log);
         free(err_log);*/
+        DEBUG("accept error");
 		return;
 	}
     if(rq_push(client_fd) == 0){

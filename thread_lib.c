@@ -37,7 +37,7 @@ void libevent_work_thread(int fd, short ev, void *arg){
     if(work_child->isjob == JOB_HAS)
         work_child->isjob = JOB_WORKING;
     else{
-         goto err;
+         goto ok;
     }
        
     ffd = work_child->rq_item->frontend->ffd;
@@ -50,12 +50,12 @@ void libevent_work_thread(int fd, short ev, void *arg){
     pg_fds = Client_Init(conn_global->pg_host, conn_global->pg_port);
     if(pg_fds == -1){
         freedbp(_dbp);        
-        goto bad;
+        goto ok;
     }
     pg_len = Socket_Send(pg_fds, _dbp->inBuf, _dbp->inEnd);
     freedbp(_dbp);
 
-    if(pg_len != pack_len) goto bad;
+    if(pg_len != pack_len) goto ok;
                
     AuthPG(pg_fds, ffd);
                   
@@ -73,12 +73,10 @@ void libevent_work_thread(int fd, short ev, void *arg){
     }
 
 
-    ok:
-
-    bad:
-
-    err:
-        if(close(work_child->rq_item->frontend->ffd) == -1)DEBUG("close fd error");
+    ok:    
+        close(pg_fds) ;
+        close(work_child->rq_item->frontend->ffd);
+        //if(close(work_child->rq_item->frontend->ffd) == -1)DEBUG("close fd error");
         work_child->rq_item->isjob = JOB_FREE;
         work_child->isjob = JOB_FREE;        
 }
