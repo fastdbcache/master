@@ -42,8 +42,7 @@ DEST *mem_init ( size_t byte ){
         _dest->pool_depo[i] = deposit_init();
     }
     
-    pthread_mutex_init(&work_lock_depo, NULL);
-    pthread_mutex_init(&work_lock_deps_do, NULL);
+
     return _dest;
 }		/* -----  end of function mem_init  ----- */
 
@@ -111,7 +110,7 @@ int mem_set ( ub1 *key, ub4 keyl ){
     _depo->se += _lens;
  
     DEPO_UNLOCK();
-    DEBUG("nd:%d, sp:%d, ss:%d, se:%d",_dest->nd, _depo->sp, _depo->ss, _depo->se);
+    /*   DEBUG("nd:%d, sp:%d, ss:%d, se:%d",_dest->nd, _depo->sp, _depo->ss, _depo->se); */
     return 0;
 }		/* -----  end of function mem_set  ----- */
 
@@ -136,7 +135,7 @@ int mem_pushdb ( DBP *_dbp ){
         DEBUG("_depo is null");
         return -1;
     }
-    DEBUG("nd:%d, sp:%d, ss:%d, se:%d",_dest->nd, _depo->sp, _depo->ss, _depo->se); 
+   /*   DEBUG("nd:%d, sp:%d, ss:%d, se:%d",_dest->nd, _depo->sp, _depo->ss, _depo->se); */
     if(_depo->sp == _depo->se &&
         _depo->ss == _depo->se){
 

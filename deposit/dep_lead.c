@@ -27,6 +27,9 @@
  * =====================================================================================
  */
 void leadinit ( size_t byte ){
+    pthread_mutex_init(&work_lock_depo, NULL);
+    pthread_mutex_init(&work_lock_deps_do, NULL);
+
     if(byte < LIMIT_SLAB_BYTE) {
         DEBUG("deposit is very little");
         exit(1);

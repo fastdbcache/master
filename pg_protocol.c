@@ -182,7 +182,10 @@ int AuthPG(const int bfd,const int ffd){
                 
         if(!_apack->inBuf){
             
-            if(CheckBufSpace(sizeof(char), _apack)!=0)return -1;
+            if(CheckBufSpace(sizeof(char), _apack)!=0){
+                DEBUG("CheckBufSpace error");
+                return -1;
+            }
 
         }else _apack->inEnd = sizeof(char);
         
@@ -192,10 +195,12 @@ int AuthPG(const int bfd,const int ffd){
 
         if(cmd_size != sizeof(char)) {            
             freedbp(_apack); 
+            //DEBUG("cmd_size error");
             return -1;
         }
-        /*  DEBUG("ask:%c", *(_apack->inBuf));  */
+        /*    DEBUG("ask:%c", *(_apack->inBuf));  */
         if(CheckBufSpace(sizeof(uint32), _apack) != 0){
+            DEBUG("CheckBufSpace error");
             return -1;
         }
                     
@@ -203,6 +208,7 @@ int AuthPG(const int bfd,const int ffd){
 
         if(total_size != sizeof(uint32)){
             freedbp(_apack);
+            DEBUG("total_size error");
             return -1;
         }
         total = 0;
@@ -210,29 +216,34 @@ int AuthPG(const int bfd,const int ffd){
         getInt(&total, 4, _apack);
         
         totalsize = total-sizeof(uint32);
-        if(CheckBufSpace(totalsize, _apack) != 0)return -1;
+        if(CheckBufSpace(totalsize, _apack) != 0){
+            DEBUG("CheckBufSpace error");
+            return -1;
+        }
                          
         Socket_Read(rfd, _apack->inBuf+_apack->inCursor, totalsize);
 
         if(*_apack->inBuf == 'X' &&
             conn_global->hasdep == H_TRUE){
-            
+             
             if(pools_dest->isfull == H_TRUE){                
                 
                 isDep = conn_global->quotient+1;
-                DEBUG("isDep:%d", isDep);
+                DEBUG("isfull isDep:%d", isDep);
             }else{
                 RQ_BUSY(isDep);
-                DEBUG("free isDep:%d", isDep);
+                /*  DEBUG("free isDep:%d", isDep); */
             }
             if(isDep < conn_global->quotient &&
-                pools_dest->doing == H_FALSE){                                
-                DEP_DO_LOCK();
+                pools_dest->doing == H_FALSE){
+                DEBUG("start lock");
+                DEP_DO_LOCK();                
                 if(pools_dest->doing == H_FALSE){
                     pools_dest->doing = H_TRUE;
                     depo_lock = H_TRUE;                    
                 }
                 DEP_DO_UNLOCK();                
+                DEBUG("end lock");
             }
         }
 
@@ -252,11 +263,13 @@ int AuthPG(const int bfd,const int ffd){
                 depo_pack->inBuf = NULL;
                 depo_pack->inEnd = 0;                
                 leadexit(depo_pack);               
+                DEBUG("exit: %c", *depo_pack->inBuf);
             }
             Socket_Send(bfd, depo_pack->inBuf, depo_pack->inEnd);
             if(*depo_pack->inBuf == 'X'){
                 freedbp(depo_pack);
                 freedbp(_apack);
+                DEBUG("depo_pack x");
                 return -1;
             }
             FB(1);
@@ -307,7 +320,6 @@ int AuthPG(const int bfd,const int ffd){
             case 'Q':                
                 isDATA = FALSE;
                 _hdrtmp = _apack->inBuf + _apack->inCursor;
-                
                 isSELECT = findSQL(_hdrtmp, _apack->inEnd-_apack->inCursor);
                 if(isSELECT == E_SELECT){
                     mem_pack = (SLABPACK *)calloc(1, sizeof(SLABPACK));
@@ -334,15 +346,15 @@ int AuthPG(const int bfd,const int ffd){
                     free(mem_pack);
                 }else if(isSELECT==E_DELETE || isSELECT==E_UPDATE || isSELECT==E_INSERT){
                     ply = parser_do (_hdrtmp, _apack->inEnd-_apack->inCursor);
-                    
-                    if(conn_global->hasdep == H_TRUE &&
-                        conn_global->deprule){
+                    if(ply){
+                        if(conn_global->hasdep == H_TRUE &&
+                            conn_global->deprule){
                        
-                        RQ_BUSY(isDep);
+                            RQ_BUSY(isDep);
                         
-                        if(isDep > conn_global->quotient){
+                            if(isDep > conn_global->quotient){
 
-                            if(ply){ 
+                             
                                
                                 if(strstr(conn_global->deprule, ply->tab)){
                                     if(-1 == leadadd ( (ub1 *)_apack->inBuf, (ub4)_apack->inEnd)){
@@ -364,9 +376,10 @@ int AuthPG(const int bfd,const int ffd){
 
                                 FB(0);
                                 goto free_pack;
-                            }else DEBUG("ply error len:%d :%s",_apack->inEnd-_apack->inCursor, _hdrtmp);
+                            
+                            }
                         }
-                    }
+                    }else DEBUG("ply error len:%d :%s",_apack->inEnd-_apack->inCursor, _hdrtmp);
 
                     leaderr:
                         (void)0;
@@ -422,10 +435,10 @@ int AuthPG(const int bfd,const int ffd){
                         goto free_pack;
                     }
                     
-                }
-                /*  else{
-                    DEBUG("system table");
-                }*/
+                }/*
+                  else{
+                    DEBUG("system table:%s, len:%d", _apack->inBuf+sizeof(char)+sizeof(uint32), _apack->inEnd);
+                }  */
                 Socket_Send(wfd, _apack->inBuf, _apack->inEnd );
                 FB(1);
                 goto free_pack;
@@ -478,8 +491,8 @@ int AuthPG(const int bfd,const int ffd){
                 return 0;
                 
             default:	
-                printf("any:%c\n", *_apack->inBuf);
-                break;
+                DEBUG("any:%c", *_apack->inBuf);
+                return -1;
         }				/* -----  end switch  ----- */
     
     free_pack:        
