@@ -43,9 +43,10 @@ void on_accept(int fd, short ev, void *arg){
 
              if(s != sizeof(uint64_t))DEBUG("write to token_efd");
  
-        }else{
+        }
+        /*else{
             DEBUG("notify_token error");
-        }    
+        }    */  
     }else{
         close(client_fd);
         d_log("RQ is full");

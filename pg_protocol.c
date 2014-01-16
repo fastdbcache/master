@@ -228,35 +228,40 @@ int AuthPG(const int bfd,const int ffd){
              
             if(pools_dest->isfull == H_TRUE){                
                 
-                isDep = conn_global->quotient+1;
-                DEBUG("isfull isDep:%d, doing:%d", isDep, pools_dest->doing);
+                isDep = conn_global->quotient-1;
+                
             }else{
                 RQ_BUSY(isDep);
                 /*  DEBUG("free isDep:%d", isDep); */
             }
+            DEBUG("isfull isDep:%d, doing:%d, quotient:%d", isDep, pools_dest->doing, conn_global->quotient);
             if(isDep < conn_global->quotient &&
                 pools_dest->doing == H_FALSE){
+                DEBUG("isfull isDep:%d, doing:%d", isDep, pools_dest->doing);
                 DEP_DO_LOCK();                
+                DEBUG("doing:%d",pools_dest->doing);
                 if(pools_dest->doing == H_FALSE){
+                    DEBUG("okokok");
                     pools_dest->doing = H_TRUE;
                     depo_lock = H_TRUE;                    
                 }
                 DEP_DO_UNLOCK();                
             }
-        }
-
-        if(depo_lock == H_TRUE){
             
+        }
+          
+        if(depo_lock == H_TRUE){
+            DEBUG("depo_lock----:%d", depo_lock);   
             if(*_apack->inBuf == 'C' |
                 *_apack->inBuf == 'E')
                 DEBUG("depo_lock inbuf");
                 goto free_pack;
-
+            DEBUG(" inbuf 000000000");
             if(!depo_pack)
                 depo_pack = initdbp();
 
             depo_pack->inBuf = NULL;
-            DEBUG("depo_lock");
+            DEBUG("depo_lock++++++++++");
             if(leadpush(depo_pack) == -1){
                 pools_dest->doing = H_FALSE;
                 depo_lock = H_FALSE;
