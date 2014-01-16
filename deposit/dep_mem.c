@@ -72,19 +72,22 @@ int mem_set ( ub1 *key, ub4 keyl ){
     /* _end = (LIMIT_SLAB_BYTE / _len); */
     DEPO_LOCK();
     _depo = _dest->pool_depo[_dest->sd];
-    if(_depo->se + _lens > LIMIT_SLAB_BYTE){        
+    if(_depo->se + _lens > (LIMIT_SLAB_BYTE)){
 
         if(_dest->sd < (_dest->total-1) &&
             (_dest->sd+1) != _dest->nd){
+            DEBUG("add sd:%", _dest->sd);
             _dest->sd++;
+            
         }else if(_dest->sd == _dest->nd &&
                 _depo->ss == _depo->se){
             _dest->sd = 0;
             _dest->nd = 0;
             _dest->isfull = H_FALSE;
+            DEBUG("restart ---");
         }else {
             _dest->isfull = H_TRUE;
-            DEBUG("sd is eq total");
+            DEBUG("sd:%d, nd:%d, se:%d, len:%d , limit:%d",_dest->sd,_dest->nd, _depo->se, _lens, (LIMIT_SLAB_BYTE));
             DEPO_UNLOCK();
             return -1;
         }
@@ -95,7 +98,10 @@ int mem_set ( ub1 *key, ub4 keyl ){
         _depo->se=0;
     }
     if(!_depo->sm) {
-        if(_dest->count * LIMIT_SLAB_BYTE > _dest->maxbyte) {
+        _depo->ss=0;
+        _depo->sp=0;
+        _depo->se=0;
+        if(_dest->count * (LIMIT_SLAB_BYTE) > _dest->maxbyte) {
             DEBUG("isfull is H_TRUE, can't malloc");
             DEPO_UNLOCK();
             return -1;    
@@ -138,7 +144,7 @@ int mem_pushdb ( DBP *_dbp ){
         DEBUG("_depo is null");
         return -1;
     }
-   /*   DEBUG("nd:%d, sp:%d, ss:%d, se:%d",_dest->nd, _depo->sp, _depo->ss, _depo->se); */
+      DEBUG("pushdb sd:%d nd:%d, sp:%d, ss:%d, se:%d",_dest->sd, _dest->nd, _depo->sp, _depo->ss, _depo->se); 
     if(_depo->sp == _depo->se &&
         _depo->ss == _depo->se){
 

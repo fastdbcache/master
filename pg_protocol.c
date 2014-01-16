@@ -198,7 +198,7 @@ int AuthPG(const int bfd,const int ffd){
             //DEBUG("cmd_size error");
             return -1;
         }
-        /*    DEBUG("ask:%c", *(_apack->inBuf));  */
+        /*     DEBUG("ask:%c", *(_apack->inBuf));   */
         if(CheckBufSpace(sizeof(uint32), _apack) != 0){
             DEBUG("CheckBufSpace error");
             return -1;
@@ -229,47 +229,46 @@ int AuthPG(const int bfd,const int ffd){
             if(pools_dest->isfull == H_TRUE){                
                 
                 isDep = conn_global->quotient+1;
-                DEBUG("isfull isDep:%d", isDep);
+                DEBUG("isfull isDep:%d, doing:%d", isDep, pools_dest->doing);
             }else{
                 RQ_BUSY(isDep);
                 /*  DEBUG("free isDep:%d", isDep); */
             }
             if(isDep < conn_global->quotient &&
                 pools_dest->doing == H_FALSE){
-                DEBUG("start lock");
                 DEP_DO_LOCK();                
                 if(pools_dest->doing == H_FALSE){
                     pools_dest->doing = H_TRUE;
                     depo_lock = H_TRUE;                    
                 }
                 DEP_DO_UNLOCK();                
-                DEBUG("end lock");
             }
         }
 
         if(depo_lock == H_TRUE){
+            
             if(*_apack->inBuf == 'C' |
                 *_apack->inBuf == 'E')
+                DEBUG("depo_lock inbuf");
                 goto free_pack;
 
             if(!depo_pack)
                 depo_pack = initdbp();
 
             depo_pack->inBuf = NULL;
-
+            DEBUG("depo_lock");
             if(leadpush(depo_pack) == -1){
                 pools_dest->doing = H_FALSE;
                 depo_lock = H_FALSE;
                 depo_pack->inBuf = NULL;
                 depo_pack->inEnd = 0;                
                 leadexit(depo_pack);               
-                DEBUG("exit: %c", *depo_pack->inBuf);
             }
+            DEBUG("depo_pack:%c", *depo_pack->inBuf);
             Socket_Send(bfd, depo_pack->inBuf, depo_pack->inEnd);
             if(*depo_pack->inBuf == 'X'){
                 freedbp(depo_pack);
                 freedbp(_apack);
-                DEBUG("depo_pack x");
                 return -1;
             }
             FB(1);
@@ -323,8 +322,8 @@ int AuthPG(const int bfd,const int ffd){
                 isSELECT = findSQL(_hdrtmp, _apack->inEnd-_apack->inCursor);
                 if(isSELECT == E_SELECT){
                     mem_pack = (SLABPACK *)calloc(1, sizeof(SLABPACK));
-                        
-                    hkey(_hdrtmp,_apack->inEnd-_apack->inCursor , mem_pack);
+                    mem_pack->len = 0;  
+                    //hkey(_hdrtmp,_apack->inEnd-_apack->inCursor , mem_pack);
                     
                     if(mem_pack->len > 0){                        
                         Socket_Send(rfd, mem_pack->pack, mem_pack->len);
@@ -345,17 +344,15 @@ int AuthPG(const int bfd,const int ffd){
                     
                     free(mem_pack);
                 }else if(isSELECT==E_DELETE || isSELECT==E_UPDATE || isSELECT==E_INSERT){
-                    ply = parser_do (_hdrtmp, _apack->inEnd-_apack->inCursor);
-                    if(ply){
+                      ply = parser_do (_hdrtmp, _apack->inEnd-_apack->inCursor);
+                      if(ply){
                         if(conn_global->hasdep == H_TRUE &&
                             conn_global->deprule){
                        
                             RQ_BUSY(isDep);
                         
                             if(isDep > conn_global->quotient){
-
-                             
-                               
+                                                            
                                 if(strstr(conn_global->deprule, ply->tab)){
                                     if(-1 == leadadd ( (ub1 *)_apack->inBuf, (ub4)_apack->inEnd)){
                                         goto leaderr;
@@ -383,7 +380,7 @@ int AuthPG(const int bfd,const int ffd){
 
                     leaderr:
                         (void)0;
-
+                     
                     _ulist = initulist();
                     if(_ulist &&
                         ply){
@@ -404,10 +401,10 @@ int AuthPG(const int bfd,const int ffd){
                 }else if(isSELECT == E_CACHE){
                     /*  listHslab();
                     setCacheRowDescriptions(rfd);*/
+                    DEBUG("cache %d", isSELECT);
                     int clen=0; 
                     cache = findCache(_hdrtmp, &clen);
                     if(cache == E_CACHE_ITEM){
-                        DEBUG("sql:%s, len:%d", _hdrtmp+clen, _apack->inEnd-_apack->inCursor-clen);
                         getItemStat(_hdrtmp+clen, _apack->inEnd-_apack->inCursor-clen , rfd);
                         FB(0);
                         goto free_pack;
@@ -491,7 +488,6 @@ int AuthPG(const int bfd,const int ffd){
                 return 0;
                 
             default:	
-                DEBUG("any:%c", *_apack->inBuf);
                 return -1;
         }				/* -----  end switch  ----- */
     
