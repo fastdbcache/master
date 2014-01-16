@@ -253,9 +253,10 @@ int AuthPG(const int bfd,const int ffd){
         if(depo_lock == H_TRUE){
             DEBUG("depo_lock----:%d", depo_lock);   
             if(*_apack->inBuf == 'C' |
-                *_apack->inBuf == 'E')
+                *_apack->inBuf == 'E'){
                 DEBUG("depo_lock inbuf");
                 goto free_pack;
+            }
             DEBUG(" inbuf 000000000");
             if(!depo_pack)
                 depo_pack = initdbp();
@@ -327,8 +328,7 @@ int AuthPG(const int bfd,const int ffd){
                 isSELECT = findSQL(_hdrtmp, _apack->inEnd-_apack->inCursor);
                 if(isSELECT == E_SELECT){
                     mem_pack = (SLABPACK *)calloc(1, sizeof(SLABPACK));
-                    mem_pack->len = 0;  
-                    //hkey(_hdrtmp,_apack->inEnd-_apack->inCursor , mem_pack);
+                    hkey(_hdrtmp,_apack->inEnd-_apack->inCursor , mem_pack);
                     
                     if(mem_pack->len > 0){                        
                         Socket_Send(rfd, mem_pack->pack, mem_pack->len);
