@@ -24,13 +24,13 @@ void on_accept(int fd, short ev, void *arg){
 	/* Accept the new connection. */
 	client_fd = accept(fd, (struct sockaddr *)&client_addr, &client_len);
 	if (client_fd == -1) {
-        /*  err = strerror(errno);
-        err_len = strlen(err);
+          err = strerror(errno);
+        /*err_len = strlen(err);
         err_log = calloc(1, err_len+10);
         sprintf(err_log, "accept-- %s", err);
-		d_log(err_log);
+		  d_log(err_log);
         free(err_log);*/
-        DEBUG("accept error");
+        DEBUG("accept error %s --", err);
 		return;
 	}
     if(rq_push(client_fd) == 0){
@@ -41,10 +41,10 @@ void on_accept(int fd, short ev, void *arg){
              u = 1;
              s = write(token_efd, &u , sizeof(uint64_t));
 
-             if(s != sizeof(uint64_t))printf("error---\n");
+             if(s != sizeof(uint64_t))DEBUG("write to token_efd");
  
         }else{
-            printf("accept error\n");
+            DEBUG("notify_token error");
         }    
     }else{
         close(client_fd);

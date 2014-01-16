@@ -235,7 +235,10 @@ void libevent_token_thread( int fd, short ev,void *arg){
     notify_token_thread = NT_WORKING;
     do{
         RQ *rq_item = rq_pop();
-        if(rq_item == NULL) break;
+        if(rq_item == NULL){ 
+            /* DEBUG("rq_item is null");*/
+            break;
+        }
         if(rq_item->isjob == JOB_HAS) {
             
             WTQ *work_child = wtq_queue_tail;
@@ -252,19 +255,18 @@ void libevent_token_thread( int fd, short ev,void *arg){
                 thread = work_threads + work_child->no; 
 
                 if(thread == NULL){
-                    printf("thread null \n");
+                    DEBUG("thread null ");
                     rq_item->isjob = JOB_HAS;
                     work_child->isjob = JOB_FREE;
                     break;
                 }
-
                 if(write(thread->notify_write_fd, "", 1) != 1){
-                    printf("write thread error\n");
+                    DEBUG("write thread error");
                 }
             }
         }
         else{
-            printf("break\n");
+            DEBUG("break");
             break;
         }
     }while(1);
