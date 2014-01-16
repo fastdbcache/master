@@ -501,7 +501,7 @@ void RowHelp ( HELP_CMD *_helps, int frontend , ssize_t nfields ){
  */
 void CommandComplete (int sqlcmd, ssize_t rows, int frontend ){
     char res[32];
-    char *SQLS[]={"SELECT", "UPDATE","INSERT 0", "DELETE"};
+    char *SQLS[]={"SELECT", "UPDATE FDBC","INSERT FDBC 0", "DELETE FDBC"};
     char *newbuf, *crd;
     ssize_t total, len;
 
