@@ -622,28 +622,5 @@ E_SQL_TYPE findCache (const char *sql, int *offset){
     return E_OTHER;
 }		/* -----  end of function findCache  ----- */
 
-
-/* 
- * ===  FUNCTION  ======================================================================
- *         Name:  pgPackEcho
- *  Description:  
- * =====================================================================================
- */
-int pgPackEcho ( const char *pgpack, ssize_t len ){
-    ssize_t i;
-    const char *ppe = pgpack;
-    uint32 p_len, move;
-    
-    for(i=0; i< len;){
-        DEBUG("ask:%c", *(ppe+i));
-        memcpy(&p_len, ppe+i+sizeof(char), sizeof(uint32));
-        move = htonl(p_len); 
-        i+=move+sizeof(char);
-    }
-    DEBUG("i:%llu, len:%llu", i, len);
-    if(i!=len)return -1;
-    return 0;
-    
-}		/* -----  end of function pgPackEcho  ----- */
 /* vim: set ts=4 sw=4: */
 

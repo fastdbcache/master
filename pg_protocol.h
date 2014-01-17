@@ -53,7 +53,6 @@ SESSION_SLOTS *resolve_slot(const char *buf);*/
 int AuthPG(const int bfd,const int ffd);
 E_SQL_TYPE findSQL (  const char *sql , int len);
 E_SQL_TYPE findCache ( const char *spl, int *offset);
-int pgPackEcho ( const char *pgpack, ssize_t len );
 
 #endif   /* PG_PROTOCOL_H_*/
 /* vim: set ts=4 sw=4: */
