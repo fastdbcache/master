@@ -79,8 +79,9 @@ int mem_set ( ub1 *key, ub4 keyl ){
             DEBUG("add sd:%", _dest->sd);
             _dest->sd++;
             
-        }else if(_dest->sd == _dest->nd &&
-                _depo->ss == _depo->se){
+        /*}else if(_dest->sd == _dest->nd &&
+                _depo->ss == _depo->se){  */
+        }else if(_dest->isfull == H_TRUE){
             _dest->sd = 0;
             _dest->nd = 0;
             _dest->isfull = H_FALSE;

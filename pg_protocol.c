@@ -177,7 +177,7 @@ int AuthPG(const int bfd,const int ffd){
     isDATA = FALSE;
     depo_lock = H_FALSE;
     depo_pack = NULL; 
-
+    isDep = 0;
     FB(1);
     
     auth_loop:
@@ -227,9 +227,7 @@ int AuthPG(const int bfd,const int ffd){
             conn_global->hasdep == H_TRUE){
              
             if(pools_dest->isfull == H_TRUE){                
-                
-                isDep = conn_global->quotient-1;
-                
+                isDep = conn_global->quotient-1;                 
             }else{
                 RQ_BUSY(isDep);
                 /*  DEBUG("free isDep:%d", isDep); */
@@ -245,7 +243,9 @@ int AuthPG(const int bfd,const int ffd){
             }
             
         }
-          
+        if(isDep == (conn_global->quotient-1)){
+            DEBUG("lock:%d", depo_lock);
+        }
         if(depo_lock == H_TRUE){
             if(*_apack->inBuf == 'C' |
                 *_apack->inBuf == 'E'){
@@ -261,6 +261,7 @@ int AuthPG(const int bfd,const int ffd){
                 depo_pack->inBuf = NULL;
                 depo_pack->inEnd = 0;                
                 leadexit(depo_pack);               
+                
             }
             Socket_Send(bfd, depo_pack->inBuf, depo_pack->inEnd);
             if(*depo_pack->inBuf == 'X'){
@@ -322,8 +323,7 @@ int AuthPG(const int bfd,const int ffd){
                     hkey(_hdrtmp,_apack->inEnd-_apack->inCursor , mem_pack);
 
                     if(mem_pack->len > 0){
-                        Socket_Send(rfd, mem_pack->pack, mem_pack->len);
-                        
+                        Socket_Send(rfd, mem_pack->pack, mem_pack->len);                        
                         /*
                         free(mem_pack->pack);*/
                         mem_pack->pack = NULL;
