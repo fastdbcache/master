@@ -88,6 +88,7 @@ int mem_set ( ub1 *key, ub4 keyl ){
             DEBUG("restart ---");
         }else {
             _dest->isfull = H_TRUE;
+            DEBUG("isfull ====");
             DEPO_UNLOCK();
             return -1;
         }

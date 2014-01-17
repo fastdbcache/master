@@ -60,68 +60,6 @@ int PGStartupPacket3(int fd, DBP *_dbp){
      
 }
 
-
-/* 
- * ===  FUNCTION  ======================================================================
- *         Name:  resolve_slot
- *  Description:  
- * =====================================================================================
- 
-SESSION_SLOTS *resolve_slot(const char *buf){
-    const char *p;
-    SESSION_SLOTS *_slot;
-    uint32 v;
-
-    if(buf == NULL)return NULL;
-    p = buf; 
-
-    _slot = (SESSION_SLOTS *)calloc(1, sizeof(SESSION_SLOTS));
-    _slot->backend_fd = 0;
-
-    memcpy(&v, p+sizeof(uint32), sizeof(uint32));
-    _slot->major = ntohl(v)>>16;
-    _slot->minor = ntohl(v)&0x0000ffff;
-
-    p +=  sizeof(uint32)+sizeof(uint32);
-
-    while(*p)
-    {
-        if (!strcmp("user", p))
-        {
-            p += (strlen(p) + 1);
-            _slot->user = strdup(p);
-                
-            if (!_slot->user)
-            {
-                free(_slot);
-                return NULL;
-            }
-        }
-        else if (!strcmp("database", p))
-        {
-            p += (strlen(p) + 1);
-            _slot->database = strdup(p);
-            if (!_slot->database)
-            {
-                free(_slot->user);
-                free(_slot);
-                return NULL;
-            }
-        }
-        
-        else if (!strcmp("application_name", p))
-        {
-            p += (strlen(p) + 1);
-            _slot->application_name = p;
-        }
-
-        p += (strlen(p) + 1);
-    }
-
-    return _slot;
-}	*/	/* -----  end of function resolve_slot  ----- */
-
-
 int AuthPG(const int bfd,const int ffd){
     char *newbuf,  *_hdrtmp;
     DBP *_apack, *depo_pack; 
@@ -243,9 +181,7 @@ int AuthPG(const int bfd,const int ffd){
             }
             
         }
-        if(isDep == (conn_global->quotient-1)){
-            DEBUG("lock:%d", depo_lock);
-        }
+        
         if(depo_lock == H_TRUE){
             if(*_apack->inBuf == 'C' |
                 *_apack->inBuf == 'E'){

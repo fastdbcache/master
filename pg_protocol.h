@@ -48,8 +48,7 @@
 #define AUTH_REQ_GSS_CONT   8   /* Continue GSS exchanges */
 #define AUTH_REQ_SSPI       9   /* SSPI negotiate without wrap() */
 
-int PGStartupPacket3(int fd, DBP *_dbp); /* 1. F -> B 
-SESSION_SLOTS *resolve_slot(const char *buf);*/
+int PGStartupPacket3(int fd, DBP *_dbp); /* 1. F -> B */ 
 int AuthPG(const int bfd,const int ffd);
 E_SQL_TYPE findSQL (  const char *sql , int len);
 E_SQL_TYPE findCache ( const char *spl, int *offset);

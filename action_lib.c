@@ -84,7 +84,7 @@ void anyThread (void *(*func)(void *), void *arg  ){
     
     if ((ret = pthread_create(&thread, &attr, func, arg)) != 0) {
         d_log("Can't create thread");
-        exit(1);
+        //exit(1);
     }   
 }		/* -----  end of function anyThread  ----- */
 
