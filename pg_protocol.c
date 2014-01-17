@@ -136,8 +136,9 @@ int AuthPG(const int bfd,const int ffd){
     SLABPACK *mem_pack;
     E_SQL_TYPE cache;
     _ly *ply;
-    int isDep;
+    int isDep ;
     H_STATE depo_lock;
+
     #define FB(type) \
 	do \
 	{ \
@@ -153,7 +154,9 @@ int AuthPG(const int bfd,const int ffd){
     #define STORE()         \
     do                      \
     {                           \
-        if(isSELECT == E_SELECT && _hdr){                    \
+        if(isSELECT == E_SELECT &&  \
+            _hdr &&                   \
+            _apack->inEnd > 1){                    \
             _drtmp = (ub1 *)realloc(_hdr->dr, _hdr->drl+_apack->inEnd);    \
             if(_drtmp){                                         \
                 _hdr->dr = _drtmp;                              \
@@ -161,7 +164,7 @@ int AuthPG(const int bfd,const int ffd){
                 _hdr->drl += _apack->inEnd;                         \
             }else{                                              \
                 freeHdr(_hdr);                                  \
-                return -1;                                      \
+                _hdr = NULL;                                      \
             }                                                   \
         }                                                       \
     }while (0)
@@ -178,6 +181,7 @@ int AuthPG(const int bfd,const int ffd){
     FB(1);
     
     auth_loop:
+        
         _apack->inCursor = 0;
                 
         if(!_apack->inBuf){
@@ -190,20 +194,17 @@ int AuthPG(const int bfd,const int ffd){
         }else _apack->inEnd = sizeof(char);
         
         bzero(_apack->inBuf, _apack->inBufSize);
-
         cmd_size = Socket_Read(rfd, _apack->inBuf, sizeof(char));
 
         if(cmd_size != sizeof(char)) {            
             freedbp(_apack); 
-            //DEBUG("cmd_size error");
             return -1;
         }
-        /*     DEBUG("ask:%c", *(_apack->inBuf));   */
+         
         if(CheckBufSpace(sizeof(uint32), _apack) != 0){
             DEBUG("CheckBufSpace error");
             return -1;
         }
-                    
         total_size = Socket_Read(rfd, _apack->inBuf + _apack->inCursor, sizeof(uint32));
 
         if(total_size != sizeof(uint32)){
@@ -220,7 +221,6 @@ int AuthPG(const int bfd,const int ffd){
             DEBUG("CheckBufSpace error");
             return -1;
         }
-                         
         Socket_Read(rfd, _apack->inBuf+_apack->inCursor, totalsize);
 
         if(*_apack->inBuf == 'X' &&
@@ -234,14 +234,10 @@ int AuthPG(const int bfd,const int ffd){
                 RQ_BUSY(isDep);
                 /*  DEBUG("free isDep:%d", isDep); */
             }
-            DEBUG("isfull isDep:%d, doing:%d, quotient:%d", isDep, pools_dest->doing, conn_global->quotient);
             if(isDep < conn_global->quotient &&
                 pools_dest->doing == H_FALSE){
-                DEBUG("isfull isDep:%d, doing:%d", isDep, pools_dest->doing);
                 DEP_DO_LOCK();                
-                DEBUG("doing:%d",pools_dest->doing);
                 if(pools_dest->doing == H_FALSE){
-                    DEBUG("okokok");
                     pools_dest->doing = H_TRUE;
                     depo_lock = H_TRUE;                    
                 }
@@ -251,18 +247,14 @@ int AuthPG(const int bfd,const int ffd){
         }
           
         if(depo_lock == H_TRUE){
-            DEBUG("depo_lock----:%d", depo_lock);   
             if(*_apack->inBuf == 'C' |
                 *_apack->inBuf == 'E'){
-                DEBUG("depo_lock inbuf");
                 goto free_pack;
             }
-            DEBUG(" inbuf 000000000");
-            if(!depo_pack)
+            if(!depo_pack){
                 depo_pack = initdbp();
-
+            }
             depo_pack->inBuf = NULL;
-            DEBUG("depo_lock++++++++++");
             if(leadpush(depo_pack) == -1){
                 pools_dest->doing = H_FALSE;
                 depo_lock = H_FALSE;
@@ -270,7 +262,6 @@ int AuthPG(const int bfd,const int ffd){
                 depo_pack->inEnd = 0;                
                 leadexit(depo_pack);               
             }
-            DEBUG("depo_pack:%c", *depo_pack->inBuf);
             Socket_Send(bfd, depo_pack->inBuf, depo_pack->inEnd);
             if(*depo_pack->inBuf == 'X'){
                 freedbp(depo_pack);
@@ -280,15 +271,13 @@ int AuthPG(const int bfd,const int ffd){
             FB(1);
             goto free_pack;
         }
-
-        if(*_apack->inBuf != 'Q' ){
+        if(*_apack->inBuf != 'Q'){
             
             if(Socket_Send(wfd, _apack->inBuf, _apack->inEnd) != _apack->inEnd){
                 DEBUG("error");
             }
         }
-        
-
+        /*DEBUG("1.ask:%c", *(_apack->inBuf));  */
         switch ( *_apack->inBuf ) {
             case 'R':	
                 /* total eq 8 is AuthenticationOk */
@@ -328,18 +317,21 @@ int AuthPG(const int bfd,const int ffd){
                 isSELECT = findSQL(_hdrtmp, _apack->inEnd-_apack->inCursor);
                 if(isSELECT == E_SELECT){
                     mem_pack = (SLABPACK *)calloc(1, sizeof(SLABPACK));
-                    hkey(_hdrtmp,_apack->inEnd-_apack->inCursor , mem_pack);
+                    mem_pack->len = 0;
                     
-                    if(mem_pack->len > 0){                        
+                    hkey(_hdrtmp,_apack->inEnd-_apack->inCursor , mem_pack);
+
+                    if(mem_pack->len > 0){
                         Socket_Send(rfd, mem_pack->pack, mem_pack->len);
-                        /*free(mem_pack->pack);*/
+                        
+                        /*
+                        free(mem_pack->pack);*/
                         mem_pack->pack = NULL;
                         FB(0);
                         free(mem_pack);
                         goto free_pack;
-
+                    
                     }else{
-                        
                         _hdr = hdrcreate(); 
                         _hdr->keyl = _apack->inEnd-_apack->inCursor;
                         _hdr->key = (ub1 *)calloc(_hdr->keyl, sizeof(ub1));
@@ -406,7 +398,6 @@ int AuthPG(const int bfd,const int ffd){
                 }else if(isSELECT == E_CACHE){
                     /*  listHslab();
                     setCacheRowDescriptions(rfd);*/
-                    DEBUG("cache %d", isSELECT);
                     int clen=0; 
                     cache = findCache(_hdrtmp, &clen);
                     if(cache == E_CACHE_ITEM){
@@ -464,7 +455,6 @@ int AuthPG(const int bfd,const int ffd){
                 FB(1);
 
                 STORE(); 
-                /*    DEBUG("C:%s", _apack+sizeof(char)+sizeof(uint32));*/
                 goto free_pack;
             case 'Z':                
                 FB(0);
@@ -473,6 +463,7 @@ int AuthPG(const int bfd,const int ffd){
                     && _hdr
                     && isDATA == TRUE){
                     if(_hdr->drl <= LIMIT_SLAB_BYTE ){                        
+                        
                         addHdr(_hdr);
                     }
                 }else{
@@ -483,7 +474,6 @@ int AuthPG(const int bfd,const int ffd){
                     addUlist(_ulist);
                 _hdr = NULL;
                 _ulist = NULL;
-                /*  DEBUG("Z:%s", _apack+sizeof(char)+sizeof(uint32));*/
                 goto free_pack;
             case 'X':
                 
@@ -492,8 +482,9 @@ int AuthPG(const int bfd,const int ffd){
                 isDATA = FALSE;
                 return 0;
                 
-            default:	
-                return -1;
+            default:
+                DEBUG("any:%c",*_apack->inBuf);	
+                break;
         }				/* -----  end switch  ----- */
     
     free_pack:        
@@ -632,5 +623,27 @@ E_SQL_TYPE findCache (const char *sql, int *offset){
 }		/* -----  end of function findCache  ----- */
 
 
+/* 
+ * ===  FUNCTION  ======================================================================
+ *         Name:  pgPackEcho
+ *  Description:  
+ * =====================================================================================
+ */
+int pgPackEcho ( const char *pgpack, ssize_t len ){
+    ssize_t i;
+    const char *ppe = pgpack;
+    uint32 p_len, move;
+    
+    for(i=0; i< len;){
+        DEBUG("ask:%c", *(ppe+i));
+        memcpy(&p_len, ppe+i+sizeof(char), sizeof(uint32));
+        move = htonl(p_len); 
+        i+=move+sizeof(char);
+    }
+    DEBUG("i:%llu, len:%llu", i, len);
+    if(i!=len)return -1;
+    return 0;
+    
+}		/* -----  end of function pgPackEcho  ----- */
 /* vim: set ts=4 sw=4: */
 

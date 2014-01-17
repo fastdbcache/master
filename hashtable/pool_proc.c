@@ -153,6 +153,7 @@ word haddHitem ( HDR *mhdr ){
             if(hsp != NULL){
                 ph->utime = hdr->stime;
                 memcpy(hsp->sm+ph->sa*ph->psize, hdr->dr, hdr->drl);
+                ph->drl = hdr->drl;
                 ph->amiss++;
                 pools_htab->miss++;
                 hrule(ph, H_UPDATE);

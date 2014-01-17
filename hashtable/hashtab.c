@@ -109,7 +109,7 @@ int hsms ( ub4 bytes ){
     int i;
     /*float l;*/
 
-    if(bytes > MAX_SLAB_BYTE){
+    if(bytes > (LIMIT_SLAB_BYTE)){
         DEBUG("big bytes");
         return -1;
     }
@@ -125,7 +125,6 @@ int hsms ( ub4 bytes ){
     for ( ; slabclass[i].chunk > 0; i++ ) {
         if(slabclass[i].size >= bytes) return i;
     }
-    printf("not found size\n");
     return -1;
 }		/* -----  end of function hsms  ----- */
 

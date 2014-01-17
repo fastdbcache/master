@@ -12,6 +12,7 @@
 #include <signal.h>
 #include <unistd.h>
 #include <stdlib.h>
+#include "config_global.h"
 
 void sig_handler(const int sig);
 void set_signal(void);

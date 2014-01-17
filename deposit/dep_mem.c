@@ -87,7 +87,6 @@ int mem_set ( ub1 *key, ub4 keyl ){
             DEBUG("restart ---");
         }else {
             _dest->isfull = H_TRUE;
-            DEBUG("sd:%d, nd:%d, se:%d, len:%d , limit:%d",_dest->sd,_dest->nd, _depo->se, _lens, (LIMIT_SLAB_BYTE));
             DEPO_UNLOCK();
             return -1;
         }
@@ -141,10 +140,9 @@ int mem_pushdb ( DBP *_dbp ){
      
     _depo = _dest->pool_depo[_dest->nd];
     if(!_depo){
-        DEBUG("_depo is null");
         return -1;
     }
-      DEBUG("pushdb sd:%d nd:%d, sp:%d, ss:%d, se:%d",_dest->sd, _dest->nd, _depo->sp, _depo->ss, _depo->se); 
+    /*  DEBUG("pushdb sd:%d nd:%d, sp:%d, ss:%d, se:%d",_dest->sd, _dest->nd, _depo->sp, _depo->ss, _depo->se);   */
     if(_depo->sp == _depo->se &&
         _depo->ss == _depo->se){
 

@@ -33,7 +33,7 @@ void hcreate ( int isize ){
 
     pools_htab = (HTAB *)calloc(1, sizeof(HTAB));
     if(pools_htab == NULL){
-        perror("pools_htab calloc error");
+        DEBUG("pools_htab calloc error");
         exit(1);
     }
     pools_htab->mask = len - 1;

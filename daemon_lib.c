@@ -19,8 +19,10 @@ int daemon_init(const char *pname, int facility){
 	
 	if((pid = fork()) < 0)
 		return (-1);
-	else if(pid)
+	else if(pid){
+        DEBUG("daemon pid error");
 		_exit(0);
+    }
 
 	if(setsid() < 0)
 		return(-1);
@@ -29,9 +31,10 @@ int daemon_init(const char *pname, int facility){
 	
 	if((pid = fork()) < 0)
 		return (-1);
-	else if(pid)
+	else if(pid){
+        DEBUG("daemon pid error");
 		_exit(0);
-
+    }
 	
 	chdir("/");
 

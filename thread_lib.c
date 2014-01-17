@@ -86,6 +86,7 @@ void work_thread_init(int nthreads){
 
     work_threads = (LIBEVENT_WORK_THREAD *)calloc(nthreads, sizeof(LIBEVENT_WORK_THREAD));    
     if(!work_threads){
+        DEBUG("work_threads create error");
         exit(1);
     }
 
@@ -192,7 +193,10 @@ void token_thread_init(){
         exit(1);
     }   
     token_efd = eventfd(0, 0);
-    if(token_efd == -1) exit(1);
+    if(token_efd == -1){ 
+        DEBUG("token_efd error");
+        exit(1);
+    }
 
     /* Listen for notifications from other threads */
     event_set(&token_thread->notify_event, token_efd,

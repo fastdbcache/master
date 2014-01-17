@@ -107,7 +107,7 @@ int main(int argc, char* argv[]){
 		listen_fd = server_socket_unix(); 
 
 	if (listen_fd < 0){
-		perror( "listen failed");
+        DEBUG("listen_fd  error");
 		exit(-1);
 	}
     

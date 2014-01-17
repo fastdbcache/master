@@ -17,6 +17,7 @@
 #include <fcntl.h>
 #include <error.h>
 #include "log_lib.h"
+#include "config_global.h"
 
 int daemon_init(const char *pname, int facility);
 void save_pid(const pid_t pid, const char *pid_file);
