@@ -26,7 +26,7 @@ int yyparse(_ly **myly, yyscan_t scanner);
  */
 _ly *parser_do (char *str, int len){
     char *p = str;
-    _ly *lys, *tail;
+    _ly  *tail;
     yyscan_t scanner; 
     YY_BUFFER_STATE state;
 
@@ -59,31 +59,36 @@ _ly *parser_do (char *str, int len){
 
 _ly *_init_ly(){
     _ly *_l;
-    _l = calloc(1, sizeof(_ly));
+    _l = malloc(sizeof(_ly));
+    if(!_l) return NULL;
+
     _l->tab = NULL;
     _l->next = NULL;
     _l->len = 0;
     return _l;
 }
 
-void _lysave(_ly *myly, _ly *_src){
-    _ly  *_des;
-   
-    if(!_src)return; 
-    _des = _src;
+void _lysave(_ly *myly, char *_src){
+    char * des = _src;
+    int len;
 
-    if( !_des->tab) {
-    
-        return ;
+    if(!_src)return; 
+    len = 0;
+    while(des && *des != ' ' && *des != '('){
+        len++;
+        des++;
     }
 
     if(myly->tab == NULL){
-        
-        myly->tab = calloc(1, _des->len*sizeof(char));
-        memcpy(myly->tab, _des->tab, _des->len);
-        myly->len = _des->len;
+        myly->len = len;
+        myly->tab = malloc( myly->len*sizeof(char));
+        if(!myly->tab){
+            freely(myly);
+            myly = NULL;
+            return ;
+        }
+        memcpy(myly->tab, _src, myly->len);
     }
-
     /*   because only parser change sql
     else{
         _l = _init_ly(); 
@@ -94,15 +99,34 @@ void _lysave(_ly *myly, _ly *_src){
         myly = _l;
     }*/
 }
+
+ 
 /* 
+ * ===  FUNCTION  ======================================================================
+ *         Name:  freely
+ *  Description:  
+ * =====================================================================================
+ */
+void freely ( _ly *_fly){
+    _ly *tmp;
+
+    while(_fly){
+        tmp = _fly;
+        _fly = _fly->next;
+        if(tmp->tab) free(tmp->tab);
+        free(tmp);
+    }
+}		/* -----  end of function freely  ----- */
+
+/*
 void
 main(int ac, char **av)
 {
-    extern int yydebug ;
-    yydebug = 1;
+    
     _ly *tly;
-    char sql[]="insert into a(c)values(111);";
-
+    //char sql[]="insert into a(c)values(111);";
+    //char sql[]="DELETE FROM wp_posts WHERE wp_posts.id = (select * from (select id from wp_posts order by RAND() limit 1) as x);";
+    char sql[]="UPDATE cdb_threads SET views = '1111' WHERE cdb_threads.tid = (select * from (select tid from cdb_threads order by tid desc limit 1) as x);";
     tly = NULL;
     if(ac < 1){
         return;
@@ -115,8 +139,9 @@ main(int ac, char **av)
 	//}
     printf("sql: %s, len:%d\n", sql, strlen(sql));
     tly = parser_do(sql, strlen(sql));
-    for(;tly; tly=tly->next)
-        printf("tab: %s\n", tly->tab);
+    printf("tab:%s\n", tly->tab);
+    freely(tly); 
+
 } main */
 
 

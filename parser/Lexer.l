@@ -29,7 +29,7 @@ FAPPROXNUM   [0-9]+[eE][+-]?[0-9]+|[0-9]+"."[0-9]*[eE][+-]?[0-9]+|"."[0-9]*[eE][
 
 FINTNUM [0-9]+"."[0-9]*|[0-9]+ 
 
-FNAME   [A-Za-z][A-Za-z0-9_]* 
+FNAME   [A-Za-z0-9_]* 
 FNOTES   [-+*/:(),.;]
 FSTRINGS    '[^'\n]*'
 FUNTERMINATE    '[^'\n]*$
@@ -156,10 +156,13 @@ FCOMPARISON		{ return COMPARISON; }
 {FNOTES}	{ return yytext[0]; }
 	/* names */
 {FNAME}	{
-        _ly *_lc = calloc(1, sizeof(_ly));
-        _lc->tab = yytext;
-        _lc->len = yyleng;
-		yylval->myly = _lc;
+        /*_ly *_lc = _init_ly();
+        if(_lc){
+            _lc->tab = yytext;
+            _lc->len = yyleng;
+	    	yylval->myly = _lc;
+        }*/
+        yylval->strval = yytext;
         return NAME; 
         }
 	/* numbers */
