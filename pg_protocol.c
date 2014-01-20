@@ -254,28 +254,37 @@ int AuthPG(const int bfd,const int ffd){
                 isSELECT = findSQL(_hdrtmp, _apack->inEnd-_apack->inCursor);
                 if(isSELECT == E_SELECT){
                     mem_pack = (SLABPACK *)calloc(1, sizeof(SLABPACK));
-                    mem_pack->len = 0;
-                    
-                    hkey(_hdrtmp,_apack->inEnd-_apack->inCursor , mem_pack);
+                    if(mem_pack){ 
+                        mem_pack->len = 0;
+                        
+                        hkey(_hdrtmp,_apack->inEnd-_apack->inCursor , mem_pack);
 
-                    if(mem_pack->len > 0){
-                        Socket_Send(rfd, mem_pack->pack, mem_pack->len);                        
-                        /*
-                        free(mem_pack->pack);*/
-                        mem_pack->pack = NULL;
-                        FB(0);
+                        if(mem_pack->len > 0){
+                            Socket_Send(rfd, mem_pack->pack, mem_pack->len);                        
+                            /*
+                            free(mem_pack->pack);*/
+                            mem_pack->pack = NULL;
+                            FB(0);
+                            free(mem_pack);
+                            goto free_pack;
+                        
+                        }else{
+                            _hdr = hdrcreate(); 
+                            if(_hdr){
+                                _hdr->keyl = _apack->inEnd-_apack->inCursor;
+                                _hdr->key = (ub1 *)calloc(_hdr->keyl, sizeof(ub1));
+                                if(_hdr->key){
+                                    memcpy(_hdr->key, _hdrtmp, _hdr->keyl);
+                                    _hdr->stime = get_sec(); 
+                                }else{
+                                    free(_hdr);
+                                    _hdr = NULL;
+                                }
+                            }
+                        }
+                        
                         free(mem_pack);
-                        goto free_pack;
-                    
-                    }else{
-                        _hdr = hdrcreate(); 
-                        _hdr->keyl = _apack->inEnd-_apack->inCursor;
-                        _hdr->key = (ub1 *)calloc(_hdr->keyl, sizeof(ub1));
-                        memcpy(_hdr->key, _hdrtmp, _hdr->keyl);
-                        _hdr->stime = get_sec(); 
                     }
-                    
-                    free(mem_pack);
                 }else if(isSELECT==E_DELETE || isSELECT==E_UPDATE || isSELECT==E_INSERT){
                       ply = parser_do (_hdrtmp, _apack->inEnd-_apack->inCursor);
                       if(ply){
@@ -305,6 +314,7 @@ int AuthPG(const int bfd,const int ffd){
                                 ReadyForQuery(rfd);
 
                                 FB(0);
+                                free(ply);
                                 goto free_pack;
                             
                             }
@@ -376,9 +386,13 @@ int AuthPG(const int bfd,const int ffd){
                                             
                 if(isSELECT == E_SELECT && _hdr){
                     _hdr->dr = (ub1 *)calloc(_apack->inEnd, sizeof(ub1));
-                    
-                    memcpy(_hdr->dr, _apack->inBuf, _apack->inEnd);
-                    _hdr->drl = _apack->inEnd;
+                    if(_hdr->dr){ 
+                        memcpy(_hdr->dr, _apack->inBuf, _apack->inEnd);
+                        _hdr->drl = _apack->inEnd;
+                    }else{
+                        freeHdr(_hdr);
+                        _hdr = NULL;
+                    }
                 }
                 goto free_pack;
             case 'D':

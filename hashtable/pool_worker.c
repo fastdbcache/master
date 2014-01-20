@@ -64,8 +64,6 @@ HITEM *hfind ( char *key, ub4 keyl ){
     hval = lookup(key, keyl, 0);
     hjval = jenkins_one_at_a_time_hash(key, keyl);
 
-    tlist = pools_tlist->next;
-
     HITEM_SWITCH((y=(hval&pools_htab->mask)));
     ph = pools_hitem[y]->next;
     
@@ -76,10 +74,10 @@ HITEM *hfind ( char *key, ub4 keyl ){
             (hjval == ph->hjval) &&
             (ph->drl > 0) 
             ){
-                
+                tlist = pools_tlist->next;
                 while ( tlist ) {
                     /*  has a bug */
-                    if(tlist->keyl >0 && strstr(key, tlist->key)){
+                    if(keyl >0 && memmem(key, keyl, tlist->key, tlist->keyl)!=NULL){
                         /* over time */
                         if(tlist->utime > ph->utime) return NULL; 
                     }
@@ -189,8 +187,11 @@ int addUlist ( ULIST *mlist){
 *  Description:  
 * =====================================================================================
 */
-void pushList ( ub1 *key, ub4 keyl, ub4 utime ){
+void pushList ( char *key, ub4 keyl, ub4 utime ){
     TLIST *_tlist, *_t;
+
+    if(!key) return;
+    if(keyl<1) return;
 
     _tlist = pools_tlist;
     TLIST_LOCK();
@@ -209,8 +210,9 @@ void pushList ( ub1 *key, ub4 keyl, ub4 utime ){
     if(!_tlist->next){
         _t = calloc(1, sizeof(TLIST));
         if(_t){
-            _t->key = (char *)calloc(keyl, sizeof(char));
+            _t->key = calloc(keyl, sizeof(char));
             if(_t->key){
+                DEBUG("table:%s", key);
                 memcpy(_t->key, key, keyl);
                 _t->keyl = keyl;
                 _t->utime = utime + conn_global->delaytime; /* delay any time for update */
@@ -238,6 +240,7 @@ void freeHdr ( HDR *fhdr ){
         free(fhdr->dr);
     free(fhdr);
     fhdr = NULL;
+    DEBUG("freeHdr");
 }		/* -----  end of function freeHdr  ----- */
 
 

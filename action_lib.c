@@ -81,11 +81,14 @@ void anyThread (void *(*func)(void *), void *arg  ){
     pthread_attr_t  attr;
     int ret;
     pthread_attr_init(&attr);
-    
+   
+    pthread_attr_setdetachstate(&attr,PTHREAD_CREATE_DETACHED); 
     if ((ret = pthread_create(&thread, &attr, func, arg)) != 0) {
         d_log("Can't create thread");
         //exit(1);
     }   
+    pthread_attr_destroy(&attr);
+
 }		/* -----  end of function anyThread  ----- */
 
 /* 

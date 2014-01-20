@@ -59,7 +59,8 @@ typedef  unsigned short int  ub2;
 #define UB2BITS 16
 typedef    signed short int  sb2;
 #define SB2MAXVAL 0x7fff
-typedef  unsigned       char ub1;
+/*typedef  unsigned       char ub1;  */
+typedef         char ub1;
 #define UB1MAXVAL 0xff
 #define UB1BITS 8
 typedef    signed       char sb1;   /* signed 1-byte quantities */

@@ -390,14 +390,16 @@ void RowHtab (int frontend , ssize_t nfields){
     ssize_t hit_len, miss_len, set_len, get_len;
     ssize_t byte_len,maxbyte_len, total;
 
-    #define CALC(val, len) do{\
-        _ulen = htonl((len));       \
-        memcpy(crd, &_ulen, sizeof(uint32));    \
-        crd+=sizeof(uint32);                \
-        bzero(nlen, strlen(nlen));          \
-        snprintf(nlen, 255, "%lu", (val));  \
-        memcpy(crd, nlen, (len));   \
-        crd += (len);   \
+    #define CALC(res, val, len) do{\
+        uint32 _clen;                \
+        char carr[256];          \
+        _clen = htonl((len));       \
+        memcpy(crd, &_clen, sizeof(uint32));    \
+        (res)+=sizeof(uint32);                \
+        bzero(carr, 256);          \
+        snprintf(carr, 255, "%lu", (val));  \
+        memcpy((res), carr, (len));   \
+        (res) += (len);   \
     }while(0)
 
     COUNT( pools_htab->count, count_len );
@@ -427,15 +429,15 @@ void RowHtab (int frontend , ssize_t nfields){
     memcpy(crd, &nf, sizeof(uint16));
     crd += sizeof(uint16);
      
-    CALC(pools_htab->count, count_len);
-    CALC(pools_htab->bcount, bcount_len);
-    CALC(pools_htab->lcount, lcount_len);
-    CALC(pools_htab->hit, hit_len);
-    CALC(pools_htab->miss, miss_len);
-    CALC(pools_htab->set, set_len);
-    CALC(pools_htab->get, get_len);
-    CALC(((pools_htab->bytes/1024)/1024), byte_len);
-    CALC(((conn_global->maxbytes/1024)/1024), maxbyte_len);
+    CALC(crd, pools_htab->count, count_len);
+    CALC(crd, pools_htab->bcount, bcount_len);
+    CALC(crd, pools_htab->lcount, lcount_len);
+    CALC(crd, pools_htab->hit, hit_len);
+    CALC(crd, pools_htab->miss, miss_len);
+    CALC(crd, pools_htab->set, set_len);
+    CALC(crd, pools_htab->get, get_len);
+    CALC(crd, ((pools_htab->bytes/1024)/1024), byte_len);
+    CALC(crd, ((conn_global->maxbytes/1024)/1024), maxbyte_len);
 
     Socket_Send(frontend, newbuf, total+sizeof(char));
     if(newbuf)

@@ -25,6 +25,10 @@
  */
 void conn_init_global ( void ){    
     conn_global = (_conn *)calloc(1, sizeof(_conn));
+    if(!conn_global){
+        DEBUG("conn_global init error");
+        exit(-1);
+    }
     conn_global->maxconns = MAXCONNS; 
 
     conn_global->server_ip = "localhost";

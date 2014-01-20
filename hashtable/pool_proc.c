@@ -83,20 +83,11 @@ word haddHitem ( HDR *mhdr ){
     HSLAB *hslab;
     int i, m;
     HITEM **pools_hitem;
-    ub1 md5[MD5_LENG];
-    MD5_CTX *ctx;
-
+    
     hdr = mhdr;
     if(hdr == NULL) return -1;
     if(hdr->drl > LIMIT_SLAB_BYTE) return -1;
-
-    /*bzero(md5, MD5_LENG);
-    ctx = calloc(1, sizeof(MD5_CTX));
-    MD5_Init(ctx);
-    MD5_Update(ctx, hdr->key, hdr->keyl);
-    MD5_Final(md5, ctx);
-    free(ctx);
-    */
+    
     _new_hval = lookup(hdr->key, hdr->keyl,0);
     _new_hjval = jenkins_one_at_a_time_hash(hdr->key, hdr->keyl);
     HITEM_SWITCH((y=(_new_hval&pools_htab->mask)));
@@ -160,7 +151,7 @@ word haddHitem ( HDR *mhdr ){
                 return 0;
             }else{
                 DEBUG("hsp error");
-                return 0;
+                return -1;
             }
             break;            
         }
@@ -170,6 +161,10 @@ word haddHitem ( HDR *mhdr ){
     if(!phtmp->next){
         hp = hitemcreate();
         hp->key   = (ub1 *)calloc(hdr->keyl, sizeof(ub1));
+        if(!hp->key){
+           free(hp);
+           return -1;
+        }
         memcpy(hp->key, hdr->key, hdr->keyl);
         hp->keyl  = hdr->keyl;
         hp->drl = hdr->drl;
@@ -179,7 +174,15 @@ word haddHitem ( HDR *mhdr ){
         hp->utime = hdr->stime; 
         fslab = findslab(hp->psize, i);
         hslab = findhslab(i, fslab->sid); 
-        
+        if(!hslab){ 
+            free(hp->key);
+            free(hp);
+            free(fslab);
+            free(hp->key);
+            free(hp);
+            return -1;
+        }
+
         hp->sid = fslab->sid;
         hp->sa = fslab->sa;
         free(fslab);
@@ -203,7 +206,7 @@ word haddHitem ( HDR *mhdr ){
         DEBUG("now expand hashtable count %d logsize %d", pools_htab->count, pools_htab->logsize);
         hgrow();
     }
-    return TRUE;
+    return 0;
 }		/* -----  end of function haddHitem  ----- */
 
 /* 

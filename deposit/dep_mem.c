@@ -29,6 +29,8 @@ DEST *mem_init ( size_t byte ){
 
     num = (int)(byte / (LIMIT_SLAB_BYTE));
     _dest = calloc(1, sizeof(DEST));
+    if(!_dest) return NULL;
+
     _dest->total = num;
     _dest->maxbyte = byte;
     _dest->count = 1;
@@ -38,6 +40,8 @@ DEST *mem_init ( size_t byte ){
     _dest->fe = H_USE;
     _dest->doing = H_FALSE;
     _dest->pool_depo = (DEPO **)calloc(num, sizeof(DEPO));
+    if(!_dest->pool_depo) return NULL;
+
     for(i=0; i< num; i++){
         _dest->pool_depo[i] = deposit_init();
     }
@@ -207,6 +211,7 @@ int mem_pushdb ( DBP *_dbp ){
 
         free(ply->tab);
         free(ply);
+
         _dbp->inBuf = _depo->sm+_depo->ss;
         _dbp->inEnd = _lens+sizeof(char)+sizeof(uint32);
         offset = _dbp->inEnd;

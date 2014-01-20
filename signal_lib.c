@@ -11,7 +11,6 @@
 #include "signal_lib.h"
 
 void sig_handler(const int sig){
-    DEBUG("singal %d", sig);
     exit(-1);
 	return;
 }

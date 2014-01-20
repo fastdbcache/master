@@ -146,6 +146,7 @@ void addfslab ( HITEM *_ph){
     }
 
     fslab = (FSLAB *)calloc(1, sizeof(FSLAB));
+    if(!fslab) return;
     fslab->psize = _ph->psize;
     fslab->sid = _ph->sid;
     fslab->sa = _ph->sa;
