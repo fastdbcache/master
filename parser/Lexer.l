@@ -156,12 +156,7 @@ FCOMPARISON		{ return COMPARISON; }
 {FNOTES}	{ return yytext[0]; }
 	/* names */
 {FNAME}	{
-        /*_ly *_lc = _init_ly();
-        if(_lc){
-            _lc->tab = yytext;
-            _lc->len = yyleng;
-	    	yylval->myly = _lc;
-        }*/
+        
         yylval->strval = yytext;
         return NAME; 
         }

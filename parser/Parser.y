@@ -33,7 +33,6 @@ typedef void* yyscan_t;
 	double floatval;
 	char *strval;
 	int subtok;
-    _ly *myly;
 }
 
 %token <strval> NAME

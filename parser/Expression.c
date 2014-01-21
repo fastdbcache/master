@@ -74,7 +74,7 @@ void _lysave(_ly *myly, char *_src){
 
     if(!_src)return; 
     len = 0;
-    while(des && *des != ' ' && *des != '('){
+    while(des && *(des) != ' ' && *(des) != '(' && *(des) == '\t' && *(des) == '\r' && *(des) == '\n' ){
         len++;
         des++;
     }

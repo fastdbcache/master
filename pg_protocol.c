@@ -295,7 +295,7 @@ int AuthPG(const int bfd,const int ffd){
                         
                             if(isDep > conn_global->quotient){
                                                             
-                                if(strstr(conn_global->deprule, ply->tab)){
+                                if(memmem(conn_global->deprule, strlen(conn_global->deprule), ply->tab, ply->len)){
                                     if(-1 == leadadd ( (ub1 *)_apack->inBuf, (ub4)_apack->inEnd)){
                                         goto leaderr;
                                     }                                    

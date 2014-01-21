@@ -23,7 +23,7 @@ void set_signal(void){
 	signal(SIGQUIT, sig_handler);
 	signal(SIGKILL, sig_handler);
 	signal(SIGHUP, sig_handler);
-
+    signal(SIGPIPE, SIG_IGN);
 	return;
 }
 /* vim: set ts=4 sw=4: */

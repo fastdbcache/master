@@ -111,7 +111,7 @@ int mem_set ( ub1 *key, ub4 keyl ){
             DEPO_UNLOCK();
             return -1;    
         }
-        _depo->sm = calloc(1, LIMIT_SLAB_BYTE*sizeof(char));
+        _depo->sm = calloc(1, LIMIT_SLAB_BYTE*sizeof(ub1));
         if(!_depo->sm){
             DEBUG("malloc error");
             DEPO_UNLOCK();

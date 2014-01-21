@@ -240,7 +240,6 @@ void freeHdr ( HDR *fhdr ){
         free(fhdr->dr);
     free(fhdr);
     fhdr = NULL;
-    DEBUG("freeHdr");
 }		/* -----  end of function freeHdr  ----- */
 
 
