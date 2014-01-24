@@ -41,7 +41,7 @@ void libevent_work_thread(int fd, short ev, void *arg){
     }
        
     ffd = work_child->rq_item->frontend->ffd;
-    _dbp = initdbp();
+    _dbp = me->tdbp;
     
     pack_len = PGStartupPacket3(ffd, _dbp);  /*  1. F -> B */
     
@@ -49,15 +49,15 @@ void libevent_work_thread(int fd, short ev, void *arg){
 
     pg_fds = Client_Init(conn_global->pg_host, conn_global->pg_port);
     if(pg_fds == -1){
-        freedbp(_dbp);        
+        /*freedbp(_dbp);        */
         goto ok;
     }
     pg_len = Socket_Send(pg_fds, _dbp->inBuf, _dbp->inEnd);
-    freedbp(_dbp);
+    /*freedbp(_dbp);  */
 
     if(pg_len != pack_len) goto ok;
                
-    AuthPG(pg_fds, ffd);
+    AuthPG(pg_fds, ffd, _dbp);
                   
     work_child->isjob = JOB_FREE;
           
@@ -103,6 +103,7 @@ void work_thread_init(int nthreads){
         work_threads[i].notify_read_fd = fds[0];
         work_threads[i].notify_write_fd = fds[1];
         work_threads[i].no = i;
+        work_threads[i].tdbp = initdbp(); 
         setup_thread(&work_threads[i]);
     }
 

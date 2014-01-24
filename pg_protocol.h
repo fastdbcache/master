@@ -49,7 +49,7 @@
 #define AUTH_REQ_SSPI       9   /* SSPI negotiate without wrap() */
 
 int PGStartupPacket3(int fd, DBP *_dbp); /* 1. F -> B */ 
-int AuthPG(const int bfd,const int ffd);
+int AuthPG(const int bfd,const int ffd, DBP *_dbp);
 E_SQL_TYPE findSQL (  const char *sql , int len);
 E_SQL_TYPE findCache ( const char *spl, int *offset);
 

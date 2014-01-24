@@ -23,11 +23,12 @@
  * client to pg
  * */
 int PGStartupPacket3(int fd, DBP *_dbp){
-    char *newbuf;
     size_t pv_len;
-    uint32 pv;
+    int pv;
     int res;
 
+    _dbp->inCursor = 0; 
+    _dbp->inEnd = 0;
     if(_dbp == NULL) {
         d_log("pack calloc error !\n");         
         return -1;
@@ -37,6 +38,7 @@ int PGStartupPacket3(int fd, DBP *_dbp){
         DEBUG("CheckBufSpace error !\n");
         return -1;
     }
+    
     pv_len = Socket_Read(fd, _dbp->inBuf, sizeof(uint32));
 
     if(pv_len != sizeof(uint32)) return -1;
@@ -60,14 +62,14 @@ int PGStartupPacket3(int fd, DBP *_dbp){
      
 }
 
-int AuthPG(const int bfd,const int ffd){
-    char *newbuf,  *_hdrtmp;
+int AuthPG(const int bfd,const int ffd, DBP *_dbp){
+    char *_hdrtmp;
     DBP *_apack, *depo_pack; 
     ub1 *_drtmp;
     size_t totalsize,  total_size, cmd_size, pack_len;
-    uint32 total;
+    int total;
     int rfd, wfd;
-    int type, isDATA;
+    int  isDATA;
     E_SQL_TYPE isSELECT;
     HDR *_hdr;
     ULIST *_ulist;
@@ -109,7 +111,7 @@ int AuthPG(const int bfd,const int ffd){
             
     _hdr = NULL;
     _ulist = NULL;
-    _apack = initdbp();
+    _apack = _dbp;
     pack_len = 0;
     isSELECT = E_OTHER;
     isDATA = FALSE;
@@ -135,7 +137,7 @@ int AuthPG(const int bfd,const int ffd){
         cmd_size = Socket_Read(rfd, _apack->inBuf, sizeof(char));
 
         if(cmd_size != sizeof(char)) {            
-            freedbp(_apack); 
+            /*freedbp(_apack);   */
             return -1;
         }
          
@@ -146,7 +148,7 @@ int AuthPG(const int bfd,const int ffd){
         total_size = Socket_Read(rfd, _apack->inBuf + _apack->inCursor, sizeof(uint32));
 
         if(total_size != sizeof(uint32)){
-            freedbp(_apack);
+            /*freedbp(_apack);  */
             DEBUG("total_size error");
             return -1;
         }
@@ -183,7 +185,7 @@ int AuthPG(const int bfd,const int ffd){
         }
         
         if(depo_lock == H_TRUE){
-            if(*_apack->inBuf == 'C' |
+            if(*_apack->inBuf == 'C' ||
                 *_apack->inBuf == 'E'){
                 goto free_pack;
             }
@@ -202,7 +204,7 @@ int AuthPG(const int bfd,const int ffd){
             Socket_Send(bfd, depo_pack->inBuf, depo_pack->inEnd);
             if(*depo_pack->inBuf == 'X'){
                 freedbp(depo_pack);
-                freedbp(_apack);
+                /*freedbp(_apack);  */
                 return -1;
             }
             FB(1);
@@ -295,7 +297,7 @@ int AuthPG(const int bfd,const int ffd){
                         
                             if(isDep > conn_global->quotient){
                                                             
-                                if(memmem(conn_global->deprule, strlen(conn_global->deprule), ply->tab, ply->len)){
+                                if(memmem(conn_global->deprule, strlen(conn_global->deprule), ply->tab, ply->len)!=NULL){
                                     if(-1 == leadadd ( (ub1 *)_apack->inBuf, (ub4)_apack->inEnd)){
                                         goto leaderr;
                                     }                                    
@@ -365,7 +367,6 @@ int AuthPG(const int bfd,const int ffd){
                         FB(0);
                         goto free_pack;
                     }else if(cache == E_CACHE_SET){
-                        ssize_t set_val;
                         int set_offset;
                         _hdrtmp+=clen;
                         SPACER(_hdrtmp, set_offset); 
@@ -428,7 +429,7 @@ int AuthPG(const int bfd,const int ffd){
             case 'X':
                 
                 pack_len = 0;
-                freedbp(_apack);
+                /* freedbp(_apack); */
                 isDATA = FALSE;
                 return 0;
                 
@@ -440,7 +441,7 @@ int AuthPG(const int bfd,const int ffd){
     free_pack:        
         goto auth_loop;
 
-    freedbp(_apack); 
+    /*freedbp(_apack);   */
     _apack = NULL;
 }
 
