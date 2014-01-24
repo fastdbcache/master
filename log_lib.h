@@ -13,7 +13,7 @@
 #include <unistd.h>
 #include <syslog.h>
 
-#define LOGFILE   "suning_stat"
+#define LOGFILE   "FastDBCache"
 /*
 typedef struct log_context{
     int log_level;
