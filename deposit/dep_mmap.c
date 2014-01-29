@@ -20,7 +20,7 @@
 
 /* 
  * ===  FUNCTION  ======================================================================
- *         Name:  meta_open
+ *         Name:  mmap_open
  *  Description:  
  * =====================================================================================
  */
@@ -47,7 +47,7 @@ void mmap_open (void *start, char name, size_t byte, int flags ){
     write(fd, null, 1);
 
     return p;
-}		/* -----  end of function meta_open  ----- */
+}		/* -----  end of function mmap_open  ----- */
 
 /* 
  * ===  FUNCTION  ======================================================================
@@ -57,17 +57,29 @@ void mmap_open (void *start, char name, size_t byte, int flags ){
  */
 MMPO *mmpo_init (  ){
     MMPO *_mmpo;
-    int fds, fdn;
-    char *meta_sa[]={"meta.sa", "meta.na"};
-    char mmap_name_na[FILE_PATH_LENGTH];
+    char *meta[]={"meta.sa", "meta.na"};
+    char *mmdb[]={"db."};
+    uint32 val;
+    void _meta;
 
     _mmpo = calloc(1, sizeof(MMPO));
     if(!_mmpo) return NULL;
 
-    _mmpo->meta_sa = mmap_open( NULL, meta_sa[0], sizeof(uint32)*4, O_RDWR|O_CREAT ); 
-    _mmpo->meta_sa = mmap_open( NULL, meta_sa[1], sizeof(uint32)*4, O_RDWR|O_CREAT ); 
+    _mmpo->meta_sa = mmap_open( NULL, meta[0], sizeof(uint32)*4, O_RDWR|O_CREAT ); 
+    _mmpo->meta_na = mmap_open( NULL, meta[1], sizeof(uint32)*4, O_RDWR|O_CREAT ); 
 
-
+    if(_mmpo->meta_sa != NULL){
+        META_FID(_meta, _mmpo->meta_sa);
+        memcpy(&val, _meta, sizeof(uint32));
+        val = ntohl(val);
+        _mmpo->mmdb_sa = mmap_open(NULL, mmdb[0], conn_global->mmdb_length, O_RDWR|O_CREAT ) 
+    }
+    if(_mmpo->meta_na != NULL){
+        META_FID(_meta, _mmpo->meta_na);
+        memcpy(&val, _meta, sizeof(uint32));
+        val = ntohl(val);
+        _mmpo->mmdb_na = mmap_open(NULL, mmdb[1], conn_global->mmdb_length, O_RDWR) 
+    }
     return _mmpo;
 }		/* -----  end of function mmpo_init  ----- */
 
