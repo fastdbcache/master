@@ -190,7 +190,8 @@ int mmap_pushdb ( DBP *_dbp ){
     MMPO *_mmpo;
     void *meta, *mmdb; 
     ub4  _lens;
-    uint32 val, uuid, offset;
+    uint32 val, uuid, duuid, offset, len, etime;
+    _ly *ply;
 
     if(!_dbp) return -1;
 
@@ -200,9 +201,52 @@ int mmap_pushdb ( DBP *_dbp ){
     META_UUID(meta, _mmpo->meta_na);
     memcpy(&val, meta, sizeof(uint32));
     uuid = ntohl(val);
+
+    META_OFFSET(meta, _mmpo->meta_sa);
+    memcpy(&val, meta, sizeof(uint32));
+    offset = ntohl(val);
+    mmdb += offset;    
+
+    memcpy(&val, mmdb, sizeof(uint32));
+    duuid = ntohl(val);
+    if(duuid == 0)return -1;
+    if(duuid != uuid){
+        uuid = duuid;
+    }
+    
+    memcpy(&len, mmdb+sizeof(uint32)*2+sizeof(char), sizeof(uint32));
+    len = ntohl(len);
+    len += sizeof(char);
+
+    _dbp->inBuf = mmdb+sizeof(uint32)*2;
+    _dbp->inEnd = len;
+    _dbp->inBufSize = len;
+    ply = parser_do ((char *)(_dbp->inBuf+sizeof(char)+sizeof(uint32)), len-sizeof(char)-sizeof(uint32));
+
+    if(!ply){
+        /*  DEBUG("ply is null %s", _u->key);*/
+        DEBUG("ply is null");
+        return -1;
+    } 
+    /*  update tlist  */
+    utime = get_sec();
+    pushList((ub1 *)ply->tab, ply->len, utime);
+
+    if (len % CHUNK_ALIGN_BYTES)
+        len += CHUNK_ALIGN_BYTES - (_lens % CHUNK_ALIGN_BYTES);
+    
+    etime = (uint32)get_sec();
+    etime = htonl(etime);
+    offset = sizeof(uint32)*2+len;
+    memcpy(mmdb+offset, etime, sizeof(uint32) );
+    offset += sizeof(uint32);
+    offset = htonl(offset);
+    META_OFFSET(meta, _mmpo->meta_sa);
+    memcpy(meta, &offset, sizeof(uint32));
+ 
+    META_UUID(meta, _mmpo->meta_na);
     val = htonl(uuid+1);
     memcpy(meta, &val, sizeof(uint32));
-
     
     return 0;
 }		/* -----  end of function mmap_pushdb  ----- */
