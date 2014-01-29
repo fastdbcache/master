@@ -38,6 +38,7 @@ DEST *mem_init ( size_t byte ){
     _dest->sd = 0;
     _dest->nd = 0;
     _dest->fe = H_USE;
+    _dest->pool_mmpo = NULL;
     _dest->doing = H_FALSE;
     _dest->pool_depo = (DEPO **)calloc(num, sizeof(DEPO));
     if(!_dest->pool_depo) return NULL;
