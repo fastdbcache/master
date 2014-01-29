@@ -24,6 +24,8 @@
 
 #include <stdint.h>
 #include <pthread.h>
+#include <unistd.h>
+#include <sys/mman.h>
 
 #include "../config_global.h"
 #include "../parser/Expression.h"
@@ -39,6 +41,15 @@ struct __deposit
 };
 typedef  struct __deposit  DEPO;
 
+struct __mmposit
+{
+    void        *meta_sa;   /* mmap for sa start mmap.meta.sa */
+    void        *meta_na;  /* mmap for na start mmap.meta.na */
+    void        *mmdb_sa;   /* mmap for sa data start mmap.db.0002 128*LIMIT_MMAP_BYTE */
+    void        *mmdb_na;   /* mmap fro na data start mmap.db.0001 128*LIMIT_MMAP_BYTE */
+};
+typedef struct __mmposit MMPO;
+
 struct __depstat
 { 
     ub4         maxbyte;  /* max  byte for deposit  */
@@ -47,6 +58,7 @@ struct __depstat
     sb2         count;   /* how much malloc depo sm */
     sb2         sd;     /* now start DEPO */
     sb2         nd;    /* now doing DEPO */
+    MMPO        *pool_mmpo;  /* for mmap */
     H_USESTAT   fe;     /* the first deposit is free default H_USE , H_FREE is free */
     H_STATE doing;      /* H_TRUE one thread to do, H_FALSE none to do */
     DEPO        **pool_depo;
@@ -74,6 +86,26 @@ pthread_mutex_t work_lock_deps_do;
     pthread_mutex_unlock(&work_lock_deps_do); \
 }while(0)
 
+#define META_TOTAL(d) do{\
+    META_MOVE((d), 0);   \
+}while(0)
+
+#define META_FID(d) do{\
+    META_MOVE((d), sizeof(uint32)); \
+}while(0)
+
+#define META_OFFSET(d) do{\
+    META_MOVE((d), (sizeof(uint32)*2)); \
+}while(0)
+
+#define META_UUID(d) do{\
+    META_MOVE((d), (sizeof(uint32)*3)); \
+}while(0)
+
+#define META_MOVE(d, o) do{\
+    (d)+=(o);   \
+}while(0)
+
 void leadinit ( size_t byte );
 int leadadd ( ub1 *key, ub4 keyl );
 int leadpush ( DBP *_dbp );
@@ -84,5 +116,3 @@ DEPO *deposit_init (  );
 #endif
 #endif /* --- #DEP_STRUCT_H ---*/
  /* vim: set ts=4 sw=4: */
-
-
