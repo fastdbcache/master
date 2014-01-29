@@ -136,9 +136,9 @@ DEST *mmap_init ( size_t byte ){
  */
 int mmap_set ( ub1 *key, ub4 keyl ){
     MMPO *_mmpo;
-    void *meta; 
+    void *meta, *mmdb; 
     ub4  _lens;
-    uint32 val;
+    uint32 val, uuid, offset;
 
     if(!_dest){
         DEBUG("pools_dest is null");
@@ -152,16 +152,60 @@ int mmap_set ( ub1 *key, ub4 keyl ){
     _lens = keyl;
     if (_lens % CHUNK_ALIGN_BYTES)
             _lens += CHUNK_ALIGN_BYTES - (_lens % CHUNK_ALIGN_BYTES);
-
+    
     _mmpo = pools_dest->pool_mmpo;
+    mmdb = _mmpo->mmdb_sa;
+    
     META_UUID(meta, _mmpo->meta_sa);
     memcpy(&val, meta, sizeof(uint32));
-    val = ntohl(val);
-    
+    uuid = ntohl(val);
+    val = htonl(uuid+1);
+    memcpy(meta, &val, sizeof(uint32));    
+
     META_OFFSET(meta, _mmpo->meta_sa);
     memcpy(&val, meta, sizeof(uint32));
+    offset = ntohl(val);
+    mmdb += offset;
+
+    val = htonl((uint32)get_sec());
+    memcpy(mmdb+sizeof(uint32), &val, sizeof(uint32));
+    memcpy(mmdb+sizeof(uint32)*2, key, keyl);
+    memcpy(mmdb, &uuid, sizeof(uint32));
     
+    offset += sizeof(uint32)*3+_lens;
+    val = htonl(offset);
+    memcpy(meta, &val, sizeof(uint32));
+
+    return 0;
 }		/* -----  end of function mmap_set  ----- */
+
+
+/* 
+ * ===  FUNCTION  ======================================================================
+ *         Name:  mmap_pushdb
+ *  Description:  
+ * =====================================================================================
+ */
+int mmap_pushdb ( DBP *_dbp ){
+    MMPO *_mmpo;
+    void *meta, *mmdb; 
+    ub4  _lens;
+    uint32 val, uuid, offset;
+
+    if(!_dbp) return -1;
+
+    _mmpo = pools_dest->pool_mmpo;
+    mmdb = _mmpo->mmdb_na;
+    
+    META_UUID(meta, _mmpo->meta_na);
+    memcpy(&val, meta, sizeof(uint32));
+    uuid = ntohl(val);
+    val = htonl(uuid+1);
+    memcpy(meta, &val, sizeof(uint32));
+
+    
+    return 0;
+}		/* -----  end of function mmap_pushdb  ----- */
 
  /* vim: set ts=4 sw=4: */
 
