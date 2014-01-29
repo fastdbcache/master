@@ -17,6 +17,38 @@
  */
 #include "dep_mmap.h"
 
+
+/* 
+ * ===  FUNCTION  ======================================================================
+ *         Name:  meta_open
+ *  Description:  
+ * =====================================================================================
+ */
+void mmap_open (void *start, char name, size_t byte, int flags ){
+    int fd;
+    char meta_name[FILE_PATH_LENGTH], null[1];
+    void *p;
+
+    bzero(meta_name, FILE_PATH_LENGTH);
+    sprintf(meta_name, FILE_PATH_LENGTH-1, "%s/mmap.%s", conn_global->mmap_path, name);
+    
+    fd = open(meta_name, flags);
+    if(fds == -1){
+        DEBUG("open mmap.meta error");
+        exit(-1);
+    }
+    
+    p = mmap(start, byte, PROT_READ|PROT_WRITE, MAP_SHARED, fd, 0);
+    if(p == MAP_FAILED){
+        DEBUG("init start_sa error");
+        return NULL;
+    }
+    null[0]='\0';
+    write(fd, null, 1);
+
+    return p;
+}		/* -----  end of function meta_open  ----- */
+
 /* 
  * ===  FUNCTION  ======================================================================
  *         Name:  mmpo_init
@@ -26,29 +58,15 @@
 MMPO *mmpo_init (  ){
     MMPO *_mmpo;
     int fds, fdn;
-    char mmap_name_sa[FILE_PATH_LENGTH];
+    char *meta_sa[]={"meta.sa", "meta.na"};
     char mmap_name_na[FILE_PATH_LENGTH];
 
     _mmpo = calloc(1, sizeof(MMPO));
     if(!_mmpo) return NULL;
 
-    bzero(mmap_name_sa, FILE_PATH_LENGTH);
-    bzero(mmap_name_na, FILE_PATH_LENGTH);
-    sprintf(mmap_name_sa, FILE_PATH_LENGTH-1, "%s/mmap.meta.sa", conn_global->mmap_path);
-    sprintf(mmap_name_na, FILE_PATH_LENGTH-1, "%s/mmap.meta.na", conn_global->mmap_path);
-    fds = open(mmap_name_sa, O_RDWR|O_CREAT);
-    if(fds == -1){
-        DEBUG("open mmap.meta.sa error");
-        exit(-1);
-    }
-    
-    _mmpo->meta_sa = mmap(NULL, sizeof(uint32)*4, PROT_READ|PROT_WRITE,MAP_SHARED, fds, 0);
-    if(_dest->start_sa == MAP_FAILED){
-        DEBUG("init start_sa error");
-        exit(-1);
-    }
-    write(fds, mmap_name_sa,)
-    _mmpo->meta_na = NULL;
+    _mmpo->meta_sa = mmap_open( NULL, meta_sa[0], sizeof(uint32)*4, O_RDWR|O_CREAT ); 
+    _mmpo->meta_sa = mmap_open( NULL, meta_sa[1], sizeof(uint32)*4, O_RDWR|O_CREAT ); 
+
 
     return _mmpo;
 }		/* -----  end of function mmpo_init  ----- */
