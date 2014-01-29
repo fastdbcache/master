@@ -58,7 +58,7 @@ void mmap_open (void *start, char name, size_t byte, int flags ){
 MMPO *mmpo_init (  ){
     MMPO *_mmpo;
     char *meta[]={"meta.sa", "meta.na"};
-    char *mmdb[]={"db."};
+    char mmdb[FILE_PATH_LENGTH];
     uint32 val;
     void _meta;
 
@@ -72,13 +72,27 @@ MMPO *mmpo_init (  ){
         META_FID(_meta, _mmpo->meta_sa);
         memcpy(&val, _meta, sizeof(uint32));
         val = ntohl(val);
-        _mmpo->mmdb_sa = mmap_open(NULL, mmdb[0], conn_global->mmdb_length, O_RDWR|O_CREAT ) 
+        if(val == 0){
+            val = htonl(1);
+            memcpy(_meta, &val, sizeof(uint32));
+            val = 1;
+        }
+        bzero(mmdb, FILE_PATH_LENGTH);
+        snprintf(mmdb, FILE_PATH_LENGTH-1, "db.%010d", val);
+        _mmpo->mmdb_sa = mmap_open(NULL, mmdb, conn_global->mmdb_length, O_RDWR|O_CREAT ) 
     }
     if(_mmpo->meta_na != NULL){
         META_FID(_meta, _mmpo->meta_na);
         memcpy(&val, _meta, sizeof(uint32));
         val = ntohl(val);
-        _mmpo->mmdb_na = mmap_open(NULL, mmdb[1], conn_global->mmdb_length, O_RDWR) 
+        if(val == 0){
+            val = htonl(1);
+            memcpy(_meta, &val, sizeof(uint32));
+            val = 1;
+        }
+        bzero(mmdb, FILE_PATH_LENGTH);
+        snprintf(mmdb, FILE_PATH_LENGTH-1, "db.%010d", val);
+        _mmpo->mmdb_na = mmap_open(NULL, mmdb, conn_global->mmdb_length, O_RDWR) 
     }
     return _mmpo;
 }		/* -----  end of function mmpo_init  ----- */
@@ -106,18 +120,7 @@ DEST *mmap_init ( size_t byte ){
     _dest->nd = 0;
     _dest->fe = H_USE;
 
-        
-
-    fdn = open(mmap_name_na, O_RDWR|O_CREAT);
-    if(fdn == -1){
-        DEBUG("open mmap.meta.na error");
-        exit(-1);
-    }
-    _dest->start_na = mmap(NULL, sizeof(uint32)*5, PROT_READ|PROT_WRITE,MAP_SHARED, fdn, 0);
-    if(_dest->start_na == MAP_FAILED){
-        DEBUG("init start_na error");
-        exit(-1);
-    }
+    _dest->pool_mmpo = mmpo_init(); 
     _dest->doing = H_FALSE;
     _dest->pool_depo = NULL;
      
@@ -132,9 +135,10 @@ DEST *mmap_init ( size_t byte ){
  * =====================================================================================
  */
 int mmap_set ( ub1 *key, ub4 keyl ){
-    DEST *_dest = pools_dest;
-    DEPO *_depo;
+    MMPO *_mmpo;
+    void *meta; 
     ub4  _lens;
+    uint32 val;
 
     if(!_dest){
         DEBUG("pools_dest is null");
@@ -149,6 +153,13 @@ int mmap_set ( ub1 *key, ub4 keyl ){
     if (_lens % CHUNK_ALIGN_BYTES)
             _lens += CHUNK_ALIGN_BYTES - (_lens % CHUNK_ALIGN_BYTES);
 
+    _mmpo = pools_dest->pool_mmpo;
+    META_UUID(meta, _mmpo->meta_sa);
+    memcpy(&val, meta, sizeof(uint32));
+    val = ntohl(val);
+    
+    META_OFFSET(meta, _mmpo->meta_sa);
+    memcpy(&val, meta, sizeof(uint32));
     
 }		/* -----  end of function mmap_set  ----- */
 
