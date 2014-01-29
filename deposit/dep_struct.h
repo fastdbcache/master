@@ -86,24 +86,24 @@ pthread_mutex_t work_lock_deps_do;
     pthread_mutex_unlock(&work_lock_deps_do); \
 }while(0)
 
-#define META_TOTAL(d) do{\
-    META_MOVE((d), 0);   \
+#define META_TOTAL(d, r) do{\
+    META_MOVE((d), (r), 0);   \
 }while(0)
 
-#define META_FID(d) do{\
-    META_MOVE((d), sizeof(uint32)); \
+#define META_FID(d, r) do{\
+    META_MOVE((d), (r), sizeof(uint32)); \
 }while(0)
 
-#define META_OFFSET(d) do{\
-    META_MOVE((d), (sizeof(uint32)*2)); \
+#define META_OFFSET(d, r) do{\
+    META_MOVE((d), (r), (sizeof(uint32)*2)); \
 }while(0)
 
-#define META_UUID(d) do{\
-    META_MOVE((d), (sizeof(uint32)*3)); \
+#define META_UUID(d, r) do{\
+    META_MOVE((d), (r) (sizeof(uint32)*3)); \
 }while(0)
 
-#define META_MOVE(d, o) do{\
-    (d)+=(o);   \
+#define META_MOVE(d, r, o) do{\
+    (d) = (r) + (o);   \
 }while(0)
 
 void leadinit ( size_t byte );
