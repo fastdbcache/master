@@ -74,12 +74,15 @@ typedef                 int  word;  /* fastest type available */
 #define CHUNK_ALIGN_BYTES 8
 #define MAX_SLAB_BYTE (128*1024 * 1024)
 #define LIMIT_SLAB_BYTE (1024 * 1024)
+#define LIMIT_MMAP_BYTE (1024 * 1024)
 #define SLAB_BEGIN 88
 #define LIMIT_PERCENT 0.1
 
 #define MD5_LENG 33
 
 #define MAXCONNS 1024
+
+#define FILE_PATH_LENGTH 256
 
 #define bis(target,mask)  ((target) |=  (mask))
 #define bic(target,mask)  ((target) &= ~(mask))
@@ -203,21 +206,24 @@ struct __conn{
 
     ssize_t do_daemonize; /* is daemon */
 
-    char *pid_file;  /* pid path */
+    char pid_file[FILE_PATH_LENGTH];  /* pid path */
     
     ssize_t process_num;  /* work process number */
     ssize_t max_link;
 
     float factor;       /* for hslab default 1.25  */
-    size_t maxbytes;   /* max bytes for hslab */
+    ssize_t maxbytes;   /* max bytes for hslab */
     int delaytime;     /* delay time for update */
     
     D_TYPE deptype;     /* deposit type */
-    size_t dmaxbytes;   /* max bytes for deposit  */
+    ssize_t dmaxbytes;   /* max bytes for deposit  */
     H_STATE hasdep;      /* is use deposit default FALSE */
-    size_t quotient;    /* when client over quotient, deposit inure */
+    ssize_t quotient;    /* when client over quotient, deposit inure */
     /*DEPR  **deprule;     table for deposit */
     char *deprule;
+
+    char mmap_path[FILE_PATH_LENGTH];
+    ssize_t mmdb_length;
 };
 
 _conn *conn_global;

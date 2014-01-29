@@ -23,7 +23,10 @@
  *  Description:  
  * =====================================================================================
  */
-void conn_init_global ( void ){    
+void conn_init_global ( void ){
+    int fd;
+    struct stat sb;
+
     conn_global = (_conn *)calloc(1, sizeof(_conn));
     if(!conn_global){
         DEBUG("conn_global init error");
@@ -56,6 +59,24 @@ void conn_init_global ( void ){
     conn_global->hasdep = H_FALSE;
     conn_global->quotient = 2;
     conn_global->deprule = NULL;
+    conn_global->mmap_path = "/usr/local/fdbc/cache";
+    conn_global->mmdb_length = 128 * LIMIT_MMAP_BYTE;
+
+    if(conn_global->deptype == D_MMAP){
+        stat(conn_global->mmap_path, &sb);
+        if(sb.st_mode != S_IFDIR){
+            DEBUG("cache is not dir");
+            exit(-1);
+        }
+        if(sb.st_mode != S_IRUSR){
+            DEBUG("cache dir can't read!");
+            exit(-1);
+        }
+        if(sb.st_mode != S_IWUSR){
+            DEBUG("cache dir can't write");
+            exit(-1);
+        }   
+    }
 }		/* -----  end of function conn_init_global  ----- */
 
 
@@ -87,6 +108,22 @@ void conn_get_global (  ){
     conn_global->delaytime = atoi(conf_get("delay_time"));
     
     initDeposit(); 
+
+    if(conn_global->deptype == D_MMAP){
+        stat(conn_global->mmap_path, &sb);
+        if(sb.st_mode != S_IFDIR){
+            DEBUG("cache is not dir");
+            exit(-1);
+        }
+        if(sb.st_mode != S_IRUSR){
+            DEBUG("cache dir can't read!");
+            exit(-1);
+        }
+        if(sb.st_mode != S_IWUSR){
+            DEBUG("cache dir can't write");
+            exit(-1);
+        }   
+    }
     return ;
 }		/* -----  end of function conn_get_global  ----- */
 
