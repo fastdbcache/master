@@ -250,6 +250,9 @@ int mmap_pushdb ( DBP *_dbp ){
         META_FID(meta, _mmpo->meta_na);
         memcpy(meta, &val, sizeof(uint32));
         offset = 0;
+        val = htonl(offset);
+        META_OFFSET(meta, _mmpo->meta_na);
+        memcpy(meta, &val, sizeof(uint32));
     }
     /* error */
     if(duuid != uuid){
@@ -299,5 +302,3 @@ int mmap_pushdb ( DBP *_dbp ){
 }		/* -----  end of function mmap_pushdb  ----- */
 
  /* vim: set ts=4 sw=4: */
-
-

@@ -18,7 +18,7 @@
 
 #include "dep_struct.h"
 #include "dep_mem.h"
-
+#include "dep_mmap.h"
 
 /* 
  * ===  FUNCTION  ======================================================================
@@ -39,7 +39,8 @@ void leadinit ( size_t byte ){
             pools_dest = mem_init ( byte );
             break;
 
-        case D_MMAP:	
+        case D_MMAP:
+            pools_dest = mmap_init(byte);	
             break;
 
         case D_HD:	
@@ -70,6 +71,7 @@ int leadadd ( ub1 *key, ub4 keyl ){
             break;
 
         case D_MMAP:	
+            i = mmap_set ( key, keyl );
             break;
 
         case D_HD:	
@@ -98,6 +100,7 @@ int leadpush ( DBP *_dbp ){
             break;
 
         case D_MMAP:	
+            i = mmap_pushdb ( _dbp );
             break;
 
         case D_HD:	
@@ -132,8 +135,4 @@ int leadexit ( DBP *_dbp ){
     return 0;
 }		/* -----  end of function leadexit  ----- */
 
-
-
  /* vim: set ts=4 sw=4: */
-
-
