@@ -190,10 +190,7 @@ int mmap_set ( ub1 *key, ub4 keyl ){
         _mmpo->mmdb_sa = mmap_open(NULL, mmdb_name, conn_global->mmdb_length, O_RDWR|O_CREAT )
         val = htonl(1+val);
         memcpy(meta, &val, sizeof(uint32));
-        offset = 0;
-        META_OFFSET(meta, _mmpo->meta_sa);
-        val = htonl(offset);
-        memcpy(meta, &val, sizeof(uint32));
+        offset = 0;                
     }
 
     mmdb = _mmpo->mmdb_sa;
@@ -206,6 +203,7 @@ int mmap_set ( ub1 *key, ub4 keyl ){
     
     offset += sizeof(uint32)*3+_lens;
     val = htonl(offset);
+    META_OFFSET(meta, _mmpo->meta_sa);
     memcpy(meta, &val, sizeof(uint32));
     
     return 0;
@@ -264,13 +262,12 @@ int mmap_pushdb ( DBP *_dbp ){
     utime = get_sec();
     pushList((ub1 *)ply->tab, ply->len, utime);
 
-    if (len % CHUNK_ALIGN_BYTES)
-        len += CHUNK_ALIGN_BYTES - (_lens % CHUNK_ALIGN_BYTES);
-    
+    len = alignByte(len);
+        
     etime = (uint32)get_sec();
     etime = htonl(etime);
-    offset = sizeof(uint32)*2+len;
-    memcpy(mmdb+offset, etime, sizeof(uint32) );
+    offset += sizeof(uint32)*2+len;
+    memcpy(mmdb+sizeof(uint32)*2+len, etime, sizeof(uint32) );
     offset += sizeof(uint32);
     offset = htonl(offset);
     META_OFFSET(meta, _mmpo->meta_sa);
