@@ -74,7 +74,6 @@ typedef                 int  word;  /* fastest type available */
 #define CHUNK_ALIGN_BYTES 8
 #define MAX_SLAB_BYTE (128*1024 * 1024)
 #define LIMIT_SLAB_BYTE (1024 * 1024)
-#define LIMIT_MMAP_BYTE (1024 * 1024)
 #define SLAB_BEGIN 88
 #define LIMIT_PERCENT 0.1
 
@@ -83,6 +82,8 @@ typedef                 int  word;  /* fastest type available */
 #define MAXCONNS 1024
 
 #define FILE_PATH_LENGTH 256
+#define LIMIT_MMAP_BYTE (1024 * 1024)
+#define DEFAULT_MMAP_BYTE (64* LIMIT_MMAP_BYTE)
 
 #define bis(target,mask)  ((target) |=  (mask))
 #define bic(target,mask)  ((target) &= ~(mask))
@@ -231,6 +232,7 @@ _conn *conn_global;
 void conn_init_global();
 void conn_get_global ();
 void initDeposit ( );
+ub4 alignByte ( ub4 len );
 #ifdef __cplusplus
  }
 #endif

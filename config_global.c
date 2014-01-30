@@ -60,7 +60,7 @@ void conn_init_global ( void ){
     conn_global->quotient = 2;
     conn_global->deprule = NULL;
     conn_global->mmap_path = "/usr/local/fdbc/cache";
-    conn_global->mmdb_length = 128 * LIMIT_MMAP_BYTE;
+    conn_global->mmdb_length = DEFAULT_MMAP_BYTE;
 
     if(conn_global->deptype == D_MMAP){
         stat(conn_global->mmap_path, &sb);
@@ -151,5 +151,19 @@ void initDeposit ( ){
     conn_global->hasdep = H_TRUE;
 }		/* -----  end of function initDeposit  ----- */
 
+
+/* 
+ * ===  FUNCTION  ======================================================================
+ *         Name:  alignByte
+ *  Description:  
+ * =====================================================================================
+ */
+ub4 alignByte ( ub4 len ){
+    ub4 _lens;
+    _lens = len;
+    if (_lens % CHUNK_ALIGN_BYTES)
+            _lens += CHUNK_ALIGN_BYTES - (_lens % CHUNK_ALIGN_BYTES);
+    return _lens;
+}		/* -----  end of function alignByte  ----- */
  /* vim: set ts=4 sw=4: */
 
