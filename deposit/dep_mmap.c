@@ -67,6 +67,8 @@ MMPO *mmpo_init (  ){
 
     _mmpo->meta_sa = mmap_open( NULL, meta[0], sizeof(uint32)*4, O_RDWR|O_CREAT ); 
     _mmpo->meta_na = mmap_open( NULL, meta[1], sizeof(uint32)*4, O_RDWR|O_CREAT ); 
+    _mmpo->mmdb_sa = NULL;
+    _mmpo->mmdb_na = NULL;
 
     if(_mmpo->meta_sa != NULL){
         META_FID(_meta, _mmpo->meta_sa);
@@ -75,11 +77,13 @@ MMPO *mmpo_init (  ){
         if(val == 0){
             val = htonl(1);
             memcpy(_meta, &val, sizeof(uint32));
+            META_UUID(_meta, _mmpo->meta_sa);
+            memcpy(_meta, &val, sizeof(uint32));
             val = 1;
         }
         bzero(mmdb, FILE_PATH_LENGTH);
         snprintf(mmdb, FILE_PATH_LENGTH-1, "db.%010d", val);
-        _mmpo->mmdb_sa = mmap_open(NULL, mmdb, conn_global->mmdb_length, O_RDWR|O_CREAT ) 
+        _mmpo->mmdb_sa = mmap_open(NULL, mmdb, conn_global->mmdb_length, O_RDWR|O_CREAT ); 
     }
     if(_mmpo->meta_na != NULL){
         META_FID(_meta, _mmpo->meta_na);
@@ -88,11 +92,13 @@ MMPO *mmpo_init (  ){
         if(val == 0){
             val = htonl(1);
             memcpy(_meta, &val, sizeof(uint32));
+            META_UUID(_meta, _mmpo->meta_na);
+            memcpy(_meta, &val, sizeof(uint32));
             val = 1;
         }
         bzero(mmdb, FILE_PATH_LENGTH);
         snprintf(mmdb, FILE_PATH_LENGTH-1, "db.%010d", val);
-        _mmpo->mmdb_na = mmap_open(NULL, mmdb, conn_global->mmdb_length, O_RDWR) 
+        _mmpo->mmdb_na = mmap_open(NULL, mmdb, conn_global->mmdb_length, O_RDWR); 
     }
     return _mmpo;
 }		/* -----  end of function mmpo_init  ----- */
@@ -139,6 +145,7 @@ int mmap_set ( ub1 *key, ub4 keyl ){
     void *meta, *mmdb; 
     ub4  _lens;
     uint32 val, uuid, offset;
+    char mmdb_name[FILE_PATH_LENGTH];
 
     if(!_dest){
         DEBUG("pools_dest is null");
@@ -149,22 +156,47 @@ int mmap_set ( ub1 *key, ub4 keyl ){
         return -1;
     }
 
-    _lens = keyl;
-    if (_lens % CHUNK_ALIGN_BYTES)
-            _lens += CHUNK_ALIGN_BYTES - (_lens % CHUNK_ALIGN_BYTES);
-    
+    _lens = alignByte(keyl);
     _mmpo = pools_dest->pool_mmpo;
-    mmdb = _mmpo->mmdb_sa;
+    
     
     META_UUID(meta, _mmpo->meta_sa);
     memcpy(&val, meta, sizeof(uint32));
     uuid = ntohl(val);
-    val = htonl(uuid+1);
+    if(uuid == 9999999999){
+        META_TOTAL(meta, _mmpo->meta_sa);
+        memcpy(&val, meta, sizeof(uint32));
+        val = ntohl(val);
+        val = htonl(val+1);
+        memcpy(meta, &val, sizeof(uint32));
+        uuid = 1;
+        val = htonl(uuid);
+        memcpy(meta, &val, sizeof(uint32));
+    }else
+        val = htonl(uuid+1);
+    
     memcpy(meta, &val, sizeof(uint32));    
 
     META_OFFSET(meta, _mmpo->meta_sa);
     memcpy(&val, meta, sizeof(uint32));
     offset = ntohl(val);
+    if((offset + sizeof(uint32)*3 + _lens) > conn_global->mmdb_length){
+        META_FID(meta, _mmpo->meta_sa);
+        memcpy(&val, meta, sizeof(uint32));
+        val = ntohl(val);
+        
+        bzero(mmdb_name, FILE_PATH_LENGTH);
+        snprintf(mmdb_name, FILE_PATH_LENGTH-1, "db.%010d", val);
+        _mmpo->mmdb_sa = mmap_open(NULL, mmdb_name, conn_global->mmdb_length, O_RDWR|O_CREAT )
+        val = htonl(1+val);
+        memcpy(meta, &val, sizeof(uint32));
+        offset = 0;
+        META_OFFSET(meta, _mmpo->meta_sa);
+        val = htonl(offset);
+        memcpy(meta, &val, sizeof(uint32));
+    }
+
+    mmdb = _mmpo->mmdb_sa;
     mmdb += offset;
 
     val = htonl((uint32)get_sec());
@@ -175,7 +207,7 @@ int mmap_set ( ub1 *key, ub4 keyl ){
     offset += sizeof(uint32)*3+_lens;
     val = htonl(offset);
     memcpy(meta, &val, sizeof(uint32));
-
+    
     return 0;
 }		/* -----  end of function mmap_set  ----- */
 
