@@ -221,29 +221,47 @@ int mmap_pushdb ( DBP *_dbp ){
     void *meta, *mmdb; 
     ub4  _lens;
     uint32 val, uuid, duuid, offset, len, etime;
+    uint32 fid, nfid;
     _ly *ply;
+    char mmdb_name[FILE_PATH_LENGTH];
 
     if(!_dbp) return -1;
 
     _mmpo = pools_dest->pool_mmpo;
-    mmdb = _mmpo->mmdb_na;
     
     META_UUID(meta, _mmpo->meta_na);
     memcpy(&val, meta, sizeof(uint32));
     uuid = ntohl(val);
-
-    META_OFFSET(meta, _mmpo->meta_sa);
-    memcpy(&val, meta, sizeof(uint32));
-    offset = ntohl(val);
-    mmdb += offset;    
-
+    
     memcpy(&val, mmdb, sizeof(uint32));
     duuid = ntohl(val);
-    if(duuid == 0)return -1;
+    if(duuid == 0){
+        META_FID(meta, _mmpo->meta_na);
+        memcpy(&val, meta, sizeof(uint32));
+        fid = ntohl(val);
+        META_FID(meta, _mmpo->meta_sa);
+        memcpy(&val, meta, sizeof(uint32));
+        nfid = ntohl(val);
+        if(fid == nfid) return -1;
+        bzero(mmdb_name, FILE_PATH_LENGTH);
+        snprintf(mmdb_name, FILE_PATH_LENGTH-1, "db.%010d", nfid);
+        _mmpo->mmdb_na = mmap_open(NULL, mmdb_name, conn_global->mmdb_length, O_RDWR )
+        val = htonl(nfid);
+        META_FID(meta, _mmpo->meta_na);
+        memcpy(meta, &val, sizeof(uint32));
+        offset = 0;
+    }
+    /* error */
     if(duuid != uuid){
         uuid = duuid;
     }
-    
+
+    META_OFFSET(meta, _mmpo->meta_na);
+    memcpy(&val, meta, sizeof(uint32));
+    offset = ntohl(val);
+
+    mmdb = _mmpo->mmdb_na;
+    mmdb += offset;
     memcpy(&len, mmdb+sizeof(uint32)*2+sizeof(char), sizeof(uint32));
     len = ntohl(len);
     len += sizeof(char);
