@@ -29,6 +29,8 @@
 #include "lookupa.h"
 #include "openmd5.h"
 
+
+
 /* 
  * f=1.25
  * slab class   1: chunk size     88 perslab 11915
@@ -59,7 +61,6 @@ struct __hslab
   struct __hslab *next;     /* next */
 };
 typedef  struct __hslab  HSLAB;
-
 
 /* record the unlink slab */
 struct __fslab
@@ -176,6 +177,13 @@ struct __hsms{
 /* mem proc table list */
 typedef struct __hsms HSMS;
 
+struct __hfd{
+    int fd;
+    struct __hfd *next; 
+};
+typedef struct __hfd HFD;
+
+HFD *pools_hfd;
 HTAB *pools_htab;   /* stat record */
 ub4 *pools_hitem_row;
 
