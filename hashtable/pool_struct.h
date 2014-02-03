@@ -30,6 +30,15 @@
 #include "openmd5.h"
 
 
+static const char *HashTable_for_list[] = {
+    "htab.db.meta",
+    "harug.db.meta",
+    "hitem.row.meta",
+    "tlist.db.meta",
+    "hslab.db.meta",
+    "fslab.db.meta",
+    NULL 
+};
 
 /* 
  * f=1.25
@@ -68,7 +77,7 @@ struct __fslab
   ssize_t           psize;     /* hpool size */
   sb2           sid;       /* slab id */
   sb2           sa;       /* data row start addr of hslab  sa*psize  sa = ss */   
-  struct __fslab *next;     /* next */
+  /*struct __fslab *next;      next */
 };
 typedef  struct __fslab  FSLAB;
 
@@ -78,7 +87,7 @@ dont del hitem only set drl is 0
 */
 struct __hitem
 {
-  ub1          *key;      /* key that is hashed */
+  ub1          key[KEY_LENGTH];      /* key that is hashed */
   ub4           keyl;     /* length of key */
   ub4           drl;      /* length of data row */
   ssize_t           psize;    /* hpools size */
@@ -113,6 +122,8 @@ typedef  struct __hitem_group  HG;
 struct __haru
 {
   HITEM         *phitem;  /* point to hitem */
+  ub1           hid;     /* mmap hitem key id */
+  ub1           id;     /* mmap hitem id */
   ub4           hit;    /* haru hit */
 };
 typedef  struct __haru  HARU;
@@ -157,7 +168,7 @@ struct __htab
 typedef  struct __htab  HTAB;
 
 struct __tlist{
-  char      *key;  /* key is table name or ulist  key sql */
+  char      key[KEY_LENGTH];  /* key is table name or ulist  key sql */
   ub4       keyl;      /* length name */
   ub4       utime;  /* table the last update time */
   H_STATE       flag; /* TRUE default FALSE is del */
@@ -177,8 +188,10 @@ struct __hsms{
 /* mem proc table list */
 typedef struct __hsms HSMS;
 
+/* use memory record mmap fd */
 struct __hfd{
     int fd;
+    char *name;
     struct __hfd *next; 
 };
 typedef struct __hfd HFD;
@@ -198,7 +211,7 @@ HG *hitem_group;
 HDR *pools_hdr_tail;
 HDR *pools_hdr_head;
 TLIST *pools_tlist;
-HSLAB **pools_hslab;
+HSLAB *pools_hslab;
 
 pthread_mutex_t work_lock_fslab;
 FSLAB *pools_fslab;

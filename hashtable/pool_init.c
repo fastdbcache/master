@@ -27,11 +27,36 @@
 void hcreate ( int isize ){
     int i;
     ub4 len;
-    int max_slab;
+    int max_slab, count_hslab;
+    HFD *_hfd, *_hfd_next;
+    char htab_path[1024];
 
     len = ((ub4)1<<isize);
 
+#ifdef MMAP
+    pools_hfd = inithfd();
+    if(!pools_hfd){
+        DEBUG("init pools_hfd error");
+        exit(-1);
+    } 
+    _hfd_next = pools_hfd;
+#endif
+
+#ifdef MMAP
+    
+    bzero(htab_path, 1024);
+    snprintf(htab_path, 1023, "%s/%s",conn_global->mmap_path,HashTable_for_list[0]);
+    _hfd = inithfd();
+    if(!_hfd){
+        DEBUG("init inithfd error");
+        exit(-1);
+    }
+    _hfd_next->next = _hfd;
+    _hfd_next = _hfd;
+    pools_htab = (HTAB *)mcalloc(1, sizeof(HTAB),htab_path,O_RDWR|O_CREAT, _hfd);
+#else
     pools_htab = (HTAB *)calloc(1, sizeof(HTAB));
+#endif
     if(pools_htab == NULL){
         DEBUG("pools_htab calloc error");
         exit(1);
@@ -48,7 +73,20 @@ void hcreate ( int isize ){
     pools_htab->bytes = 0;
     bzero(pools_htab->hslab_stat,  sizeof(pools_htab->hslab_stat));
 
+#ifdef MMAP
+    bzero(htab_path, 1024);
+    snprintf(htab_path, 1023, "%s/%s",conn_global->mmap_path,HashTable_for_list[1]);
+    _hfd = inithfd();
+    if(!_hfd){
+        DEBUG("init inithfd error");
+        exit(-1);
+    }
+    _hfd_next->next = _hfd;
+    _hfd_next = _hfd;
+    pools_harug = (HARUG *)mcalloc(1, sizeof(HARUG)*sizeof(HARU)*MAX_HARU_POOL,htab_path,O_RDWR|O_CREAT, _hfd);
+#else
     pools_harug = (HARUG *)calloc(1, sizeof(HARUG));
+#endif
     pools_harug->step = 0;
     for(i=0; i < MAX_HARU_POOL; i++){
         /*pools_harug->pools_haru_pool[i] = (HARU *)calloc(1, sizeof(HARU));
@@ -60,9 +98,22 @@ void hcreate ( int isize ){
     
     }
     pools_haru_pool = pools_harug->haru_pool;
-    
+   
+#ifdef MMAP
+    bzero(htab_path, 1024);
+    snprintf(htab_path, 1023, "%s/%s",conn_global->mmap_path,HashTable_for_list[2]);
+    _hfd = inithfd();
+    if(!_hfd){
+        DEBUG("init inithfd error");
+        exit(-1);
+    }
+    _hfd_next->next = _hfd;
+    _hfd_next = _hfd;
+    pools_hitem_row = (ub4 *)mcalloc(len, sizeof(ub4),htab_path,O_RDWR|O_CREAT, _hfd);
+#else 
     pools_hitem_row = calloc(len, sizeof(ub4));
-    
+#endif
+
     hitem_group = (HG *)calloc(1, sizeof(HG));
     hitem_group->bucket = pools_htab->logsize;
     hitem_group->usable = inithitem ( (ub4) len );
@@ -71,13 +122,27 @@ void hcreate ( int isize ){
     pools_hdr_head = hdrcreate();
     pools_hdr_tail = pools_hdr_head;
 
+#ifdef MMAP
+    bzero(htab_path, 1024);
+    snprintf(htab_path, 1023, "%s/%s",conn_global->mmap_path,HashTable_for_list[3]);
+    _hfd = inithfd();
+    if(!_hfd){
+        DEBUG("init inithfd error");
+        exit(-1);
+    }
+    _hfd_next->next = _hfd;
+    _hfd_next = _hfd;
+    pools_tlist = (TLIST *)mcalloc(1, sizeof(TLIST)*sizeof(char)*KEY_LENGTH,htab_path,O_RDWR|O_CREAT, _hfd);
+#else
     pools_tlist = (TLIST *)calloc(1, sizeof(TLIST));
-
+#endif
     max_slab = hslabclass();
 
-    if(max_slab > 0){
-        inithslab ( max_slab );
+    count_hslab = conn_global->maxbytes / LIMIT_SLAB_BYTE;
+    if(count_hslab < 1){
+        count_hslab = 1; 
     }
+    inithslab ( count_hslab );
 
     /*pthread_mutex_init(&work_lock_fslab, NULL);  */
     pthread_mutex_init(&work_lock_hit, NULL);
@@ -86,11 +151,25 @@ void hcreate ( int isize ){
     pthread_mutex_init(&work_lock_tlist, NULL);
     pthread_mutex_init(&work_lock_hdr, NULL);
 
-    pools_fslab = (FSLAB *)calloc(1, sizeof(FSLAB));
-    pools_fslab->psize = 0;
-    pools_fslab->sid = 0;
-    pools_fslab->sa = 0;    
-    pools_fslab->next = NULL;
+#ifdef MMAP
+    bzero(htab_path, 1024);
+    snprintf(htab_path, 1023, "%s/%s",conn_global->mmap_path,HashTable_for_list[5]);
+    _hfd = inithfd();
+    if(!_hfd){
+        DEBUG("init inithfd error");
+        exit(-1);
+    }
+    _hfd_next->next = _hfd;
+    _hfd_next = _hfd;
+    pools_fslab = (FSLAB *)mcalloc(max_slab, sizeof(FSLAB),htab_path,O_RDWR|O_CREAT, _hfd);
+#else
+    pools_fslab = (FSLAB *)calloc(max_slab, sizeof(FSLAB));
+#endif
+    for(i=0; i< max_slab; i++){
+        pools_fslab[i].psize = 0;
+        pools_fslab[i].sid = 0;
+        pools_fslab[i.]sa = 0;    
+    }
     return ;
 }		/* -----  end of function hcreate  ----- */
 
@@ -102,10 +181,29 @@ void hcreate ( int isize ){
  */
 void inithslab ( int i ){
     int m;
-    pools_hslab = (HSLAB **)calloc(i, sizeof(HSLAB));
-    for(m=0; m<i; m++){ 
-        pools_hslab[m] = hslabnull();
+
+#ifdef MMAP
+    bzero(htab_path, 1024);
+    snprintf(htab_path, 1023, "%s/%s",conn_global->mmap_path,HashTable_for_list[4]);
+    _hfd = inithfd();
+    if(!_hfd){
+        DEBUG("init inithfd error");
+        exit(-1);
     }
+    _hfd_next->next = _hfd;
+    _hfd_next = _hfd;
+    pools_hslab = (HSLAB *)mcalloc(i, sizeof(HSLAB)*sizeof(char)*KEY_LENGTH,htab_path,O_RDWR|O_CREAT, _hfd);
+#else
+    pools_hslab = (HSLAB *)calloc(i, sizeof(HSLAB));
+#endif
+
+    for(m=0; m<i; m++){ 
+        pools_hslab[m].sm=NULL;
+        pools_hslab[m].ss=0;
+        pools_hslab[m].sf=0;
+        pools_hslab[m].id=0;
+    }
+
 }		/* -----  end of static function inithslab  ----- */
 
 /* 
@@ -158,8 +256,8 @@ int hslabclass ( void ){
     int i=0;
     
     while (i < MAX_SLAB_CLASS && size <= MAX_SLAB_BYTE / conn_global->factor) {
-        if (size % CHUNK_ALIGN_BYTES)
-            size += CHUNK_ALIGN_BYTES - (size % CHUNK_ALIGN_BYTES);
+        
+        size = alignByte(size);
         /*if((item_size_max / size) < 2) break; 
 
         printf("slab class  chunk size %9u perslab %7u\n",
@@ -309,7 +407,7 @@ void *mcalloc ( size_t nmemb, size_t size, const char *pathname, int flags, HFD 
     fstat(fd, &sb);
     start = mmap(NULL, sb.st_size, PROT_READ|PROT_WRITE, MAP_SHARED, fd, 0);
     if(start == MAP_FAILED){
-        DEBUG("error");
+        DEBUG("init mmap error");
         close(fd);
         return NULL;
     }

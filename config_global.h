@@ -67,6 +67,7 @@ typedef    signed       char sb1;   /* signed 1-byte quantities */
 #define SB1MAXVAL 0x7f
 typedef                 int  word;  /* fastest type available */
 
+#define KEY_LENGTH (1024*1024)
 #define MAX_HITEM_LENGTH 1024
 #define MAX_HITEM_LENGTH_8 (MAX_HITEM_LENGTH<<8)
 #define MAX_HARU_POOL 1024
@@ -212,10 +213,12 @@ struct __conn{
     ssize_t process_num;  /* work process number */
     ssize_t max_link;
 
+/* hashtable */
     float factor;       /* for hslab default 1.25  */
     ssize_t maxbytes;   /* max bytes for hslab */
     int delaytime;     /* delay time for update */
-    
+/* end hashtable */
+
     D_TYPE deptype;     /* deposit type */
     ssize_t dmaxbytes;   /* max bytes for deposit  */
     H_STATE hasdep;      /* is use deposit default FALSE */
