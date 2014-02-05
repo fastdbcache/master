@@ -103,10 +103,18 @@ struct __hitem
 };
 typedef  struct __hitem  HITEM;
 
+struct __hitem_meta
+{
+    
+};
+typedef  struct __hitem_meta HMETA;
+
 struct __hitem_group
 {
     HITEM        **usable;
     HITEM        **move;
+    sb2  id;        /* which bucket */
+    ub4  buckets;  /* init bucket default 1024 << 2 */
     ub4          bucket;
 };
 typedef  struct __hitem_group  HG;
