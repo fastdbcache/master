@@ -26,6 +26,7 @@
 #include "dep_struct.h"
 #include "../misc.h"
 
+
 MMPO *mmpo_init (  );
 DEST *mmap_init ( size_t byte );
 int mmap_set ( ub1 *key, ub4 keyl );
@@ -34,5 +35,3 @@ int mmap_set ( ub1 *key, ub4 keyl );
 #endif
 #endif /* --- #dep_mmap.h ---*/
  /* vim: set ts=4 sw=4: */
-
-

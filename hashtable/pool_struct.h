@@ -186,15 +186,7 @@ struct __hsms{
 /* mem proc table list */
 typedef struct __hsms HSMS;
 
-/* use memory record mmap fd */
-struct __hfd{
-    int fd;
-    char *name;
-    struct __hfd *next; 
-};
-typedef struct __hfd HFD;
 
-HFD *pools_hfd;
 HTAB *pools_htab;   /* stat record */
 ub4 *pools_hitem_row;
 

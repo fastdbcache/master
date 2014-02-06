@@ -192,6 +192,9 @@ int AuthPG(const int bfd,const int ffd, DBP *_dbp){
             if(!depo_pack){
                 depo_pack = initdbp();
             }
+            if(conn_global->deptype == D_MMAP){
+                free(depo_pack->inBuf);
+            }
             depo_pack->inBuf = NULL;
             if(leadpush(depo_pack) == -1){
                 pools_dest->doing = H_FALSE;

@@ -127,11 +127,12 @@ void getCont (  ){
  *  Description:  
  * =====================================================================================
  */
-void *mcalloc ( size_t nmemb, size_t size, const char *pathname, int flags, HFD *hfd ){
+void *mcalloc ( size_t nmemb, size_t size, const char *pathname, int flags ){
     int fd;
     void *start;
     struct stat sb;
     char name[1];
+    HFD *_hfd, *_hfd_next;    
 
     fd = open(pathname, flags);
     fstat(fd, &sb);
@@ -142,13 +143,18 @@ void *mcalloc ( size_t nmemb, size_t size, const char *pathname, int flags, HFD 
         lseek(fd,0,SEEK_SET);
     }
     fstat(fd, &sb);
+    
     start = mmap(NULL, sb.st_size, PROT_READ|PROT_WRITE, MAP_SHARED, fd, 0);
     if(start == MAP_FAILED){
         DEBUG("init mmap error");
         close(fd);
         return NULL;
     }
-    hfd->fd = fd;
+
+    TAIL_HFD(_hfd_next);
+    _hfd = inithfd();               
+    _hfd_next->next = _hfd;
+    _hfd->fd = fd;
 
     return start;
 }		/* -----  end of function mcalloc  ----- */
