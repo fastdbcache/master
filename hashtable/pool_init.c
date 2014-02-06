@@ -29,9 +29,14 @@ void hcreate ( int isize ){
     ub4 len;
     int max_slab, count_hslab;
     HFD *_hfd, *_hfd_next;
-    char htab_path[1024];
+    char htab_path[FILE_PATH_LENGTH];
 
     len = ((ub4)1<<isize);
+
+#define _HSET(id) do{ \
+    bzero(htab_path, FILE_PATH_LENGTH); \
+    snprintf(htab_path, FILE_PATH_LENGTH-1, "%s/%s",conn_global->mmap_path,HashTable_for_list[id]);\
+}while(0)
 
 #ifdef MMAP
     pools_hfd = inithfd();
@@ -44,8 +49,7 @@ void hcreate ( int isize ){
 
 #ifdef MMAP
     
-    bzero(htab_path, 1024);
-    snprintf(htab_path, 1023, "%s/%s",conn_global->mmap_path,HashTable_for_list[0]);
+    _HSET(0); 
     _hfd = inithfd();
     if(!_hfd){
         DEBUG("init inithfd error");
@@ -74,8 +78,8 @@ void hcreate ( int isize ){
     bzero(pools_htab->hslab_stat,  sizeof(pools_htab->hslab_stat));
 
 #ifdef MMAP
-    bzero(htab_path, 1024);
-    snprintf(htab_path, 1023, "%s/%s",conn_global->mmap_path,HashTable_for_list[1]);
+    _HSET(1);
+    
     _hfd = inithfd();
     if(!_hfd){
         DEBUG("init inithfd error");
@@ -100,8 +104,8 @@ void hcreate ( int isize ){
     pools_haru_pool = pools_harug->haru_pool;
    
 #ifdef MMAP
-    bzero(htab_path, 1024);
-    snprintf(htab_path, 1023, "%s/%s",conn_global->mmap_path,HashTable_for_list[2]);
+    _HSET(2);
+    
     _hfd = inithfd();
     if(!_hfd){
         DEBUG("init inithfd error");
@@ -123,8 +127,8 @@ void hcreate ( int isize ){
     pools_hdr_tail = pools_hdr_head;
 
 #ifdef MMAP
-    bzero(htab_path, 1024);
-    snprintf(htab_path, 1023, "%s/%s",conn_global->mmap_path,HashTable_for_list[3]);
+    _HSET(3);
+    
     _hfd = inithfd();
     if(!_hfd){
         DEBUG("init inithfd error");
@@ -152,8 +156,8 @@ void hcreate ( int isize ){
     pthread_mutex_init(&work_lock_hdr, NULL);
 
 #ifdef MMAP
-    bzero(htab_path, 1024);
-    snprintf(htab_path, 1023, "%s/%s",conn_global->mmap_path,HashTable_for_list[5]);
+    _HSET(5);
+    
     _hfd = inithfd();
     if(!_hfd){
         DEBUG("init inithfd error");
@@ -181,10 +185,16 @@ void hcreate ( int isize ){
  */
 void inithslab ( int i ){
     int m;
+    char htab_path[FILE_PATH_LENGTH];
+
+#define _HSET(path, id) do{ \
+    bzero(path, FILE_PATH_LENGTH); \
+    snprintf(path, FILE_PATH_LENGTH-1, "%s/%s",conn_global->mmap_path,HashTable_for_list[id]);\
+}while(0)
 
 #ifdef MMAP
-    bzero(htab_path, 1024);
-    snprintf(htab_path, 1023, "%s/%s",conn_global->mmap_path,HashTable_for_list[4]);
+    _HSET(4);
+    
     _hfd = inithfd();
     if(!_hfd){
         DEBUG("init inithfd error");
@@ -382,69 +392,6 @@ ULIST *initulist (  ){
     
     return u;
 }		/* -----  end of function initulist  ----- */
-
-
-/* 
- * ===  FUNCTION  ======================================================================
- *         Name:  mcalloc
- *  Description:  
- * =====================================================================================
- */
-void *mcalloc ( size_t nmemb, size_t size, const char *pathname, int flags, HFD *hfd ){
-    int fd;
-    void *start;
-    struct stat sb;
-    char name[1];
-
-    fd = open(pathname, flags);
-    fstat(fd, &sb);
-    if(sb.st_size==0){
-        DEBUG("init mmap file");
-        name[0]='\0';
-        write(fd, name, nmemb*size);
-        lseek(fd,0,SEEK_SET);
-    }
-    fstat(fd, &sb);
-    start = mmap(NULL, sb.st_size, PROT_READ|PROT_WRITE, MAP_SHARED, fd, 0);
-    if(start == MAP_FAILED){
-        DEBUG("init mmap error");
-        close(fd);
-        return NULL;
-    }
-    hfd->fd = fd;
-
-    return start;
-}		/* -----  end of function mcalloc  ----- */
-
-/* 
- * ===  FUNCTION  ======================================================================
- *         Name:  inithfd
- *  Description:  
- * =====================================================================================
- */
-HFD *inithfd ( ){
-    HFD *_hfd;
-
-    _hfd = (HFD *)calloc(1, sizeof(HFD));
-    if(!_hfd) return NULL;
-    _hfd->fd = 0;
-    
-    return _hfd;
-}		/* -----  end of function inithfd  ----- */
-
-/* 
- * ===  FUNCTION  ======================================================================
- *         Name:  freehfd
- *  Description:  
- * =====================================================================================
- */
-void freehfd ( HFD *_hfd ){
-    if(_hfd->next){
-        freehfd(_hfd->next);
-    }
-    close(_hfd->fd);
-    free(_hfd);
-}		/* -----  end of function freehfd  ----- */
 
  /* vim: set ts=4 sw=4: */
 

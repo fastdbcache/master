@@ -174,7 +174,16 @@ struct __fd
     struct __fd *next;
 };
 typedef struct __fd HFD;
+HFD *pools_hfd;
 
+#define TAIL_HFD(tail) do{\
+    HFD *_nhfd;             \
+    _nhfd = pools_hfd;      \
+    while(_nhfd->next){     \
+        _nhfd = _nhfd->next;\
+    }                       \
+    (tail) = _nhfd;         \
+}while(0)
 
 /* 
 typedef struct {

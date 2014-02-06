@@ -22,10 +22,10 @@
  {
 #endif
 
-#include "config_global.h"
+#include "../config_global.h"
 #include "dep_struct.h"
+#include "../misc.h"
 
-void mmap_open (void *start, char name, size_t byte, int flags );
 MMPO *mmpo_init (  );
 DEST *mmap_init ( size_t byte );
 int mmap_set ( ub1 *key, ub4 keyl );

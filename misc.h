@@ -1,7 +1,7 @@
 /*
  * =====================================================================================
  *
- *       Filename:  pg_misc.h
+ *       Filename:  misc.h
  *
  *    Description:  
  *
@@ -15,8 +15,8 @@
  *
  * =====================================================================================
  */
-#ifndef pg_misc_H
-#define pg_misc_H
+#ifndef MISC_H
+#define MISC_H
 #ifdef __cplusplus
  extern "C"
  {
@@ -24,14 +24,27 @@
 
 #include "config_global.h"
 
+static const char *HashTable_for_list[] = {
+    "htab.db.meta",
+    "harug.db.meta",
+    "hitem.row.meta",
+    "tlist.db.meta",
+    "hslab.db.meta",
+    "fslab.db.meta",
+    NULL
+};
+
 DBP *initdbp (  );
 void freedbp ( DBP *_dbp );
 int CheckBufSpace ( ssize_t endPos, DBP *_dbp );
 int getInt ( int *result, size_t bytes, DBP *_dbp );
+void *mcalloc ( size_t nmemb, size_t size, const char *pathname, int flags, HFD *hfd );
+HFD *inithfd ( );
+void freehfd ( HFD *_hfd );
 
 #ifdef __cplusplus
  }
 #endif
-#endif /* --- #pg_misc_H ---*/
+#endif /* --- #MISC_H ---*/
  /* vim: set ts=4 sw=4: */
 

@@ -121,5 +121,67 @@ void getCont (  ){
     return ;
 }		/* -----  end of function getCont  ----- */
 
+/* 
+ * ===  FUNCTION  ======================================================================
+ *         Name:  mcalloc
+ *  Description:  
+ * =====================================================================================
+ */
+void *mcalloc ( size_t nmemb, size_t size, const char *pathname, int flags, HFD *hfd ){
+    int fd;
+    void *start;
+    struct stat sb;
+    char name[1];
+
+    fd = open(pathname, flags);
+    fstat(fd, &sb);
+    if(sb.st_size==0){
+        DEBUG("init mmap file");
+        name[0]='\0';
+        write(fd, name, nmemb*size);
+        lseek(fd,0,SEEK_SET);
+    }
+    fstat(fd, &sb);
+    start = mmap(NULL, sb.st_size, PROT_READ|PROT_WRITE, MAP_SHARED, fd, 0);
+    if(start == MAP_FAILED){
+        DEBUG("init mmap error");
+        close(fd);
+        return NULL;
+    }
+    hfd->fd = fd;
+
+    return start;
+}		/* -----  end of function mcalloc  ----- */
+
+/* 
+ * ===  FUNCTION  ======================================================================
+ *         Name:  inithfd
+ *  Description:  
+ * =====================================================================================
+ */
+HFD *inithfd ( ){
+    HFD *_hfd;
+
+    _hfd = (HFD *)calloc(1, sizeof(HFD));
+    if(!_hfd) return NULL;
+    _hfd->fd = 0;
+    
+    return _hfd;
+}		/* -----  end of function inithfd  ----- */
+
+/* 
+ * ===  FUNCTION  ======================================================================
+ *         Name:  freehfd
+ *  Description:  
+ * =====================================================================================
+ */
+void freehfd ( HFD *_hfd ){
+    if(_hfd->next){
+        freehfd(_hfd->next);
+    }
+    close(_hfd->fd);
+    free(_hfd);
+}		/* -----  end of function freehfd  ----- */
+
  /* vim: set ts=4 sw=4: */
 

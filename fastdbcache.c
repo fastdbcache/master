@@ -87,6 +87,7 @@ int main(int argc, char* argv[]){
         }    
     } 
 
+    pools_hfd = inithfd();
     hcreate(8);
     /*rq_init(MAXCONN);*/
     rq_init(256);

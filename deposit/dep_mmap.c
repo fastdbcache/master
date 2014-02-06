@@ -26,15 +26,28 @@
 MMPO *mmpo_init (  ){
     MMPO *_mmpo;
     char *meta[]={"meta.sa", "meta.na"};
-    char mmdb[FILE_PATH_LENGTH];
+    char mmdb[FILE_PATH_LENGTH],name[FILE_PATH_LENGTH] ;
     uint32 val;
     void _meta;
+    HFD *_hfd, *_hfd_next;
+
+#define _MSET(val) do{ \
+    bzero(mmdb, FILE_PATH_LENGTH); \
+    snprintf(mmdb, FILE_PATH_LENGTH-1, "%s/%s",conn_global->mmap_path,(val));\
+    _hfd = inithfd();               \
+    _hfd_next->next = _hfd;         \
+    _hfd_next = _hfd;               \
+}while(0)
 
     _mmpo = calloc(1, sizeof(MMPO));
     if(!_mmpo) return NULL;
+    TAIL_HFD(_hfd_next);
+    
+    _MSET(meta[0]); 
+    _mmpo->meta_sa = mcalloc(1, sizeof(uint32)*4,mmdb, O_RDWR|O_CREAT, _hfd);
 
-    _mmpo->meta_sa = mmap_open( NULL, meta[0], sizeof(uint32)*4, O_RDWR|O_CREAT ); 
-    _mmpo->meta_na = mmap_open( NULL, meta[1], sizeof(uint32)*4, O_RDWR|O_CREAT ); 
+    _MSET(meta[1]);
+    _mmpo->meta_na = mcalloc(1, sizeof(uint32)*4,mmdb, O_RDWR|O_CREAT, _hfd);
     _mmpo->mmdb_sa = NULL;
     _mmpo->mmdb_na = NULL;
 
@@ -49,9 +62,10 @@ MMPO *mmpo_init (  ){
             memcpy(_meta, &val, sizeof(uint32));
             val = 1;
         }
-        bzero(mmdb, FILE_PATH_LENGTH);
-        snprintf(mmdb, FILE_PATH_LENGTH-1, "db.%010d", val);
-        _mmpo->mmdb_sa = mmap_open(NULL, mmdb, conn_global->mmdb_length, O_RDWR|O_CREAT ); 
+        bzero(name, FILE_PATH_LENGTH);
+        snprintf(name, FILE_PATH_LENGTH-1, "db.%010d", val);
+        _MSET(name);
+        _mmpo->mmdb_sa =  mcalloc(1, sizeof(char)*DEFAULT_MMAP_BYTE, mmdb, O_RDWR|O_CREAT, _hfd);
     }
     if(_mmpo->meta_na != NULL){
         META_FID(_meta, _mmpo->meta_na);
@@ -64,9 +78,10 @@ MMPO *mmpo_init (  ){
             memcpy(_meta, &val, sizeof(uint32));
             val = 1;
         }
-        bzero(mmdb, FILE_PATH_LENGTH);
-        snprintf(mmdb, FILE_PATH_LENGTH-1, "db.%010d", val);
-        _mmpo->mmdb_na = mmap_open(NULL, mmdb, conn_global->mmdb_length, O_RDWR); 
+        bzero(name, FILE_PATH_LENGTH);
+        snprintf(name, FILE_PATH_LENGTH-1, "db.%010d", val);
+        _MSET(name);
+        _mmpo->mmdb_na =  mcalloc(1, sizeof(char)*DEFAULT_MMAP_BYTE, mmdb, O_RDWR|O_CREAT, _hfd);        
     }
     return _mmpo;
 }		/* -----  end of function mmpo_init  ----- */

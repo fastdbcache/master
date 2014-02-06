@@ -25,20 +25,10 @@
 #include "../config_global.h"
 #include "../parser/Expression.h"
 #include "../time_lib.h"
+#include "../misc.h"
 
 #include "lookupa.h"
 #include "openmd5.h"
-
-
-static const char *HashTable_for_list[] = {
-    "htab.db.meta",
-    "harug.db.meta",
-    "hitem.row.meta",
-    "tlist.db.meta",
-    "hslab.db.meta",
-    "fslab.db.meta",
-    NULL 
-};
 
 /* 
  * f=1.25
