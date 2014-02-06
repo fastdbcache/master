@@ -167,6 +167,15 @@ struct __deporule{
     DEPR *next;
 };
 
+struct __fd
+{
+    int fd;
+    char name;
+    struct __fd *next;
+};
+typedef struct __fd HFD;
+
+
 /* 
 typedef struct {
    DBP *StartupPack;
