@@ -17,38 +17,6 @@
  */
 #include "dep_mmap.h"
 
-
-/* 
- * ===  FUNCTION  ======================================================================
- *         Name:  mmap_open
- *  Description:  
- * =====================================================================================
- */
-void mmap_open (void *start, char name, size_t byte, int flags ){
-    int fd;
-    char meta_name[FILE_PATH_LENGTH], null[1];
-    void *p;
-
-    bzero(meta_name, FILE_PATH_LENGTH);
-    sprintf(meta_name, FILE_PATH_LENGTH-1, "%s/mmap.%s", conn_global->mmap_path, name);
-    
-    fd = open(meta_name, flags);
-    if(fds == -1){
-        DEBUG("open mmap.meta error");
-        exit(-1);
-    }
-    
-    p = mmap(start, byte, PROT_READ|PROT_WRITE, MAP_SHARED, fd, 0);
-    if(p == MAP_FAILED){
-        DEBUG("init start_sa error");
-        return NULL;
-    }
-    null[0]='\0';
-    write(fd, null, 1);
-
-    return p;
-}		/* -----  end of function mmap_open  ----- */
-
 /* 
  * ===  FUNCTION  ======================================================================
  *         Name:  mmpo_init
