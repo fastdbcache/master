@@ -129,7 +129,7 @@ typedef  struct __hitem_group  HG;
  * */
 struct __haru
 {
-  HITEM         *phitem;  /* point to hitem */
+ /* HITEM         *phitem;   point to hitem */
   ub1           hid;     /* mmap hitem key id */
   ub1           id;     /* mmap hitem id */
   ub4           hit;    /* haru hit */
