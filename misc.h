@@ -41,6 +41,7 @@ int getInt ( int *result, size_t bytes, DBP *_dbp );
 void *mcalloc ( size_t nmemb, size_t size, const char *pathname, int flags);
 HFD *inithfd ( );
 void freehfd ( HFD *_hfd );
+char *buildCachePath ( char *name );
 
 #ifdef __cplusplus
  }

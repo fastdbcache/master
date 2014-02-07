@@ -124,15 +124,20 @@ word haddHitem ( HDR *mhdr ){
             if(m == -1) return -1; 
             if(m != i){  /* old size != new size , free old slab */
                 addfslab(ph);  /* free old slab */
-
-                fslab = findslab(slabclass[i].size, i);
-                if(!fslab) return -1;
-                ph->psize = slabclass[i].size;  /* update psize */
-                ph->sid = fslab->sid;
-                ph->sa = fslab->sa;
-                ph->drl = hdr->drl;
-                
-                free(fslab);
+                if(pools_fslab[i].sa != 0){
+                    ph->psize = slabclass[i].size;  /* update psize */
+                    ph->sid = pools_fslab[i].sid;
+                    ph->sa = pools_fslab[i].sa;
+                    pools_fslab[i].sa = 0;
+                }else{
+                    fslab = findslab(slabclass[i].size, i);
+                    if(!fslab) return -1;
+                    ph->sid = fslab->sid;
+                    ph->sa = fslab->sa;
+                    free(fslab);
+                }
+                ph->psize = slabclass[i].size;  /* update psize */                
+                ph->drl = hdr->drl;                                
             }
             /* 
             if((ph->amiss / ph->ahit) > LIMIT_PERCENT){
@@ -172,8 +177,18 @@ word haddHitem ( HDR *mhdr ){
         hp->hval  = _new_hval;
         hp->hjval = _new_hjval;
         hp->utime = hdr->stime; 
-        fslab = findslab(hp->psize, i);
-        hslab = findhslab(i, fslab->sid); 
+
+        if(pools_fslab[i].sa != 0){
+            hp->sid = pools_fslab[i].sid;
+            hp->sa = pools_fslab[i].sa;
+            pools_fslab[i].sa = 0;
+        }else{
+            fslab = findslab(hp->psize, i);
+            hp->sid = fslab->sid;
+            hp->sa = fslab->sa;
+            free(fslab);
+        }
+        hslab = findhslab(i, hp->sid); 
         if(!hslab){ 
             free(hp->key);
             free(hp);
@@ -182,11 +197,7 @@ word haddHitem ( HDR *mhdr ){
             free(hp);
             return -1;
         }
-
-        hp->sid = fslab->sid;
-        hp->sa = fslab->sa;
-        free(fslab);
-
+      
         if(hp->sa*hp->psize > LIMIT_SLAB_BYTE){ 
             DEBUG("psize error! sa: %d psize: %d", hp->sa, hp->psize);
         }else{

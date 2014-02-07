@@ -152,9 +152,12 @@ void *mcalloc ( size_t nmemb, size_t size, const char *pathname, int flags ){
     }
 
     TAIL_HFD(_hfd_next);
-    _hfd = inithfd();               
-    _hfd_next->next = _hfd;
-    _hfd->fd = fd;
+    _hfd = inithfd();
+    if(_hfd){
+        _hfd->fd = fd;
+        _hfd->fsize = sb.st_size;
+        _hfd_next->next = _hfd;
+    }
 
     return start;
 }		/* -----  end of function mcalloc  ----- */
@@ -171,7 +174,7 @@ HFD *inithfd ( ){
     _hfd = (HFD *)calloc(1, sizeof(HFD));
     if(!_hfd) return NULL;
     _hfd->fd = 0;
-    
+    _hfd->fsize = 0; 
     return _hfd;
 }		/* -----  end of function inithfd  ----- */
 
@@ -188,6 +191,22 @@ void freehfd ( HFD *_hfd ){
     close(_hfd->fd);
     free(_hfd);
 }		/* -----  end of function freehfd  ----- */
+
+
+/* 
+ * ===  FUNCTION  ======================================================================
+ *         Name:  buildCachePath
+ *  Description:  
+ * =====================================================================================
+ */
+char *buildCachePath ( char *name ){
+    char htab_path[FILE_PATH_LENGTH];
+
+    bzero(htab_path, FILE_PATH_LENGTH); 
+    snprintf(htab_path, FILE_PATH_LENGTH-1, "%s/%s",conn_global->mmap_path, name);
+
+    return htab_path;
+}		/* -----  end of function buildCachePath  ----- */
 
  /* vim: set ts=4 sw=4: */
 

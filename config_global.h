@@ -175,7 +175,7 @@ struct __deporule{
 struct __fd
 {
     int fd;
-    char name;
+    size_t fsize;
     struct __fd *next;
 };
 typedef struct __fd HFD;
@@ -238,8 +238,10 @@ struct __conn{
 
 /* hashtable */
     float factor;       /* for hslab default 1.25  */
+    int  max_slab;      /* count slab */
     ssize_t maxbytes;   /* max bytes for hslab */
     int delaytime;     /* delay time for update */
+    D_TYPE cache_method;  /* use mem or mmap, default D_MEM */ 
 /* end hashtable */
 
     D_TYPE deptype;     /* deposit type */

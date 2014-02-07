@@ -51,6 +51,7 @@ void conn_init_global ( void ){
     conn_global->factor = 1.25;
     conn_global->maxbytes = 64 * 1024 * 1024 ;
     conn_global->delaytime = 0;
+    conn_global->cache_method = D_MEM;
 
     conn_global->fdbc = "fastdbcache version 0.0.1";
 

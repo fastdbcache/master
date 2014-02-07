@@ -204,7 +204,7 @@ TLIST *pools_tlist;
 HSLAB *pools_hslab;
 
 pthread_mutex_t work_lock_fslab;
-FSLAB *pools_fslab;
+FSLAB pools_fslab[MAX_SLAB_CLASS];
 
 HSMS slabclass[MAX_SLAB_CLASS];
 

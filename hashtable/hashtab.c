@@ -136,11 +136,17 @@ int hsms ( ub4 bytes ){
  * =====================================================================================
  */
 void addfslab ( HITEM *_ph){
-    FSLAB  *f, *fslab;
-        
-   /* pthread_mutex_lock(&work_lock_fslab);  */
-    f = pools_fslab;
+    /*  FSLAB  *f, *fslab; */
+    int i; 
+   /* pthread_mutex_lock(&work_lock_fslab);  
+    f = pools_fslab;*/
+    
+    i = hsms(_ph->psize);
+    pools_fslab[i].psize = _ph->psize;
+    pools_fslab[i].sid = _ph->sid;
+    pools_fslab[i].sa = _ph->sa;
 
+    /*
     while ( f && f->next ) {
         f = f->next;
     }
@@ -150,11 +156,10 @@ void addfslab ( HITEM *_ph){
     fslab->psize = _ph->psize;
     fslab->sid = _ph->sid;
     fslab->sa = _ph->sa;
-    fslab->next = NULL;
     f->next = fslab;
 
     _ph->drl = 0;
-   /*  pthread_mutex_unlock(&work_lock_fslab);  */
+     pthread_mutex_unlock(&work_lock_fslab);  */
     return;
 }		/* -----  end of static function addfslab  ----- */
 
@@ -166,8 +171,17 @@ void addfslab ( HITEM *_ph){
  * =====================================================================================
  */
 FSLAB *findfslab ( sb2 _psize ){
-    FSLAB *fslab, *res;
+    /*int i;
 
+    i = hsms(_psize);
+
+    if(pools_fslab[i]->sa != 0){
+        return i;
+    }
+
+    
+    FSLAB *fslab, *res;
+    
     fslab = pools_fslab;
 
     do {
@@ -178,7 +192,7 @@ FSLAB *findfslab ( sb2 _psize ){
             res->next = fslab->next;
             return fslab;
         }
-    } while ( 1 );				/* -----  end do-while  ----- */
+    } while ( 1 );				 -----  end do-while  ----- */
     
     return NULL;
 }		/* -----  end of function findfslab  ----- */
@@ -191,16 +205,17 @@ FSLAB *findfslab ( sb2 _psize ){
  * =====================================================================================
  */
 FSLAB *findslab ( sb2 _psize ,int i){
-    FSLAB *fslab, *fs_tmp;
+    /* FSLAB *fslab, *fs_tmp; */
     HSLAB *hslab, *hs_tmp;
 
+    /*
     fslab = findfslab(_psize);
     
     if(fslab != NULL){
-        /* 1. find a slab from freeslab */
+         1. find a slab from freeslab 
         return fslab;
     }else{
-        /* 2. find a slab from pools_hslab */
+         2. find a slab from pools_hslab */
         hslab = pools_hslab[i];
         if(!hslab){
             DEBUG("hslab error");
@@ -244,7 +259,7 @@ FSLAB *findslab ( sb2 _psize ,int i){
                     return NULL;
                 }
             }
-    }
+    /*  }*/
     return NULL;
 }		/* -----  end of function findslab  ----- */
 
