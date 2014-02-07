@@ -82,9 +82,6 @@ void hcreate ( int isize ){
     pools_haru_pool = pools_harug->haru_pool;
    
     if(conn_global->cache_method == D_MMAP){
-
-        
-        
         cache_path = buildCachePath( HashTable_for_list[2] );
         pools_hitem_row = (ub4 *)mcalloc(len, sizeof(ub4),cache_path,O_RDWR|O_CREAT);
     }else{ 
