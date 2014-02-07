@@ -78,11 +78,9 @@ word haddHitem ( HDR *mhdr ){
     HDR *hdr;
     ub4     y ;
     uint64_t _new_hval, _new_hjval;
-    HSLAB  *hsp;
-    FSLAB *fslab;
-    HSLAB *hslab;
-    int i, m;
+    int i, m, slab_id;
     HITEM **pools_hitem;
+    ub1 *slab_sm;
     
     hdr = mhdr;
     if(hdr == NULL) return -1;
@@ -125,16 +123,14 @@ word haddHitem ( HDR *mhdr ){
             if(m != i){  /* old size != new size , free old slab */
                 addfslab(ph);  /* free old slab */
                 if(pools_fslab[i].sa != 0){
-                    ph->psize = slabclass[i].size;  /* update psize */
                     ph->sid = pools_fslab[i].sid;
                     ph->sa = pools_fslab[i].sa;
                     pools_fslab[i].sa = 0;
                 }else{
-                    fslab = findslab(slabclass[i].size, i);
-                    if(!fslab) return -1;
-                    ph->sid = fslab->sid;
-                    ph->sa = fslab->sa;
-                    free(fslab);
+                    slab_id = findslab(slabclass[i].size);
+                    if(slab_id == -1) return -1;
+                    ph->sid = slab_id;
+                    ph->sa = pools_hslab[slab_id].ss - slabclass[i].size;
                 }
                 ph->psize = slabclass[i].size;  /* update psize */                
                 ph->drl = hdr->drl;                                
@@ -144,29 +140,24 @@ word haddHitem ( HDR *mhdr ){
                 ph->drl = 0;
                 break;
             }*/
+             
             
-            hsp = findhslab(i, ph->sid);    
-            if(hsp != NULL){
-                ph->utime = hdr->stime;
-                memcpy(hsp->sm+ph->sa*ph->psize, hdr->dr, hdr->drl);
-                ph->drl = hdr->drl;
-                ph->amiss++;
-                pools_htab->miss++;
-                hrule(ph, H_UPDATE);
-                return 0;
-            }else{
-                DEBUG("hsp error");
-                return -1;
-            }
-            break;            
+            slab_sm = pools_hslab[ph->sid].sm + ph->sa;
+            ph->utime = hdr->stime;
+            memcpy(slab_sm, hdr->dr, hdr->drl);
+            ph->drl = hdr->drl;
+            ph->amiss++;
+            pools_htab->miss++;
+            //hrule(ph, H_UPDATE);
+            return 0;
+            
         }
         ph = ph->next; 
     } /* while */
     
     if(!phtmp->next){
         hp = hitemcreate();
-        hp->key   = (ub1 *)calloc(hdr->keyl, sizeof(ub1));
-        if(!hp->key){
+        if(hp->keyl > KEY_LENGTH){
            free(hp);
            return -1;
         }
@@ -183,31 +174,23 @@ word haddHitem ( HDR *mhdr ){
             hp->sa = pools_fslab[i].sa;
             pools_fslab[i].sa = 0;
         }else{
-            fslab = findslab(hp->psize, i);
-            hp->sid = fslab->sid;
-            hp->sa = fslab->sa;
-            free(fslab);
+            slab_id = findslab(hp->psize);
+            if(slab_id == -1)return -1;
+            hp->sid = slab_id;
+            hp->sa = pools_hslab[slab_id].ss - hp->psize;
         }
-        hslab = findhslab(i, hp->sid); 
-        if(!hslab){ 
-            free(hp->key);
-            free(hp);
-            free(fslab);
-            free(hp->key);
-            free(hp);
-            return -1;
-        }
-      
-        if(hp->sa*hp->psize > LIMIT_SLAB_BYTE){ 
+        slab_sm = pools_hslab[hp->sid].sm + hp->sa;
+
+        if(hp->sa < 0){ 
             DEBUG("psize error! sa: %d psize: %d", hp->sa, hp->psize);
         }else{
-            memcpy(hslab->sm+hp->sa*hp->psize, hdr->dr, hdr->drl);
+            memcpy(slab_sm , hdr->dr, hdr->drl);
             
             phtmp->next = hp;
 
             pools_hitem_row[i]++;
 
-            hrule(hp, H_INSERT); 
+            //hrule(hp, H_INSERT); 
         }
     }
  
@@ -215,7 +198,7 @@ word haddHitem ( HDR *mhdr ){
     if (++pools_htab->count > pools_htab->logsize)
     {
         DEBUG("now expand hashtable count %d logsize %d", pools_htab->count, pools_htab->logsize);
-        hgrow();
+        //hgrow();
     }
     return 0;
 }		/* -----  end of function haddHitem  ----- */
@@ -226,7 +209,7 @@ word haddHitem ( HDR *mhdr ){
  *  Description:  
  * =====================================================================================
  */
-void hrule ( HITEM *hitem, H_CHANGE stat ){
+void hrule ( HITEM *hitem, H_CHANGE hstat ){
     int i;
     HITEM *ph;
 
@@ -259,7 +242,7 @@ void hrule ( HITEM *hitem, H_CHANGE stat ){
 
         /* MRU */    
         
-        if( stat == H_UPDATE ){
+        if( hstat == H_UPDATE ){
             pools_haru_pool[pools_harug->max].hit = 0;
             pools_haru_pool[pools_harug->max].phitem = hitem;
         }

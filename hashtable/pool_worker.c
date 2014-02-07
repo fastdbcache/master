@@ -47,8 +47,8 @@ HITEM *hfind ( char *key, ub4 keyl ){
     TLIST *tlist;
     int i;
     HITEM **pools_hitem;
-    ub1 md5[MD5_LENG];
-    MD5_CTX *ctx;
+    /*ub1 md5[MD5_LENG];
+    MD5_CTX *ctx;  */
 
     i = 0;
     if(!key){DEBUG("key error %d",i); return NULL;}
@@ -77,7 +77,7 @@ HITEM *hfind ( char *key, ub4 keyl ){
                 tlist = pools_tlist->next;
                 while ( tlist ) {
                     /*  has a bug */
-                    if(keyl >0 && memmem(key, keyl, tlist->key, tlist->keyl)!=NULL){
+                    if(keyl >0 && memmem(key, (size_t)keyl, tlist->key, (size_t)tlist->keyl)!=NULL){
                         /* over time */
                         if(tlist->utime > ph->utime) return NULL; 
                     }
@@ -117,26 +117,15 @@ HITEM *hfind ( char *key, ub4 keyl ){
  */
 void getslab ( HITEM * hitem, SLABPACK *dest){
     HITEM *_ph = hitem;
-    HSLAB *_ps;
-    int i;
+    HSLAB _ps;
 
     if(!_ph) return;
-
-    i = hsms(_ph->psize);
-    if(i == -1) return ;
-
-    _ps = pools_hslab[i];
-
-    for(; _ps; _ps=_ps->next){
-        if(_ps->id == _ph->sid){
-            /*dest->pack = calloc(_ph->drl, sizeof(char));
-            if(!dest->pack) return;
-            memcpy(dest->pack, _ps->sm+_ph->sa*_ph->psize, _ph->drl);*/
-              dest->pack = _ps->sm+_ph->sa*_ph->psize;
-            dest->len = _ph->drl;
-            return;
-        }
-    }
+    
+    _ps = pools_hslab[_ph->sid];
+    
+    dest->pack = _ps.sm + _ph->sa;
+    dest->len = _ph->drl;
+   
 }		/* -----  end of function getslab  ----- */
 
 /* 
@@ -210,8 +199,8 @@ void pushList ( char *key, ub4 keyl, ub4 utime ){
     if(!_tlist->next){
         _t = calloc(1, sizeof(TLIST));
         if(_t){
-            _t->key = calloc(keyl, sizeof(char));
-            if(_t->key){
+            if(keyl < KEY_LENGTH){
+            
                 DEBUG("table:%s", key);
                 memcpy(_t->key, key, keyl);
                 _t->keyl = keyl;
@@ -251,9 +240,7 @@ void freeHdr ( HDR *fhdr ){
  */
 void freeUList ( ULIST *flist ){
     if(!flist) return;
-
-    if(flist->key)
-        free(flist->key);
+    
     free(flist);
 }		/* -----  end of function freeUList  ----- */
  /* vim: set ts=4 sw=4: */

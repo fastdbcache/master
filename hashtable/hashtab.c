@@ -82,7 +82,7 @@ void hgrow()
  * =====================================================================================
  */
 HSLAB *findhslab ( ssize_t i, sb2 _sid){
-    HSLAB *slab, *p;
+/*    HSLAB *slab, *p;
 
     slab = pools_hslab[i];
 
@@ -90,7 +90,7 @@ HSLAB *findhslab ( ssize_t i, sb2 _sid){
         if(p->id == _sid){             
             return p;
         }
-    }
+    }  */
 
     return NULL;
 }		/* -----  end of function findhslab  ----- */
@@ -140,8 +140,12 @@ void addfslab ( HITEM *_ph){
     int i; 
    /* pthread_mutex_lock(&work_lock_fslab);  
     f = pools_fslab;*/
-    
+     
     i = hsms(_ph->psize);
+    if(pools_fslab[i].sa != 0){
+        DEBUG("pools_fslab %d error", i);
+    }
+
     pools_fslab[i].psize = _ph->psize;
     pools_fslab[i].sid = _ph->sid;
     pools_fslab[i].sa = _ph->sa;
@@ -204,63 +208,35 @@ FSLAB *findfslab ( sb2 _psize ){
  *  Description:  
  * =====================================================================================
  */
-FSLAB *findslab ( sb2 _psize ,int i){
-    /* FSLAB *fslab, *fs_tmp; */
+int findslab ( sb2 _psize){
     HSLAB *hslab, *hs_tmp;
+    int i;
 
-    /*
-    fslab = findfslab(_psize);
+    for(i=0; i<conn_global->chunk_bytes; i++){
+        hslab = pools_hslab+i;
+       
+        if( hslab->sm == NULL ){          
+            
+            if( pools_htab->bytes >= conn_global->maxbytes ){
+                DEBUG("not any momey for user bytes:%d,maxbytes: %d", pools_htab->bytes, conn_global->maxbytes);
+                return -1;
+            }  
+            hslab->sm = (ub1 *)calloc(conn_global->default_bytes, sizeof(ub1));
+            if(!hslab->sm) return -1;
+            hslab->ss = 0;
+            hslab->sf = conn_global->default_bytes;
+
+            pools_htab->bytes += conn_global->default_bytes;
+        }
+
+        if(hslab->sf > _psize){            
+            hslab->ss += _psize;
+            hslab->sf -= _psize;
+            return i;
+        }
+    }
     
-    if(fslab != NULL){
-         1. find a slab from freeslab 
-        return fslab;
-    }else{
-         2. find a slab from pools_hslab */
-        hslab = pools_hslab[i];
-        if(!hslab){
-            DEBUG("hslab error");
-            return NULL;
-        } 
-        loop:
-        
-            if(hslab->sm == NULL && pools_htab->bytes <= conn_global->maxbytes){
-                hslab->sm = (ub1 *)calloc(LIMIT_SLAB_BYTE, sizeof(ub1));
-                if(!hslab->sm) return NULL;
-                hslab->ss = 0;
-                hslab->sf = slabclass[i].chunk;
-                hslab->id = 0;
-
-                pools_htab->bytes += LIMIT_SLAB_BYTE;    
-                pools_htab->hslab_stat[i]++;
-            }
-
-            if(hslab->sf > 0){
-                fs_tmp = (FSLAB *)calloc(1, sizeof(FSLAB));
-                if(!fs_tmp) return NULL;
-                /*memcpy(hslab->sm + hslab->ss*_psize, hdr->dr, hdr->drl);*/
-                fs_tmp->sid = hslab->id;
-                fs_tmp->sa =  hslab->ss;
-                fs_tmp->psize = _psize;
-                hslab->ss++;
-                hslab->sf--;
-
-                return fs_tmp;
-            }else{
-                if(pools_htab->bytes <= conn_global->maxbytes){
-                    hs_tmp = hslabcreate(i);
-                    if(!hs_tmp) return NULL;
-                    hs_tmp->id = hslab->id + 1;
-                    hslab->next = hs_tmp;
-                    hslab = hslab->next;
-
-                    goto loop;
-                }else {
-                    DEBUG("bytes is eq conn_global->bytes\n");
-                    return NULL;
-                }
-            }
-    /*  }*/
-    return NULL;
+    return -1;     
 }		/* -----  end of function findslab  ----- */
 
 

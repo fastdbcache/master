@@ -30,6 +30,16 @@
 #include "lookupa.h"
 #include "openmd5.h"
 
+static const char *HashTable_for_list[] = {
+    "htab.db.meta",
+    "harug.db.meta",
+    "hitem.row.meta",
+    "tlist.db.meta",
+    "hslab.db.meta",
+    "fslab.db.meta",
+    NULL
+};
+
 /* 
  * f=1.25
  * slab class   1: chunk size     88 perslab 11915
@@ -56,8 +66,8 @@ struct __hslab
   ub1           *sm;      /* slab malloc 1M */
   ub4           ss;      /* start of pool malloc */
   ub4           sf;      /* free of pool malloc if(sf==0) check fslab if return == -1 mount next*/
-  sb2           id;       /* slab id */
-  struct __hslab *next;     /* next */
+  /*sb2           id;        slab id */
+  /*struct __hslab *next;      next */
 };
 typedef  struct __hslab  HSLAB;
 
@@ -204,7 +214,7 @@ TLIST *pools_tlist;
 HSLAB *pools_hslab;
 
 pthread_mutex_t work_lock_fslab;
-FSLAB pools_fslab[MAX_SLAB_CLASS];
+FSLAB *pools_fslab;
 
 HSMS slabclass[MAX_SLAB_CLASS];
 

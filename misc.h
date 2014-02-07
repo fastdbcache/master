@@ -24,16 +24,6 @@
 
 #include "config_global.h"
 
-static const char *HashTable_for_list[] = {
-    "htab.db.meta",
-    "harug.db.meta",
-    "hitem.row.meta",
-    "tlist.db.meta",
-    "hslab.db.meta",
-    "fslab.db.meta",
-    NULL
-};
-
 DBP *initdbp (  );
 void freedbp ( DBP *_dbp );
 int CheckBufSpace ( ssize_t endPos, DBP *_dbp );
@@ -41,7 +31,7 @@ int getInt ( int *result, size_t bytes, DBP *_dbp );
 void *mcalloc ( size_t nmemb, size_t size, const char *pathname, int flags);
 HFD *inithfd ( );
 void freehfd ( HFD *_hfd );
-char *buildCachePath ( char *name );
+char *buildCachePath (const char *name );
 
 #ifdef __cplusplus
  }

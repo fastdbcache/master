@@ -33,7 +33,7 @@ HSLAB *findhslab ( ssize_t i, sb2 _sid);
 int hsms ( ub4 bytes );
 void addfslab ( HITEM *_ph);
 FSLAB *findfslab ( sb2 _psize );
-FSLAB *findslab ( sb2 _psize ,int i);
+int findslab ( sb2 _psize );
 
 #ifdef __cplusplus
  }

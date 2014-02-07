@@ -88,6 +88,7 @@ void conn_init_global ( void ){
  * =====================================================================================
  */
 void conn_get_global (  ){
+    struct stat sb;
     conn_global->maxconns = atoi(conf_get("max_openfile"));
     
     conn_global->server_ip = conf_get("server_ip");
@@ -107,6 +108,7 @@ void conn_get_global (  ){
     conn_global->factor = 1.25;
     conn_global->maxbytes = 64 * 1024 * 1024;
     conn_global->delaytime = atoi(conf_get("delay_time"));
+    conn_global->mmap_path = conf_get("cache_path");
     
     initDeposit(); 
 

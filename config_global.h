@@ -78,8 +78,9 @@ typedef                 int  word;  /* fastest type available */
 #define MAX_HARU_POOL 1024
 #define MAX_SLAB_CLASS  200
 #define CHUNK_ALIGN_BYTES 8
-#define MAX_SLAB_BYTE (128*1024 * 1024)
 #define LIMIT_SLAB_BYTE (1024 * 1024)
+#define MAX_SLAB_BYTE (128 * LIMIT_SLAB_BYTE)
+#define DEFAULT_MEM_BYTE (10 * LIMIT_SLAB_BYTE)
 #define SLAB_BEGIN 88
 #define LIMIT_PERCENT 0.1
 
@@ -231,7 +232,7 @@ struct __conn{
 
     ssize_t do_daemonize; /* is daemon */
 
-    char pid_file[FILE_PATH_LENGTH];  /* pid path */
+    char *pid_file;  /* pid path */
     
     ssize_t process_num;  /* work process number */
     ssize_t max_link;
@@ -242,6 +243,8 @@ struct __conn{
     ssize_t maxbytes;   /* max bytes for hslab */
     int delaytime;     /* delay time for update */
     D_TYPE cache_method;  /* use mem or mmap, default D_MEM */ 
+    size_t default_bytes; /* for mem or mmap */
+    size_t chunk_bytes;  /* maxbytes / default_bytes */
 /* end hashtable */
 
     D_TYPE deptype;     /* deposit type */
@@ -251,7 +254,7 @@ struct __conn{
     /*DEPR  **deprule;     table for deposit */
     char *deprule;
 
-    char mmap_path[FILE_PATH_LENGTH];
+    char *mmap_path;
     ssize_t mmdb_length;
 };
 

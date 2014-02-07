@@ -35,11 +35,7 @@ void hcreate ( int isize ){
 
     if(conn_global->cache_method == D_MMAP){
         pools_hfd = inithfd();
-        if(!pools_hfd){
-            DEBUG("init pools_hfd error");
-            exit(-1);
-        } 
-        _hfd_next = pools_hfd;
+        
     }
 
     if(conn_global->cache_method == D_MMAP){ 
@@ -112,25 +108,34 @@ void hcreate ( int isize ){
         pools_tlist = (TLIST *)calloc(1, sizeof(TLIST));
     }
     
-    count_hslab =(int)( conn_global->maxbytes / LIMIT_SLAB_BYTE );
+    if(conn_global->cache_method == D_MMAP){
+        conn_global->default_bytes = DEFAULT_MMAP_BYTE;
+    }else{
+        conn_global->default_bytes = DEFAULT_MEM_BYTE;
+    }
+
+    count_hslab = (int)( conn_global->maxbytes / conn_global->default_bytes );
+    
     if(count_hslab < 1){
         count_hslab = 1; 
     }
+    conn_global->chunk_bytes = count_hslab;
+
     inithslab ( count_hslab );
 
     max_slab = hslabclass();
     if(conn_global->cache_method == D_MMAP){
                 
         cache_path = buildCachePath( HashTable_for_list[5] );
-        pools_fslab = (FSLAB *)mcalloc(max_slab, sizeof(FSLAB)*MAX_SLAB_CLASS,cache_path,O_RDWR|O_CREAT);
+        pools_fslab = (FSLAB *)mcalloc(1, sizeof(FSLAB)*MAX_SLAB_CLASS, cache_path, O_RDWR|O_CREAT);
     }
-    /*else{
+    else{
         pools_fslab = (FSLAB *)calloc(max_slab, sizeof(FSLAB)*max_slab);
-    }  */
+    }  
     for(i=0; i< MAX_SLAB_CLASS; i++){
         pools_fslab[i].psize = 0;
         pools_fslab[i].sid = 0;
-        pools_fslab[i.]sa = 0;    
+        pools_fslab[i].sa = 0;    
     }
 
     conn_global->max_slab = max_slab;
@@ -167,7 +172,7 @@ void inithslab ( int i ){
         pools_hslab[m].sm=NULL;
         pools_hslab[m].ss=0;
         pools_hslab[m].sf=0;
-        pools_hslab[m].id=0;
+        /*pools_hslab[m].id=0;  */
     }
 
 }		/* -----  end of static function inithslab  ----- */
@@ -185,8 +190,7 @@ HSLAB *hslabnull (  ){
         _h->sm = NULL;
         _h->ss = 0;
         _h->sf = 0;
-        _h->id = 0;
-        _h->next = NULL;
+       
     }
     return _h;
 }		/* -----  end of function hslabnull  ----- */
@@ -269,7 +273,7 @@ HITEM *hitemcreate(){
     HITEM *h;
     h = (HITEM *)calloc(1, sizeof(HITEM));
     if(h){
-        h->key = NULL;
+        bzero(h->key, KEY_LENGTH);
         h->keyl = 0;
         h->drl = 0;
         h->psize = 0;
@@ -339,7 +343,7 @@ ULIST *initulist (  ){
 
     u = (ULIST *)calloc(1, sizeof(ULIST));
     if(u){
-        u->key = NULL;
+        bzero(u->key, KEY_LENGTH) ;
         u->keyl = 0;
         u->utime = 0;
         u->flag = H_TRUE;

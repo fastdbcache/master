@@ -16,7 +16,7 @@
  * =====================================================================================
  */
 
-#include "pg_misc.h"
+#include "misc.h"
 
 /* 
  * ===  FUNCTION  ======================================================================
@@ -199,7 +199,7 @@ void freehfd ( HFD *_hfd ){
  *  Description:  
  * =====================================================================================
  */
-char *buildCachePath ( char *name ){
+char *buildCachePath (const char *name ){
     char htab_path[FILE_PATH_LENGTH];
 
     bzero(htab_path, FILE_PATH_LENGTH); 
