@@ -75,12 +75,12 @@ typedef                 int  word;  /* fastest type available */
 #define KEY_LENGTH (1024*1024)
 #define MAX_HITEM_LENGTH 1024
 #define MAX_HITEM_LENGTH_8 (MAX_HITEM_LENGTH<<8)
-#define MAX_HARU_POOL 1024
 #define MAX_SLAB_CLASS  200
+#define MAX_HARU_POOL ( MAX_SLAB_CLASS * 2 )
 #define CHUNK_ALIGN_BYTES 8
-#define LIMIT_SLAB_BYTE (1024 * 1024)
-#define MAX_SLAB_BYTE (128 * LIMIT_SLAB_BYTE)
-#define DEFAULT_MEM_BYTE (10 * LIMIT_SLAB_BYTE)
+#define LIMIT_SLAB_BYTE ( 1024 * 1024 )
+#define MAX_SLAB_BYTE ( 128 * LIMIT_SLAB_BYTE )
+#define DEFAULT_MEM_BYTE ( 10 * LIMIT_SLAB_BYTE )
 #define SLAB_BEGIN 88
 #define LIMIT_PERCENT 0.1
 
@@ -89,8 +89,8 @@ typedef                 int  word;  /* fastest type available */
 #define MAXCONNS 1024
 
 #define FILE_PATH_LENGTH 256
-#define LIMIT_MMAP_BYTE (1024 * 1024)
-#define DEFAULT_MMAP_BYTE (64* LIMIT_MMAP_BYTE)
+#define LIMIT_MMAP_BYTE ( 1024 * 1024 )
+#define DEFAULT_MMAP_BYTE ( 64* LIMIT_MMAP_BYTE )
 
 #define bis(target,mask)  ((target) |=  (mask))
 #define bic(target,mask)  ((target) &= ~(mask))
