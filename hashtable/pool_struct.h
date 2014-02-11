@@ -99,23 +99,21 @@ struct __hitem
   ub4           offtime;  /* offset update time default 0 */
   ub4           ahit;     /* all hit */
   ub4           amiss;    /* all update */
-  struct __hitem *next;     /* next hitem in list */
+ /* struct __hitem *next;      next hitem in list */
 };
 typedef  struct __hitem  HITEM;
 
-struct __hitem_meta
+struct __hitem_row
 {
-    
+    HITEM   *hitem[MAX_HITEM_LENGTH];
 };
-typedef  struct __hitem_meta HMETA;
+typedef  struct __hitem_row HROW;
 
 struct __hitem_group
 {
-    HITEM        **usable;
-    HITEM        **move;
-    sb2  id;        /* which bucket */
-    ub4  buckets;  /* init bucket default 1024 << 2 */
-    ub4          bucket;
+    HROW    hrow[MAX_HG_LENGTH];
+    ub4     count[MAX_HG_LENGTH];  /* each hcol munber  */
+    ub4     bucket[MAX_HG_LENGTH]; /* each hclo use bucket munber */
 };
 typedef  struct __hitem_group  HG;
 
@@ -129,7 +127,6 @@ typedef  struct __hitem_group  HG;
  * */
 struct __haru
 {
- /* HITEM         *phitem;   point to hitem */
   ub1           hid;     /* mmap hitem key id */
   ub1           id;     /* mmap hitem id */
   ub4           hit;    /* haru hit */
@@ -267,13 +264,6 @@ HARU *pools_haru_pool;
 
 #define HDR_UNLOCK() do{\
     pthread_mutex_unlock(&work_lock_hdr); \
-}while(0)
-
-#define HITEM_SWITCH(y) do{\
-    if(hitem_group->bucket < (y)){            \
-        pools_hitem = hitem_group->move; \
-    }else                               \
-        pools_hitem = hitem_group->usable; \
 }while(0)
 
 #ifdef __cplusplus

@@ -75,6 +75,7 @@ typedef                 int  word;  /* fastest type available */
 #define KEY_LENGTH (1024*1024)
 #define MAX_HITEM_LENGTH 1024
 #define MAX_HITEM_LENGTH_8 (MAX_HITEM_LENGTH<<8)
+#define MAX_HG_LENGTH 8
 #define MAX_SLAB_CLASS  200
 #define MAX_HARU_POOL ( MAX_SLAB_CLASS * 2 )
 #define CHUNK_ALIGN_BYTES 8

@@ -88,11 +88,17 @@ void hcreate ( int isize ){
         pools_hitem_row = calloc(len, sizeof(ub4));
     }
 
-    hitem_group = (HG *)calloc(1, sizeof(HG));
-    hitem_group->bucket = pools_htab->logsize;
-    hitem_group->usable = inithitem ( (ub4) len );
-    hitem_group->move = NULL;
-
+    if(conn_global->cache_method == D_MMAP){
+    }else{
+        hitem_group = (HG *)calloc(1, sizeof(HG));
+        for(i=0; i<MAX_HG_LENGTH; i++){
+            hitem_group->hrow[i] = NULL;
+            hitem_group->count[i] = 0;
+            hitem_group->bucket[i] = 0;
+        }        
+        hitem_group->count[0] = pools_htab->logsize;
+        hitem_group->hrow[0] = calloc(hitem_group->count[0], sizeof(HROW));        
+    }
     pools_hdr_head = hdrcreate();
     pools_hdr_tail = pools_hdr_head;
 
