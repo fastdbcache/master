@@ -134,6 +134,7 @@ void *mcalloc ( size_t nmemb, size_t size, const char *pathname, int flags ){
     char name[1];
     HFD *_hfd, *_hfd_next;    
 
+    DEBUG("init pathname:%s", pathname);
     fd = open(pathname, flags);
     fstat(fd, &sb);
     if(sb.st_size==0){

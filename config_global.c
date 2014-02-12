@@ -24,7 +24,7 @@
  * =====================================================================================
  */
 void conn_init_global ( void ){
-    int fd;
+    int myuid;
     struct stat sb;
 
     conn_global = (_conn *)calloc(1, sizeof(_conn));
@@ -51,12 +51,12 @@ void conn_init_global ( void ){
     conn_global->factor = 1.25;
     conn_global->maxbytes = 64 * 1024 * 1024 ;
     conn_global->delaytime = 0;
-    conn_global->cache_method = D_MEM;
+    conn_global->cache_method = D_MMAP;
 
     conn_global->fdbc = "fastdbcache version 0.0.1";
 
     conn_global->dmaxbytes = 8 * 1024 * 1024;
-    conn_global->deptype = D_MEM;
+    conn_global->deptype = D_MMAP;
     conn_global->hasdep = H_FALSE;
     conn_global->quotient = 2;
     conn_global->deprule = NULL;
@@ -65,18 +65,17 @@ void conn_init_global ( void ){
 
     if(conn_global->deptype == D_MMAP){
         stat(conn_global->mmap_path, &sb);
-        if(sb.st_mode != S_IFDIR){
-            DEBUG("cache is not dir");
+        if(!S_ISDIR(sb.st_mode)){
+            DEBUG("cache is not dir %s, mode:%d", conn_global->mmap_path, sb.st_mode);
             exit(-1);
         }
-        if(sb.st_mode != S_IRUSR){
+        myuid = getuid();
+        
+        if(sb.st_uid != myuid && myuid != 0){
             DEBUG("cache dir can't read!");
             exit(-1);
         }
-        if(sb.st_mode != S_IWUSR){
-            DEBUG("cache dir can't write");
-            exit(-1);
-        }   
+           
     }
 }		/* -----  end of function conn_init_global  ----- */
 
@@ -89,6 +88,8 @@ void conn_init_global ( void ){
  */
 void conn_get_global (  ){
     struct stat sb;
+    int myuid;
+
     conn_global->maxconns = atoi(conf_get("max_openfile"));
     
     conn_global->server_ip = conf_get("server_ip");
@@ -109,24 +110,23 @@ void conn_get_global (  ){
     conn_global->maxbytes = 64 * 1024 * 1024;
     conn_global->delaytime = atoi(conf_get("delay_time"));
     conn_global->mmap_path = conf_get("cache_path");
-    
+     
     initDeposit(); 
-
     if(conn_global->deptype == D_MMAP){
         stat(conn_global->mmap_path, &sb);
-        if(sb.st_mode != S_IFDIR){
-            DEBUG("cache is not dir");
+        if(!S_ISDIR(sb.st_mode)){
+            DEBUG("cache is not dir %s, mode:%d", conn_global->mmap_path, sb.st_mode);
             exit(-1);
         }
-        if(sb.st_mode != S_IRUSR){
+        myuid = getuid();
+        
+        if(sb.st_uid != myuid && myuid != 0){
             DEBUG("cache dir can't read!");
             exit(-1);
         }
-        if(sb.st_mode != S_IWUSR){
-            DEBUG("cache dir can't write");
-            exit(-1);
-        }   
+           
     }
+    
     return ;
 }		/* -----  end of function conn_get_global  ----- */
 
@@ -141,7 +141,7 @@ void initDeposit ( ){
     if(memcmp(conf_get("deposit_enable_cache"), "on", 2)) return;
     
     if(memcmp(conf_get("deposit_method"),"mem", 3))return;
-    conn_global->deptype = D_MEM;
+    conn_global->deptype = D_MMAP;
 
     if(atol(conf_get("deposit_maxbytes")) <=0 )return;
     conn_global->dmaxbytes = atol(conf_get("deposit_maxbytes"));

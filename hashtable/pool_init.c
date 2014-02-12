@@ -35,14 +35,13 @@ void hcreate ( int isize ){
 
     len = (ub4)isize;
     //len = ((ub4)1<<isize);
-
+    
     if(conn_global->cache_method == D_MMAP){
         pools_hfd = inithfd();
         
     }
-
+    DEBUG("ddd %d", conn_global->cache_method);
     if(conn_global->cache_method == D_MMAP){ 
-        
         cache_path = buildCachePath( HashTable_for_list[0] );
         pools_htab = (HTAB *)mcalloc(1, sizeof(HTAB), cache_path, O_RDWR|O_CREAT);
     }else{
@@ -62,13 +61,15 @@ void hcreate ( int isize ){
     pools_htab->bytes = 0;
     bzero(pools_htab->hslab_stat,  sizeof(pools_htab->hslab_stat));
 
-    if(conn_global->cache_method == D_MMAP){
-        
-        
+    if(conn_global->cache_method == D_MMAP){                
         cache_path = buildCachePath( HashTable_for_list[1] );
         pools_harug = (HARUG *)mcalloc(1, sizeof(HARUG)*sizeof(HARU)*MAX_HARU_POOL,cache_path,O_RDWR|O_CREAT);
     }else{
         pools_harug = (HARUG *)calloc(1, sizeof(HARUG));
+    }
+    if(!pools_harug){
+        DEBUG("pools_harug init error");
+        exit(-1);
     }
     pools_harug->step = 0;
     bzero(pools_harug->haru_pool, MAX_HARU_POOL);
