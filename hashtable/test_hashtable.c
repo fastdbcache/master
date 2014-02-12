@@ -40,7 +40,7 @@ int main ( int argc, char *argv[] ) {
     SLABPACK *packs;
 
     conn_init_global();
-    hcreate(8);
+    hcreate(2);
 
     /* worker thread */
     _hdr = (HDR *)calloc(1, sizeof(HDR));
@@ -51,15 +51,15 @@ int main ( int argc, char *argv[] ) {
     _hdr->dr = data;
     _hdr->drl = strlen(data);
    
-    addHdr(_hdr, 0); 
+    addHdr(_hdr); 
 
     _ulist = (ULIST *)calloc(1, sizeof(ULIST));
-    _ulist->key = sql;
+    memcpy(_ulist->key , sql, strlen(sql));
     _ulist->keyl = strlen(sql);
     _ulist->utime = get_sec();
     _ulist->flag = H_TRUE;
     
-    addUlist(_ulist, 0);
+    addUlist(_ulist);
 
     /* worker thread */
     
@@ -73,10 +73,9 @@ int main ( int argc, char *argv[] ) {
     /* worker thread */
     hkey(sql, strlen(sql), packs);
     
-    printf("res:%s\n", packs->pack);
+    DEBUG("sql res:%s", packs->pack);
 
     
-    free(packs->pack);
     packs->pack = NULL;
     /* worker thread */
 
@@ -85,11 +84,11 @@ int main ( int argc, char *argv[] ) {
 
     hkey(sql1, strlen(sql1), packs);
     if(packs->pack){
-        printf("res2:%s\n", packs->pack);
+        DEBUG("sql 1 ok: res2:%s", packs->pack);
 
         free(packs->pack);
     }else{
-        printf("res2 is: NULL\n");
+        DEBUG("error res2 is: NULL\n");
     }
 
     free(packs);

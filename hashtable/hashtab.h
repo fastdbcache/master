@@ -32,8 +32,8 @@ void hgrow();
 HSLAB *findhslab ( ssize_t i, sb2 _sid);
 int hsms ( ub4 bytes );
 void addfslab ( HITEM *_ph);
-FSLAB *findfslab ( sb2 _psize );
-int findslab ( sb2 _psize );
+FSLAB *findfslab ( ub4 _psize );
+int findslab ( ub4 _psize );
 
 #ifdef __cplusplus
  }

@@ -27,11 +27,14 @@
  * =====================================================================================
  */
 void hcreate ( int isize ){
-    int i;
+    int i, m;
     ub4 len;
     int max_slab, count_hslab;
     char *cache_path;
-    len = ((ub4)1<<isize);
+    HROW *_hrow;
+
+    len = (ub4)isize;
+    //len = ((ub4)1<<isize);
 
     if(conn_global->cache_method == D_MMAP){
         pools_hfd = inithfd();
@@ -49,8 +52,6 @@ void hcreate ( int isize ){
         DEBUG("pools_htab calloc error");
         exit(1);
     }
-    pools_htab->mask = len - 1;
-    pools_htab->logsize = len;
     pools_htab->count = 0;
     pools_htab->bcount = 0;
     pools_htab->lcount = 0;
@@ -70,15 +71,8 @@ void hcreate ( int isize ){
         pools_harug = (HARUG *)calloc(1, sizeof(HARUG));
     }
     pools_harug->step = 0;
-    for(i=0; i < MAX_HARU_POOL; i++){
-        /*pools_harug->pools_haru_pool[i] = (HARU *)calloc(1, sizeof(HARU));
-        if(pools_harug->pools_haru_pool[i] == NULL){
-            perror("pools_haru_pool callo error ");
-            exit(1);
-        }*/
-        pools_harug->haru_pool[i].phitem = NULL;
+    bzero(pools_harug->haru_pool, MAX_HARU_POOL);
     
-    }
     pools_haru_pool = pools_harug->haru_pool;
    
     if(conn_global->cache_method == D_MMAP){
@@ -88,17 +82,32 @@ void hcreate ( int isize ){
         pools_hitem_row = calloc(len, sizeof(ub4));
     }
 
+    bzero(hitem_group, MAX_HG_LENGTH);
     if(conn_global->cache_method == D_MMAP){
+        cache_path = buildCachePath( HashTable_for_list[6] );
+        hitem_group[0] = (HG *)mcalloc(1, sizeof(HG)*len*sizeof(HROW),cache_path,O_RDWR|O_CREAT);
+        hitem_group[0]->bucket = len;
+        hitem_group[0]->count = 0;
+        hitem_group[0]->mask = hitem_group[0]->bucket-1;
+        cache_path = buildCachePath( HashTable_for_list[7] );
+        hitem_group[0]->hrow = (HROW *)mcalloc(hitem_group[0]->bucket, sizeof(HROW)*sizeof(HITEM)*MAX_HITEM_LENGTH*sizeof(ub1)*KEY_LENGTH, cache_path, O_RDWR|O_CREAT);        
     }else{
-        hitem_group = (HG *)calloc(1, sizeof(HG));
-        for(i=0; i<MAX_HG_LENGTH; i++){
-            hitem_group->hrow[i] = NULL;
-            hitem_group->count[i] = 0;
-            hitem_group->bucket[i] = 0;
-        }        
-        hitem_group->count[0] = pools_htab->logsize;
-        hitem_group->hrow[0] = calloc(hitem_group->count[0], sizeof(HROW));        
+        hitem_group[0] = calloc(1, sizeof(HG));
+        hitem_group[0]->bucket = len;
+        hitem_group[0]->count = 0;
+        hitem_group[0]->mask = hitem_group[0]->bucket-1;
+        hitem_group[0]->hrow = (HROW *)calloc(hitem_group[0]->bucket, sizeof(HROW));        
     }
+    if(!hitem_group[0]->hrow){
+        DEBUG("init hrow error");
+        exit(-1);
+    }
+    /*
+    for(i=0;i<hitem_group[0]->bucket; i++){
+        _hrow = hitem_group[0]->hrow+i;
+        for(m=0;m<MAX_HITEM_LENGTH; m++)
+        DEBUG("%d. hitem 2 hval:%d",i , _hrow->hitem[m].hval);
+    }*/
     pools_hdr_head = hdrcreate();
     pools_hdr_tail = pools_hdr_head;
 
@@ -227,21 +236,22 @@ HSLAB *hslabcreate ( int i ){
 int hslabclass ( void ){
     int size = SLAB_BEGIN;
     int i=0;
-    
-    while (i < MAX_SLAB_CLASS && size <= MAX_SLAB_BYTE / conn_global->factor) {
+   
+    bzero(slabclass, MAX_SLAB_CLASS); 
+    while (i < MAX_SLAB_CLASS && size <= LIMIT_SLAB_BYTE / conn_global->factor) {
         
         size = alignByte(size);
         /*if((item_size_max / size) < 2) break; 
 
         printf("slab class  chunk size %9u perslab %7u\n",
-                     size, (MAX_SLAB_BYTE / size));*/
+                     size, (LIMIT_SLAB_BYTE / size));*/
         slabclass[i].size = size;
-        slabclass[i].chunk = (MAX_SLAB_BYTE / size);
+        slabclass[i].chunk = (LIMIT_SLAB_BYTE / size);
         /*printf("slabclass: size:%d, chunk:%d\n", slabclass[i].size, slabclass[i].chunk);*/
         i++;
         size *= conn_global->factor;
     } 
-    slabclass[i].size = MAX_SLAB_BYTE;
+    slabclass[i].size = LIMIT_SLAB_BYTE;
     slabclass[i].chunk = 1;
 
     return (++i);
@@ -288,7 +298,6 @@ HITEM *hitemcreate(){
         h->offtime = 0;
         h->ahit = 0;  
         h->amiss = 0;
-        h->next = NULL;
     }
     return h;
 }		/* -----  end of function hitemcreate  ----- */

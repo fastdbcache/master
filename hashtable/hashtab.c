@@ -29,7 +29,7 @@
  */
 void hgrow()
 {
-    ub4     newsize = (ub4)1<<(++pools_htab->logsize);
+ /*   ub4     newsize = (ub4)1<<(++pools_htab->logsize);
     ub4     newmask = newsize-1;
     ub4     i;
     HITEM   **old_hitem, **new_hitem;
@@ -53,7 +53,7 @@ void hgrow()
             that = this;
             this = that->next;
 
-            if(that->drl == 0) continue;  /* clear the empty drl  */
+            if(that->drl == 0) continue;   clear the empty drl  /
 
             new = new_hitem[(that->hval & newmask)];                
             that->next = new->next;
@@ -71,6 +71,7 @@ void hgrow()
     
     pools_htab->logsize = newsize; 
     pools_htab->mask = newmask;
+  */
 }
 
 
@@ -174,7 +175,7 @@ void addfslab ( HITEM *_ph){
  *  Description:  
  * =====================================================================================
  */
-FSLAB *findfslab ( sb2 _psize ){
+FSLAB *findfslab ( ub4 _psize ){
     /*int i;
 
     i = hsms(_psize);
@@ -208,13 +209,17 @@ FSLAB *findfslab ( sb2 _psize ){
  *  Description:  
  * =====================================================================================
  */
-int findslab ( sb2 _psize){
+int findslab ( ub4 _psize){
     HSLAB *hslab, *hs_tmp;
     int i;
 
+    if(_psize == -1){ 
+        ;
+        return -1;
+    }
+
     for(i=0; i<conn_global->chunk_bytes; i++){
         hslab = pools_hslab+i;
-       
         if( hslab->sm == NULL ){          
             
             if( pools_htab->bytes >= conn_global->maxbytes ){
@@ -222,7 +227,10 @@ int findslab ( sb2 _psize){
                 return -1;
             }  
             hslab->sm = (ub1 *)calloc(conn_global->default_bytes, sizeof(ub1));
-            if(!hslab->sm) return -1;
+            if(!hslab->sm){ 
+                DEBUG("sm init error %d", conn_global->default_bytes);
+                return -1;
+            }
             hslab->ss = 0;
             hslab->sf = conn_global->default_bytes;
 
@@ -233,6 +241,8 @@ int findslab ( sb2 _psize){
             hslab->ss += _psize;
             hslab->sf -= _psize;
             return i;
+        }else{
+            DEBUG("sf:%llu, psize:%llu", hslab->sf, _psize);
         }
     }
     

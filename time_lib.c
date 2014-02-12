@@ -52,8 +52,8 @@ double get_usec(void){
 	struct timeval tv; 
     struct timezone tz; 
     double res;
-    memset(&tv, 0, sizeof(&tv));
-    memset(&tz, 0, sizeof(&tz));
+    bzero(&tv, sizeof(&tv));
+    bzero(&tz, sizeof(&tz));
 
     gettimeofday (&tv , &tz);
 
@@ -66,8 +66,8 @@ long get_sec(void){
 	struct timeval tv; 
     struct timezone tz; 
 
-    memset(&tv, 0, sizeof(&tv));
-    memset(&tz, 0, sizeof(&tz));
+    bzero(&tv, sizeof(&tv));
+    bzero(&tz, sizeof(&tz));
 
     gettimeofday (&tv , &tz);
 

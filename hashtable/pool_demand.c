@@ -36,7 +36,7 @@ HELP_CMD help_cmd[]={
  */
 void getItemStat ( char *key, ssize_t keyl, int frontend ){
     int deslen;
-    int nfields;
+    ssize_t nfields;
     char *item_desc, *res;
     int rows;
     char *item[]={"key","utime","ahit","amiss",NULL};
@@ -69,7 +69,7 @@ void getItemStat ( char *key, ssize_t keyl, int frontend ){
  */
 void getVer ( int frontend ){
     int deslen;
-    int nfields;
+    ssize_t nfields;
     char *item_desc, *res;
     char *item[]={"version",NULL};
     uint32 tlen, nf, _ulen;
@@ -197,7 +197,7 @@ void setRowDescription ( char **parastat, char *crd, ssize_t count, ssize_t nfie
  */
 void gethtabstat ( int frontend ){
     int deslen;
-    int nfields;
+    ssize_t nfields;
     char *item_desc, *res;
     char *htabstat[]={"count", "bcount","lcount","hit","miss","set","get","bytes M", "max_bytes M",NULL};
 
@@ -227,7 +227,7 @@ void gethtabstat ( int frontend ){
  */
 void fdbcHelp ( int frontend ){
     int deslen;
-    int nfields;
+    ssize_t nfields;
     char *item_desc, *res;
     char *helps[]={"command","desc",NULL};
     HELP_CMD *_helps;
@@ -273,45 +273,41 @@ void fdbcSet ( int frontend ){
  * =====================================================================================
  */
 int RowItem ( char *key, ssize_t keyl, int frontend , ssize_t nfields ){
-    uint64_t hval, hjval;
+    uint64_t _new_hval, _new_hjval;
     char *crd, *newbuf, nlen[256];
     HITEM *ph, *_h;
-    int  utime_len, ahit_len, amiss_len, y;
+    int  utime_len, ahit_len, amiss_len, x, y, n;
     ssize_t total;
     uint32 tlen, nf, _ulen;
-    HITEM **pools_hitem;
-    ub1 md5[MD5_LENG];
-    MD5_CTX *ctx;
+    HG *pool_hg;
+    HROW *_hrow;
 
     if(!key) return 0;
     if(keyl<1) return 0;
-    /*
-    bzero(md5, MD5_LENG);
-
-    ctx = calloc(1, sizeof(MD5_CTX));
-    MD5_Init(ctx);
-    MD5_Update(ctx, key, keyl);
-    MD5_Final(md5, ctx);
-    free(ctx);
-  */
-    hval = lookup(key, keyl, 0);
-    hjval = jenkins_one_at_a_time_hash(key, keyl);
-
-
-    HITEM_SWITCH((y=(hval&pools_htab->mask)));
-    ph = pools_hitem[y]->next;
-
+    
+    _new_hval = lookup(key, keyl, 0);
+    _new_hjval = jenkins_one_at_a_time_hash(key, keyl);
     _h = NULL;
-    while ( ph ) {
-        if(hval == ph->hval &&
+    n = 0;
+    do{
+        pool_hg = hitem_group[n];
+        if(pool_hg == NULL) break;
+        x=(_new_hval&pool_hg->mask);
+        _hrow = pool_hg->hrow + x;
+        y = _new_hjval&(MAX_HITEM_LENGTH-1);
+        ph = _hrow->hitem + y;
+
+        if(_new_hval == ph->hval &&
             (keyl == ph->keyl) &&
-            (hjval == ph->hjval) &&
+            (_new_hjval == ph->hjval) &&
             (ph->drl > 0)
             ){
-            _h = ph;            
+            _h = ph;
+            break;
         }
-        ph = ph->next;
-    }
+        n++;
+    }while(n<MAX_HG_LENGTH);
+    
     if(!_h) return 0;
     bzero(nlen, strlen(nlen));
     snprintf(nlen, 255, "%lu", _h->utime);
@@ -567,7 +563,7 @@ void setCacheRowDescriptions ( int frontend ){
     char res[32]={'\0'};
     total = 0;
     nfields = 11;
-
+    /*
     total += sizeof(uint32)+sizeof(uint16);
 
     field = NULL;
@@ -790,7 +786,7 @@ void setCacheRowDescriptions ( int frontend ){
     }
     
     snprintf(res, 31, "SELECT %d", m);
-DEBUG("C---Z res: %s", res);
+    DEBUG("C---Z res: %s", res);
     total = sizeof(uint32)+strlen(res)+1;
     crd = calloc(total+sizeof(char), sizeof(char));
     newbuf = crd;
@@ -816,6 +812,7 @@ DEBUG("C---Z res: %s", res);
     crd+=sizeof(uint32);
     memcpy(crd, "I", sizeof(char)); 
     Socket_Send(frontend, newbuf, len+sizeof(char));
+  */
 }	/*	 -----  end of function setCacheRowDescriptions  ----- */
 
 

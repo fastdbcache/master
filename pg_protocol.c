@@ -291,8 +291,20 @@ int AuthPG(const int bfd,const int ffd, DBP *_dbp){
                         free(mem_pack);
                     }
                 }else if(isSELECT==E_DELETE || isSELECT==E_UPDATE || isSELECT==E_INSERT){
-                      ply = parser_do (_hdrtmp, _apack->inEnd-_apack->inCursor);
-                      if(ply){
+                    ply = parser_do (_hdrtmp, _apack->inEnd-_apack->inCursor);
+                    _ulist = initulist();
+                    if(_ulist &&
+                        ply){
+                        _ulist->keyl = ply->len;
+                        if(_ulist->keyl < KEY_LENGTH){
+                            memcpy(_ulist->key, ply->tab, _ulist->keyl);
+                            _ulist->utime = get_sec();
+                        }else{
+                            freeUList(_ulist);
+                            _ulist = NULL;
+                        }
+                    }
+                    if(ply){
                         if(conn_global->hasdep == H_TRUE &&
                             conn_global->deprule){
                        
@@ -329,18 +341,7 @@ int AuthPG(const int bfd,const int ffd, DBP *_dbp){
                     leaderr:
                         (void)0;
                      
-                    _ulist = initulist();
-                    if(_ulist &&
-                        ply){
-                        _ulist->keyl = ply->len;
-                        if(_ulist->keyl < KEY_LENGTH){
-                            memcpy(_ulist->key, ply->tab, _ulist->keyl);
-                            _ulist->utime = get_sec();
-                        }else{
-                            freeUList(_ulist);
-                            _ulist = NULL;
-                        }
-                    }
+                    
                     if(ply){
                         free(ply->tab);
                         free(ply);
@@ -423,8 +424,9 @@ int AuthPG(const int bfd,const int ffd, DBP *_dbp){
                     freeHdr(_hdr);
                 }
                 isDATA = FALSE;
-                if(_ulist)
+                if(_ulist){
                     addUlist(_ulist);
+                }
                 _hdr = NULL;
                 _ulist = NULL;
                 goto free_pack;

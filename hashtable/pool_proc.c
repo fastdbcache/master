@@ -74,50 +74,82 @@ void fetchdti (  ){
  * =====================================================================================
  */
 word haddHitem ( HDR *mhdr ){ 
-    HITEM  *ph,*phtmp, *hp;
+    HITEM  *ph, *hp;
     HDR *hdr;
-    ub4     y ;
+    ub4    x, y ;
     uint64_t _new_hval, _new_hjval;
-    int i, m, slab_id;
-    HITEM **pools_hitem;
+    int i, m, n, slab_id;
     ub1 *slab_sm;
-    
+    HG *pool_hg;
+    HROW *_hrow;
+
     hdr = mhdr;
     if(hdr == NULL) return -1;
     if(hdr->drl > LIMIT_SLAB_BYTE) return -1;
     
     _new_hval = lookup(hdr->key, hdr->keyl,0);
     _new_hjval = jenkins_one_at_a_time_hash(hdr->key, hdr->keyl);
-    HITEM_SWITCH((y=(_new_hval&pools_htab->mask)));
 
-    ph = pools_hitem[y];
-    if(!ph) {
-        return -1;
-    }
+    n = 0;
     i = hsms(hdr->drl);
     if(i == -1) return -1;
 
-    /* header is not user 
-    for(; ph->next; ph=ph->next){
-        if(_new_hval == ph->hval &&
+    do{
+        pool_hg = hitem_group[n];
+        if(pool_hg == NULL) break;
+        x=(_new_hval&pool_hg->mask);
+        _hrow = pool_hg->hrow + x;
+        y = _new_hjval&(MAX_HITEM_LENGTH-1);
+        ph = _hrow->hitem + y;
+         
+        if(ph->hval == 0 || ph->drl == 0){
+            hp = ph;
+            if(hp->keyl > KEY_LENGTH){
+               free(hp);
+               DEBUG("keyl > KEY_LENGTH");
+               return -1;
+            }
+             
+            if(pools_fslab[i].sa != 0){
+                hp->sid = pools_fslab[i].sid;
+                hp->sa = pools_fslab[i].sa;
+                pools_fslab[i].sa = 0;
+            }else{
+                slab_id = findslab(slabclass[i].size);
+                if(slab_id == -1){
+                    DEBUG("slab_id == -1 psize: %d", hp->psize);
+                    return -1;
+                }
+                hp->sid = slab_id;
+                hp->sa = pools_hslab[slab_id].ss - slabclass[i].size;
+            }
+
+            memcpy(hp->key, hdr->key, hdr->keyl);
+            hp->keyl  = hdr->keyl;
+            hp->drl = hdr->drl;
+            hp->psize = slabclass[i].size;
+            hp->hval  = _new_hval;
+            hp->hjval = _new_hjval;
+            hp->utime = hdr->stime;
+            slab_sm = pools_hslab[hp->sid].sm + hp->sa;
+
+            if(hp->sa < 0){ 
+                DEBUG("psize error! sa: %d psize: %d", hp->sa, hp->psize);
+            }else{
+                memcpy(slab_sm , hdr->dr, hdr->drl);
+                
+                //pools_hitem_row[i]++;
+
+                //hrule(hp, H_INSERT); 
+            }
+            pools_htab->count++; 
+            pools_htab->miss++;
+            return 0;     
+        }
+        else if(_new_hval == ph->hval &&
             (hdr->keyl == ph->keyl) &&
             (_new_hjval == ph->hjval) 
             ){
-            MISS_LOCK();
-            pools_htab->miss++;
-            MISS_UNLOCK(); 
-            break;
-        }
-    }*/
-    m = 0;
-    phtmp = ph;
-    ph = ph->next;  /* head is not store anything */
-    while ( ph ){
-        phtmp = ph; 
-        if ((_new_hval == ph->hval) && 
-            (hdr->keyl == ph->keyl) && 
-            (_new_hjval == ph->hjval))
-        {
             m = hsms(ph->psize);
             if(m == -1) return -1; 
             if(m != i){  /* old size != new size , free old slab */
@@ -133,7 +165,6 @@ word haddHitem ( HDR *mhdr ){
                     ph->sa = pools_hslab[slab_id].ss - slabclass[i].size;
                 }
                 ph->psize = slabclass[i].size;  /* update psize */                
-                ph->drl = hdr->drl;                                
             }
             /* 
             if((ph->amiss / ph->ahit) > LIMIT_PERCENT){
@@ -150,57 +181,14 @@ word haddHitem ( HDR *mhdr ){
             pools_htab->miss++;
             //hrule(ph, H_UPDATE);
             return 0;
-            
+        }else{                        
+            n++;
+            hgrow(n);
         }
-        ph = ph->next; 
-    } /* while */
-    
-    if(!phtmp->next){
-        hp = hitemcreate();
-        if(hp->keyl > KEY_LENGTH){
-           free(hp);
-           return -1;
-        }
-        memcpy(hp->key, hdr->key, hdr->keyl);
-        hp->keyl  = hdr->keyl;
-        hp->drl = hdr->drl;
-        hp->psize = slabclass[i].size;
-        hp->hval  = _new_hval;
-        hp->hjval = _new_hjval;
-        hp->utime = hdr->stime; 
+        
+    }while(n<MAX_HG_LENGTH);
 
-        if(pools_fslab[i].sa != 0){
-            hp->sid = pools_fslab[i].sid;
-            hp->sa = pools_fslab[i].sa;
-            pools_fslab[i].sa = 0;
-        }else{
-            slab_id = findslab(hp->psize);
-            if(slab_id == -1)return -1;
-            hp->sid = slab_id;
-            hp->sa = pools_hslab[slab_id].ss - hp->psize;
-        }
-        slab_sm = pools_hslab[hp->sid].sm + hp->sa;
-
-        if(hp->sa < 0){ 
-            DEBUG("psize error! sa: %d psize: %d", hp->sa, hp->psize);
-        }else{
-            memcpy(slab_sm , hdr->dr, hdr->drl);
-            
-            phtmp->next = hp;
-
-            pools_hitem_row[i]++;
-
-            //hrule(hp, H_INSERT); 
-        }
-    }
- 
-    /* make the hash table bigger if it is getting full */
-    if (++pools_htab->count > pools_htab->logsize)
-    {
-        DEBUG("now expand hashtable count %d logsize %d", pools_htab->count, pools_htab->logsize);
-        //hgrow();
-    }
-    return 0;
+    return -1;
 }		/* -----  end of function haddHitem  ----- */
 
 /* 
@@ -214,12 +202,12 @@ void hrule ( HITEM *hitem, H_CHANGE hstat ){
     HITEM *ph;
 
     if(!hitem) return;
-
+    /*
     if(pools_htab->bytes == conn_global->maxbytes &&
         pools_harug->step == MAX_HARU_POOL){
         for ( i=0; i<MAX_HARU_POOL; i++ ) {
             ph = pools_haru_pool[i].phitem;
-            addfslab(ph);  /* free old slab */
+            addfslab(ph);  / free old slab /
         }   
         pools_harug->step = 0;
     }
@@ -240,21 +228,22 @@ void hrule ( HITEM *hitem, H_CHANGE hstat ){
         return;
     } else{
 
-        /* MRU */    
+        / MRU /    
         
         if( hstat == H_UPDATE ){
             pools_haru_pool[pools_harug->max].hit = 0;
             pools_haru_pool[pools_harug->max].phitem = hitem;
         }
         else{
-            /* LRU */
+            / LRU /
             ph = pools_haru_pool[pools_harug->mix].phitem;
             pools_haru_pool[pools_harug->mix].phitem = hitem;
             pools_haru_pool[pools_harug->mix].hit = 0;
 
-            addfslab(ph);  /* clear hit very limit */
+            addfslab(ph);   clear hit very limit /
         }
     } 
+  */
 }		/* -----  end of function hrule  ----- */
 
 

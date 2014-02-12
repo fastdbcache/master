@@ -41,16 +41,19 @@ void hkey ( char *key, ub4 keyl, SLABPACK *dest){
  * =====================================================================================
  */
 HITEM *hfind ( char *key, ub4 keyl ){
-    ub4  y;
+    ub4  y, x;
     uint64_t hval, hjval;
     HITEM *ph;
     TLIST *tlist;
-    int i;
+    int i, m;
+    HG *pool_hg;
+    HROW *_hrow;
     HITEM **pools_hitem;
+
     /*ub1 md5[MD5_LENG];
     MD5_CTX *ctx;  */
 
-    i = 0;
+    i = m = 0;
     if(!key){DEBUG("key error %d",i); return NULL;}
     /*
     bzero(md5, MD5_LENG);
@@ -64,11 +67,19 @@ HITEM *hfind ( char *key, ub4 keyl ){
     hval = lookup(key, keyl, 0);
     hjval = jenkins_one_at_a_time_hash(key, keyl);
 
-    HITEM_SWITCH((y=(hval&pools_htab->mask)));
-    ph = pools_hitem[y]->next;
-    
-     
-    while ( ph ) {
+    do{
+        pool_hg = hitem_group[m];
+        if(pool_hg == NULL) break;
+        x=(hval&pool_hg->mask);
+        _hrow = pool_hg->hrow + x;
+        y = hjval&(MAX_HITEM_LENGTH-1);
+        ph = _hrow->hitem + y;
+
+        if(!ph){
+            DEBUG("hp is null");
+            break;
+        }
+
         if(hval == ph->hval &&
             (keyl == ph->keyl) &&
             (hjval == ph->hjval) &&
@@ -87,7 +98,7 @@ HITEM *hfind ( char *key, ub4 keyl ){
                 ph->ahit++;
                 pools_htab->hit++;
                 for(i=0; i<MAX_HARU_POOL; i++){
-                    if( pools_haru_pool[i].phitem == ph ){
+                    if( pools_haru_pool[i].id == x && pools_haru_pool[i].hid == y ){
                         pools_haru_pool[i].hit++;                        
                         break;
                     }
@@ -102,9 +113,9 @@ HITEM *hfind ( char *key, ub4 keyl ){
 
                 return ph;            
         }
-        ph = ph->next;
-    }
-    
+        m++;
+    }while(m<MAX_HG_LENGTH);
+       
     return NULL;
 }		/* -----  end of function hfind  ----- */
 
@@ -123,7 +134,7 @@ void getslab ( HITEM * hitem, SLABPACK *dest){
     
     _ps = pools_hslab[_ph->sid];
     
-    dest->pack = _ps.sm + _ph->sa;
+    dest->pack = _ps.sm + _ph->sa;    
     dest->len = _ph->drl;
    
 }		/* -----  end of function getslab  ----- */
@@ -199,8 +210,7 @@ void pushList ( char *key, ub4 keyl, ub4 utime ){
     if(!_tlist->next){
         _t = calloc(1, sizeof(TLIST));
         if(_t){
-            if(keyl < KEY_LENGTH){
-            
+            if(keyl < KEY_LENGTH){            
                 DEBUG("table:%s", key);
                 memcpy(_t->key, key, keyl);
                 _t->keyl = keyl;

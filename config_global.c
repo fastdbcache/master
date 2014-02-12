@@ -151,7 +151,7 @@ void initDeposit ( ){
 
     conn_global->deprule = conf_get("deposit_rule");
      
-    conn_global->hasdep = H_TRUE;
+    conn_global->hasdep = H_FALSE;
 }		/* -----  end of function initDeposit  ----- */
 
 

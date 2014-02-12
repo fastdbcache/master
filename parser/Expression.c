@@ -69,12 +69,13 @@ _ly *_init_ly(){
 }
 
 void _lysave(_ly *myly, char *_src){
-    char * des = _src;
+    char *des = _src;
     int len;
 
     if(!_src)return; 
     len = 0;
-    while(des && *(des) != ' ' && *(des) != '(' && *(des) == '\t' && *(des) == '\r' && *(des) == '\n' ){
+    
+    while(des && *(des) != ' ' && *(des) != '(' && *(des) != '\t' && *(des) != '\r' && *(des) != '\n' ){
         len++;
         des++;
     }
@@ -88,6 +89,7 @@ void _lysave(_ly *myly, char *_src){
             return ;
         }
         memcpy(myly->tab, _src, myly->len);
+
     }
     /*   because only parser change sql
     else{
@@ -122,11 +124,12 @@ void freely ( _ly *_fly){
 void
 main(int ac, char **av)
 {
-    
+    extern yydebug;
+    yydebug = 1; 
     _ly *tly;
     //char sql[]="insert into a(c)values(111);";
     //char sql[]="DELETE FROM wp_posts WHERE wp_posts.id = (select * from (select id from wp_posts order by RAND() limit 1) as x);";
-    char sql[]="UPDATE cdb_threads SET views = '1111' WHERE cdb_threads.tid = (select * from (select tid from cdb_threads order by tid desc limit 1) as x);";
+    char sql[]="DELETE FROM pgwp_options WHERE option_name = '_transient_doing_cron'";
     tly = NULL;
     if(ac < 1){
         return;

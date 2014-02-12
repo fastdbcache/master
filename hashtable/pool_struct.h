@@ -37,6 +37,8 @@ static const char *HashTable_for_list[] = {
     "tlist.db.meta",
     "hslab.db.meta",
     "fslab.db.meta",
+    "hitem.group.meta",
+    "hitem.group.row.meta",
     NULL
 };
 
@@ -105,15 +107,16 @@ typedef  struct __hitem  HITEM;
 
 struct __hitem_row
 {
-    HITEM   *hitem[MAX_HITEM_LENGTH];
+    HITEM   hitem[MAX_HITEM_LENGTH];
 };
 typedef  struct __hitem_row HROW;
 
 struct __hitem_group
 {
-    HROW    hrow[MAX_HG_LENGTH];
-    ub4     count[MAX_HG_LENGTH];  /* each hcol munber  */
-    ub4     bucket[MAX_HG_LENGTH]; /* each hclo use bucket munber */
+    HROW    *hrow;
+    size_t  mask;    /* (hashval & mask) is position in table */
+    ub4     count;  /* each hcol munber  */
+    ub4     bucket; /* each hclo use bucket munber */
 };
 typedef  struct __hitem_group  HG;
 
@@ -159,7 +162,6 @@ typedef  struct __hdr  HDR;
 struct __htab
 {
   ub4           logsize; /* log of size of table */
-  size_t         mask;    /* (hashval & mask) is position in table */
   ub4            count;   /* how many items in this hash table so far? 记录目前使用多少hitem_pool */
   sb2            bcount;  /* single items length 记录最长的hitem*/
   sb2            lcount;  /* single items length 记录最短的hitem*/
@@ -203,7 +205,7 @@ pthread_mutex_t work_lock_bytes;
 pthread_mutex_t work_lock_tlist;
 pthread_mutex_t work_lock_hdr;
 
-HG *hitem_group;
+HG *hitem_group[MAX_HG_LENGTH];
 /* HITEM **pools_hitem;*/
 HDR *pools_hdr_tail;
 HDR *pools_hdr_head;
