@@ -52,15 +52,6 @@ void hcreate ( int isize ){
         DEBUG("pools_htab calloc error");
         exit(1);
     }
-    pools_htab->count = 0;
-    pools_htab->bcount = 0;
-    pools_htab->lcount = 0;
-    pools_htab->hit = 0;
-    pools_htab->miss = 0;
-    pools_htab->set = 0;
-    pools_htab->get = 0;
-    pools_htab->bytes = 0;
-    bzero(pools_htab->hslab_stat,  sizeof(pools_htab->hslab_stat));
 
     if(conn_global->cache_method == D_MMAP){                
         bzero(cache_path, FILE_PATH_LENGTH); 
@@ -184,6 +175,7 @@ void hcreate ( int isize ){
     pthread_mutex_init(&work_lock_tlist, NULL);
     pthread_mutex_init(&work_lock_hdr, NULL);
 
+    DEBUG("init ok");
     return ;
 }		/* -----  end of function hcreate  ----- */
 

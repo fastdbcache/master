@@ -89,7 +89,7 @@ HITEM *hfind ( char *key, ub4 keyl ){
             (ph->drl > 0) 
             ){
                 tlist = pools_tlist->next;
-                while ( tlist ) {
+                while ( tlist && tlist->key ) {
                     /*  has a bug */
                     if(keyl >0 && memmem(key, (size_t)keyl, tlist->key, (size_t)tlist->keyl)!=NULL){
                         /* over time */
