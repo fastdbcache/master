@@ -101,7 +101,11 @@ word haddHitem ( HDR *mhdr ){
         _hrow = pool_hg->hrow + x;
         y = _new_hjval&(MAX_HITEM_LENGTH-1);
         ph = _hrow->hitem + y;
-         
+
+        if(!ph) {
+            DEBUG("ph is null");
+            break;
+        }
         if(ph->hval == 0 || ph->drl == 0){
             hp = ph;
             if(hp->keyl > KEY_LENGTH){
@@ -174,6 +178,7 @@ word haddHitem ( HDR *mhdr ){
              
             
             slab_sm = pools_hslab[ph->sid].sm + ph->sa;
+            if(!slab_sm) return -1;
             ph->utime = hdr->stime;
             memcpy(slab_sm, hdr->dr, hdr->drl);
             ph->drl = hdr->drl;

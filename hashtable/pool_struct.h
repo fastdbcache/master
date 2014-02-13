@@ -39,6 +39,7 @@ static const char *HashTable_for_list[] = {
     "fslab.db.meta",
     "hitem.group.meta",
     "hitem.group.row.meta",
+    "hslab.db.",
     NULL
 };
 

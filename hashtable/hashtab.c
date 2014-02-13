@@ -212,9 +212,9 @@ FSLAB *findfslab ( ub4 _psize ){
 int findslab ( ub4 _psize){
     HSLAB *hslab, *hs_tmp;
     int i;
+    char cache_path[FILE_PATH_LENGTH];
 
     if(_psize == -1){ 
-        ;
         return -1;
     }
 
@@ -226,7 +226,16 @@ int findslab ( ub4 _psize){
                 DEBUG("not any momey for user bytes:%d,maxbytes: %d", pools_htab->bytes, conn_global->maxbytes);
                 return -1;
             }  
-            hslab->sm = (ub1 *)calloc(conn_global->default_bytes, sizeof(ub1));
+            if(conn_global->cache_method == D_MMAP){
+                bzero(cache_path, FILE_PATH_LENGTH); 
+                snprintf(cache_path, FILE_PATH_LENGTH-1, "%s/%s%05d",conn_global->mmap_path, HashTable_for_list[8], i);
+                hslab->sm = (HSLAB *)mcalloc(1,conn_global->default_bytes ,cache_path,O_RDWR|O_CREAT);
+                DEBUG("mmap %s", cache_path);
+            }else{
+                hslab->sm = (ub1 *)calloc(conn_global->default_bytes, sizeof(ub1));
+                DEBUG("mem ");
+            }
+            
             if(!hslab->sm){ 
                 DEBUG("sm init error %d", conn_global->default_bytes);
                 return -1;
@@ -235,8 +244,8 @@ int findslab ( ub4 _psize){
             hslab->sf = conn_global->default_bytes;
 
             pools_htab->bytes += conn_global->default_bytes;
-        }
-
+        }else
+        DEBUG("sm is null");
         if(hslab->sf > _psize){            
             hslab->ss += _psize;
             hslab->sf -= _psize;

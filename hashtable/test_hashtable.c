@@ -40,9 +40,12 @@ int main ( int argc, char *argv[] ) {
     SLABPACK *packs;
 
     conn_init_global();
+    conn_global->cache_method = D_MMAP;
+    conn_global->deptype = D_MMAP;
+    conn_global->mmap_path = "../cache";
     hcreate(2);
 
-    /* worker thread */
+    /* worker thread 
     _hdr = (HDR *)calloc(1, sizeof(HDR));
     _hdr->key = sql;
     _hdr->keyl = strlen(sql);
@@ -59,13 +62,13 @@ int main ( int argc, char *argv[] ) {
     _ulist->utime = get_sec();
     _ulist->flag = H_TRUE;
     
-    addUlist(_ulist);
+    addUlist(_ulist);*/
 
     /* worker thread */
     
-    /* proc thread */
+    /* proc thread 
 
-    hproc();
+    hproc();*/
 
     /* proc thread */
 

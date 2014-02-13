@@ -69,7 +69,10 @@ HITEM *hfind ( char *key, ub4 keyl ){
 
     do{
         pool_hg = hitem_group[m];
-        if(pool_hg == NULL) break;
+        if(pool_hg == NULL){
+            DEBUG("pool_hg is null");
+            break;
+        }
         x=(hval&pool_hg->mask);
         _hrow = pool_hg->hrow + x;
         y = hjval&(MAX_HITEM_LENGTH-1);
@@ -90,7 +93,10 @@ HITEM *hfind ( char *key, ub4 keyl ){
                     /*  has a bug */
                     if(keyl >0 && memmem(key, (size_t)keyl, tlist->key, (size_t)tlist->keyl)!=NULL){
                         /* over time */
-                        if(tlist->utime > ph->utime) return NULL; 
+                        if(tlist->utime > ph->utime){
+                            DEBUG("time out utime %llu, ph utime:%llu", tlist->utime, ph->utime);
+                            return NULL;
+                        } 
                     }
                     tlist = tlist->next;
                 }
@@ -128,13 +134,16 @@ HITEM *hfind ( char *key, ub4 keyl ){
  */
 void getslab ( HITEM * hitem, SLABPACK *dest){
     HITEM *_ph = hitem;
-    HSLAB _ps;
+    char cache_path[FILE_PATH_LENGTH];
 
     if(!_ph) return;
     
-    _ps = pools_hslab[_ph->sid];
-    
-    dest->pack = _ps.sm + _ph->sa;    
+    if(pools_hslab[_ph->sid].sm == NULL){
+        bzero(cache_path, FILE_PATH_LENGTH); 
+        snprintf(cache_path, FILE_PATH_LENGTH-1, "%s/%s%05d",conn_global->mmap_path, HashTable_for_list[8], _ph->sid);
+        pools_hslab[_ph->sid].sm = (HSLAB *)mcalloc(1,conn_global->default_bytes ,cache_path,O_RDWR|O_CREAT);
+    }
+    dest->pack = pools_hslab[_ph->sid].sm + _ph->sa;    
     dest->len = _ph->drl;
    
 }		/* -----  end of function getslab  ----- */
@@ -194,6 +203,10 @@ void pushList ( char *key, ub4 keyl, ub4 utime ){
     if(keyl<1) return;
 
     _tlist = pools_tlist;
+    if(!_tlist){
+        DEBUG("pools_tlist is null");
+        return;
+    }
     TLIST_LOCK();
     while ( _tlist->next ) {
         _tlist = _tlist->next;

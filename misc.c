@@ -129,20 +129,27 @@ void getCont (  ){
  */
 void *mcalloc ( size_t nmemb, size_t size, const char *pathname, int flags ){
     int fd;
+    size_t line;
     void *start;
     struct stat sb;
-    char name[1];
+    char name[8219];
     HFD *_hfd, *_hfd_next;    
 
-    fd = open(pathname, flags);
-    fstat(fd, &sb);
-    if(sb.st_size==0){
-        name[0]='\0';
-        write(fd, name, nmemb*size);
-        lseek(fd,0,SEEK_SET);
+    fd = open(pathname, flags, 0660);
+    if(fd==-1){
+        DEBUG("open file error");
+        return NULL;
     }
     fstat(fd, &sb);
     
+    if(sb.st_size==0){
+        bzero(name, sizeof(name));
+        snprintf(name, 8128, "dd if=/dev/zero of=%s bs=1 count=%d",pathname, nmemb*size );
+        DEBUG("name:%s", name);
+        system(name);        
+        lseek(fd,0,SEEK_SET);
+        fstat(fd, &sb);
+    }
     start = mmap(NULL, sb.st_size, PROT_READ|PROT_WRITE, MAP_SHARED, fd, 0);
     if(start == MAP_FAILED){
         DEBUG("init mmap error %s", pathname);

@@ -92,7 +92,7 @@ typedef                 int  word;  /* fastest type available */
 
 #define FILE_PATH_LENGTH 256
 #define LIMIT_MMAP_BYTE ( 1024 * 1024 )
-#define DEFAULT_MMAP_BYTE ( 64* LIMIT_MMAP_BYTE )
+#define DEFAULT_MMAP_BYTE ( 1 * LIMIT_MMAP_BYTE )
 
 #define bis(target,mask)  ((target) |=  (mask))
 #define bic(target,mask)  ((target) &= ~(mask))

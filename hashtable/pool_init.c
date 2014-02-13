@@ -65,7 +65,7 @@ void hcreate ( int isize ){
     if(conn_global->cache_method == D_MMAP){                
         bzero(cache_path, FILE_PATH_LENGTH); 
         snprintf(cache_path, FILE_PATH_LENGTH-1, "%s/%s",conn_global->mmap_path, HashTable_for_list[1]);
-        pools_harug = (HARUG *)mcalloc(1, sizeof(HARUG)*sizeof(HARU)*MAX_HARU_POOL,cache_path,O_RDWR|O_CREAT);
+        pools_harug = (HARUG *)mcalloc(1, sizeof(HARUG),cache_path,O_RDWR|O_CREAT);
     }else{
         pools_harug = (HARUG *)calloc(1, sizeof(HARUG));
     }
@@ -90,19 +90,35 @@ void hcreate ( int isize ){
     if(conn_global->cache_method == D_MMAP){
         bzero(cache_path, FILE_PATH_LENGTH); 
         snprintf(cache_path, FILE_PATH_LENGTH-1, "%s/%s",conn_global->mmap_path, HashTable_for_list[6]);
-        hitem_group[0] = (HG *)mcalloc(1, sizeof(HG)*len*sizeof(HROW),cache_path,O_RDWR|O_CREAT);
+        hitem_group[0] = (HG *)mcalloc(1, sizeof(HG),cache_path,O_RDWR|O_CREAT);
+        if(!hitem_group[0]){
+            DEBUG("hitem_group init error");
+            exit(-1);
+        }
         hitem_group[0]->bucket = len;
         hitem_group[0]->count = 0;
         hitem_group[0]->mask = hitem_group[0]->bucket-1;
         bzero(cache_path, FILE_PATH_LENGTH); 
         snprintf(cache_path, FILE_PATH_LENGTH-1, "%s/%s",conn_global->mmap_path, HashTable_for_list[7]);
-        hitem_group[0]->hrow = (HROW *)mcalloc(hitem_group[0]->bucket, sizeof(HROW)*sizeof(HITEM)*MAX_HITEM_LENGTH*sizeof(ub1)*KEY_LENGTH, cache_path, O_RDWR|O_CREAT);        
+        hitem_group[0]->hrow = (HROW *)mcalloc(hitem_group[0]->bucket, sizeof(HROW), cache_path, O_RDWR|O_CREAT);        
+        if(!hitem_group[0]->hrow){
+            DEBUG("hitem_group->hrow init error");
+            exit(-1);
+        }
     }else{
         hitem_group[0] = calloc(1, sizeof(HG));
+        if(!hitem_group[0]){
+            DEBUG("hitem_group init error");
+            exit(-1);
+        }
         hitem_group[0]->bucket = len;
         hitem_group[0]->count = 0;
         hitem_group[0]->mask = hitem_group[0]->bucket-1;
         hitem_group[0]->hrow = (HROW *)calloc(hitem_group[0]->bucket, sizeof(HROW));        
+        if(!hitem_group[0]->hrow){
+            DEBUG("hitem_group->hrow init error");
+            exit(-1);
+        }
     }
     if(!hitem_group[0]->hrow){
         DEBUG("init hrow error");
@@ -117,15 +133,18 @@ void hcreate ( int isize ){
     pools_hdr_head = hdrcreate();
     pools_hdr_tail = pools_hdr_head;
 
-    if(conn_global->cache_method == D_MMAP){
+    /*if(conn_global->cache_method == D_MMAP){
         
         bzero(cache_path, FILE_PATH_LENGTH); 
         snprintf(cache_path, FILE_PATH_LENGTH-1, "%s/%s",conn_global->mmap_path, HashTable_for_list[3]);
-        pools_tlist = (TLIST *)mcalloc(1, sizeof(TLIST)*sizeof(char)*KEY_LENGTH,cache_path,O_RDWR|O_CREAT);
-    }else{
+        pools_tlist = (TLIST *)mcalloc(1, sizeof(TLIST),cache_path,O_RDWR|O_CREAT);
+    }else{  */
         pools_tlist = (TLIST *)calloc(1, sizeof(TLIST));
+   // }
+    if(!pools_tlist) {
+        DEBUG("pools_tlist is null");
+        exit(-1);
     }
-    
     if(conn_global->cache_method == D_MMAP){
         conn_global->default_bytes = DEFAULT_MMAP_BYTE;
     }else{
@@ -145,10 +164,10 @@ void hcreate ( int isize ){
     if(conn_global->cache_method == D_MMAP){
         bzero(cache_path, FILE_PATH_LENGTH); 
         snprintf(cache_path, FILE_PATH_LENGTH-1, "%s/%s",conn_global->mmap_path, HashTable_for_list[5]);
-        pools_fslab = (FSLAB *)mcalloc(1, sizeof(FSLAB)*MAX_SLAB_CLASS, cache_path, O_RDWR|O_CREAT);
+        pools_fslab = (FSLAB *)mcalloc(max_slab, sizeof(FSLAB), cache_path, O_RDWR|O_CREAT);
     }
     else{
-        pools_fslab = (FSLAB *)calloc(max_slab, sizeof(FSLAB)*max_slab);
+        pools_fslab = (FSLAB *)calloc(max_slab, sizeof(FSLAB));
     }  
     for(i=0; i< MAX_SLAB_CLASS; i++){
         pools_fslab[i].psize = 0;
@@ -181,7 +200,7 @@ void inithslab ( int i ){
     if(conn_global->cache_method == D_MMAP){
         bzero(cache_path, FILE_PATH_LENGTH); 
         snprintf(cache_path, FILE_PATH_LENGTH-1, "%s/%s",conn_global->mmap_path, HashTable_for_list[4]);
-        pools_hslab = (HSLAB *)mcalloc(i, sizeof(HSLAB)*sizeof(char)*KEY_LENGTH,cache_path,O_RDWR|O_CREAT);
+        pools_hslab = (HSLAB *)mcalloc(i, sizeof(HSLAB),cache_path,O_RDWR|O_CREAT);
     }else{
         pools_hslab = (HSLAB *)calloc(i, sizeof(HSLAB));
     }
