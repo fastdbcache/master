@@ -46,6 +46,7 @@
 
 
 #include "conf_lib.h"
+#include "func.h"
 
 typedef unsigned short uint16;
 typedef unsigned int uint32;
@@ -264,6 +265,7 @@ _conn *conn_global;
 void conn_init_global();
 void conn_get_global ();
 void initDeposit ( );
+void pathCheck ( );
 ub4 alignByte ( ub4 len );
 #ifdef __cplusplus
  }

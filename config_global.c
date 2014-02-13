@@ -24,9 +24,7 @@
  * =====================================================================================
  */
 void conn_init_global ( void ){
-    int myuid;
-    struct stat sb;
-
+    
     conn_global = (_conn *)calloc(1, sizeof(_conn));
     if(!conn_global){
         DEBUG("conn_global init error");
@@ -63,6 +61,7 @@ void conn_init_global ( void ){
     conn_global->mmap_path = "/usr/local/fdbc/cache";
     conn_global->mmdb_length = DEFAULT_MMAP_BYTE;
 
+    /*
     if(conn_global->deptype == D_MMAP){
         stat(conn_global->mmap_path, &sb);
         if(!S_ISDIR(sb.st_mode)){
@@ -76,7 +75,7 @@ void conn_init_global ( void ){
             exit(-1);
         }
            
-    }
+    }  */
 }		/* -----  end of function conn_init_global  ----- */
 
 
@@ -87,9 +86,7 @@ void conn_init_global ( void ){
  * =====================================================================================
  */
 void conn_get_global (  ){
-    struct stat sb;
-    int myuid;
-
+   
     conn_global->maxconns = atoi(conf_get("max_openfile"));
     
     conn_global->server_ip = conf_get("server_ip");
@@ -112,20 +109,7 @@ void conn_get_global (  ){
     conn_global->mmap_path = conf_get("cache_path");
      
     initDeposit(); 
-    if(conn_global->deptype == D_MMAP){
-        stat(conn_global->mmap_path, &sb);
-        if(!S_ISDIR(sb.st_mode)){
-            DEBUG("cache is not dir %s, mode:%d", conn_global->mmap_path, sb.st_mode);
-            exit(-1);
-        }
-        myuid = getuid();
-        
-        if(sb.st_uid != myuid && myuid != 0){
-            DEBUG("cache dir can't read!");
-            exit(-1);
-        }
-           
-    }
+    
     
     return ;
 }		/* -----  end of function conn_get_global  ----- */
@@ -154,6 +138,29 @@ void initDeposit ( ){
     conn_global->hasdep = H_FALSE;
 }		/* -----  end of function initDeposit  ----- */
 
+
+/* 
+ * ===  FUNCTION  ======================================================================
+ *         Name:  pathCheck
+ *  Description:  
+ * =====================================================================================
+ */
+void pathCheck ( ){
+    struct stat sb;
+    if(conn_global->deptype == D_MMAP){
+        stat(conn_global->mmap_path, &sb);
+        if(!S_ISDIR(sb.st_mode)){
+            DEBUG("cache is not dir %s, mode:%d", conn_global->mmap_path, sb.st_mode);
+            exit(-1);
+        }
+        
+        if(files_iswrite(conn_global->mmap_path) != 1){
+            DEBUG("cache dir can't read! dir:%s", conn_global->mmap_path);
+            exit(-1);
+        }
+           
+    }
+}		/* -----  end of function pathCheck  ----- */
 
 /* 
  * ===  FUNCTION  ======================================================================

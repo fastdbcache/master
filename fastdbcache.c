@@ -61,7 +61,7 @@ int main(int argc, char* argv[]){
         conn_get_global();
     }
     
-    
+    pathCheck ( );
 	d_log(conn_global->fdbc);
 
     if(conn_global->hasdep == H_TRUE)

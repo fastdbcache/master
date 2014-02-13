@@ -134,11 +134,9 @@ void *mcalloc ( size_t nmemb, size_t size, const char *pathname, int flags ){
     char name[1];
     HFD *_hfd, *_hfd_next;    
 
-    DEBUG("init pathname:%s", pathname);
     fd = open(pathname, flags);
     fstat(fd, &sb);
     if(sb.st_size==0){
-        DEBUG("init mmap file");
         name[0]='\0';
         write(fd, name, nmemb*size);
         lseek(fd,0,SEEK_SET);
@@ -147,7 +145,7 @@ void *mcalloc ( size_t nmemb, size_t size, const char *pathname, int flags ){
     
     start = mmap(NULL, sb.st_size, PROT_READ|PROT_WRITE, MAP_SHARED, fd, 0);
     if(start == MAP_FAILED){
-        DEBUG("init mmap error");
+        DEBUG("init mmap error %s", pathname);
         close(fd);
         return NULL;
     }
@@ -192,22 +190,6 @@ void freehfd ( HFD *_hfd ){
     close(_hfd->fd);
     free(_hfd);
 }		/* -----  end of function freehfd  ----- */
-
-
-/* 
- * ===  FUNCTION  ======================================================================
- *         Name:  buildCachePath
- *  Description:  
- * =====================================================================================
- */
-char *buildCachePath (const char *name ){
-    char htab_path[FILE_PATH_LENGTH];
-
-    bzero(htab_path, FILE_PATH_LENGTH); 
-    snprintf(htab_path, FILE_PATH_LENGTH-1, "%s/%s",conn_global->mmap_path, name);
-
-    return htab_path;
-}		/* -----  end of function buildCachePath  ----- */
 
  /* vim: set ts=4 sw=4: */
 
