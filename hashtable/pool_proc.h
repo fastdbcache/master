@@ -29,7 +29,6 @@ void hproc ( );
 void fetchdti (  );
 word haddHitem ( HDR *mhdr );
 void hrule ( HITEM *hitem, H_CHANGE hstat );
-int hsort (  );
 
 #ifdef __cplusplus
  }

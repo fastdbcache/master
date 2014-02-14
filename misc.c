@@ -129,13 +129,14 @@ void getCont (  ){
  */
 void *mcalloc ( size_t nmemb, size_t size, const char *pathname, int flags ){
     int fd;
+    int result;
     size_t line;
     void *start;
     struct stat sb;
-    char name[8219];
+    char name[1];
     HFD *_hfd, *_hfd_next;    
 
-    fd = open(pathname, flags, 0660);
+    fd = open(pathname, flags, (mode_t)0660);
     if(fd==-1){
         DEBUG("open file error");
         return NULL;
@@ -143,10 +144,22 @@ void *mcalloc ( size_t nmemb, size_t size, const char *pathname, int flags ){
     fstat(fd, &sb);
     
     if(sb.st_size==0){
-        bzero(name, sizeof(name));
-        snprintf(name, 8128, "dd if=/dev/zero of=%s bs=1 count=%d",pathname, nmemb*size );
-        DEBUG("name:%s", name);
-        system(name);        
+        line = nmemb*size;
+        result = lseek(fd, line-1, SEEK_SET);
+        if (result == -1) {
+            close(fd);
+            DEBUG("Error calling lseek() to 'stretch' the file");
+            return -1;
+        }
+        name[0]='\0';
+        /* write just one byte at the end */
+        result = write(fd, name, 1);
+        if (result < 0) {
+            close(fd);
+            DEBUG("Error writing a byte at the end of the file");
+            return -1;
+        }
+                
         lseek(fd,0,SEEK_SET);
         fstat(fd, &sb);
     }

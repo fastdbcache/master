@@ -79,7 +79,7 @@ struct __fslab
 {
   ssize_t           psize;     /* hpool size */
   sb2           sid;       /* slab id */
-  sb2           sa;       /* data row start addr of hslab  sa*psize  sa = ss */   
+  ub4           sa;       /* data row start addr of hslab  sa*psize  sa = ss */   
   /*struct __fslab *next;      next */
 };
 typedef  struct __fslab  FSLAB;
@@ -164,8 +164,8 @@ struct __htab
 {
   ub4           logsize; /* log of size of table */
   ub4            count;   /* how many items in this hash table so far? 记录目前使用多少hitem_pool */
-  sb2            bcount;  /* single items length 记录最长的hitem*/
-  sb2            lcount;  /* single items length 记录最短的hitem*/
+  sb2            gcount;  /* hitem_group count */
+  sb2            lcount;  /* how many bytes malloc list */
   ub4            hit;     /* hval hit times */
   ub4            miss;    /* hval miss times */
   ub4            set;     /* total set */

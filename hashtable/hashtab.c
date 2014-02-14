@@ -108,7 +108,6 @@ HSLAB *findhslab ( ssize_t i, sb2 _sid){
  */
 int hsms ( ub4 bytes ){
     int i;
-    /*float l;*/
 
     if(bytes > (LIMIT_SLAB_BYTE)){
         DEBUG("big bytes");
@@ -116,13 +115,7 @@ int hsms ( ub4 bytes ){
     }
 
     i = 0;
-    /*  l = (bytes / SLAB_BEGIN);
-    while( l >= conn_global->factor ){
-        l = l / conn_global->factor;
-        i++;
-    }
-    if( i>0 ) --i;
-    */
+    
     for ( ; slabclass[i].chunk > 0; i++ ) {
         if(slabclass[i].size >= bytes) return i;
     }
@@ -137,11 +130,8 @@ int hsms ( ub4 bytes ){
  * =====================================================================================
  */
 void addfslab ( HITEM *_ph){
-    /*  FSLAB  *f, *fslab; */
     int i; 
-   /* pthread_mutex_lock(&work_lock_fslab);  
-    f = pools_fslab;*/
-     
+        
     i = hsms(_ph->psize);
     if(pools_fslab[i].sa != 0){
         DEBUG("pools_fslab %d error", i);
@@ -150,21 +140,7 @@ void addfslab ( HITEM *_ph){
     pools_fslab[i].psize = _ph->psize;
     pools_fslab[i].sid = _ph->sid;
     pools_fslab[i].sa = _ph->sa;
-
-    /*
-    while ( f && f->next ) {
-        f = f->next;
-    }
-
-    fslab = (FSLAB *)calloc(1, sizeof(FSLAB));
-    if(!fslab) return;
-    fslab->psize = _ph->psize;
-    fslab->sid = _ph->sid;
-    fslab->sa = _ph->sa;
-    f->next = fslab;
-
-    _ph->drl = 0;
-     pthread_mutex_unlock(&work_lock_fslab);  */
+    
     return;
 }		/* -----  end of static function addfslab  ----- */
 
@@ -222,30 +198,16 @@ int findslab ( ub4 _psize){
         hslab = pools_hslab+i;
         if( hslab->sm == NULL ){          
             
-            if( pools_htab->bytes >= conn_global->maxbytes ){
-                DEBUG("not any momey for user bytes:%d,maxbytes: %d", pools_htab->bytes, conn_global->maxbytes);
-                return -1;
-            }  
-            if(conn_global->cache_method == D_MMAP){
-                bzero(cache_path, FILE_PATH_LENGTH); 
-                snprintf(cache_path, FILE_PATH_LENGTH-1, "%s/%s%05d",conn_global->mmap_path, HashTable_for_list[8], i);
-                hslab->sm = (HSLAB *)mcalloc(1,conn_global->default_bytes ,cache_path,O_RDWR|O_CREAT);
-                DEBUG("mmap %s", cache_path);
-            }else{
-                hslab->sm = (ub1 *)calloc(conn_global->default_bytes, sizeof(ub1));
-                DEBUG("mem ");
-            }
+            hslab->sm = hslabcreate(i); 
             
             if(!hslab->sm){ 
                 DEBUG("sm init error %d", conn_global->default_bytes);
                 return -1;
             }
             hslab->ss = 0;
-            hslab->sf = conn_global->default_bytes;
+            hslab->sf = conn_global->default_bytes;            
+        }
 
-            pools_htab->bytes += conn_global->default_bytes;
-        }else
-        DEBUG("sm is null");
         if(hslab->sf > _psize){            
             hslab->ss += _psize;
             hslab->sf -= _psize;

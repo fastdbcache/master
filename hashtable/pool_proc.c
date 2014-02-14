@@ -148,6 +148,7 @@ word haddHitem ( HDR *mhdr ){
             }
             pools_htab->count++; 
             pools_htab->miss++;
+            pool_hg->count++;
             return 0;     
         }
         else if(_new_hval == ph->hval &&
@@ -176,7 +177,7 @@ word haddHitem ( HDR *mhdr ){
                 break;
             }*/
              
-            
+            if(ph->sa < 0)return -1;
             slab_sm = pools_hslab[ph->sid].sm + ph->sa;
             if(!slab_sm) return -1;
             ph->utime = hdr->stime;
@@ -186,7 +187,8 @@ word haddHitem ( HDR *mhdr ){
             pools_htab->miss++;
             //hrule(ph, H_UPDATE);
             return 0;
-        }else{                        
+        }else{
+            DEBUG("x:%d, y:%d", x, y);                  
             n++;
             hgrow(n);
         }
@@ -250,30 +252,6 @@ void hrule ( HITEM *hitem, H_CHANGE hstat ){
     } 
   */
 }		/* -----  end of function hrule  ----- */
-
-
-/* 
- * ===  FUNCTION  ======================================================================
- *         Name:  hsort
- *  Description:  
- * =====================================================================================
- */
-int hsort (  ){
-   /*  int i, m;
-    HARU  *t;
-
-    t = pools_harug->haru_pool[0];
-    m = 0;
-    for ( i=1; i<MAX_HARU_POOL-1; i++ ) {
-        if(t->hit < pools_harug->haru_pool[i].hit) {
-            t = pools_harug->haru_pool[i];
-            m = i;
-        }
-    }
-
-    return m;*/
-    return 0;
-}		/* -----  end of function hsort  ----- */
 
  /* vim: set ts=4 sw=4: */
 

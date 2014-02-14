@@ -199,7 +199,7 @@ void gethtabstat ( int frontend ){
     int deslen;
     ssize_t nfields;
     char *item_desc, *res;
-    char *htabstat[]={"count", "bcount","lcount","hit","miss","set","get","bytes M", "max_bytes M",NULL};
+    char *htabstat[]={"count", "gcount","lcount","hit","miss","set","get","bytes M", "max_bytes M",NULL};
 
     nfields = 0;
     deslen = RowDesLen( htabstat, &nfields);
@@ -382,7 +382,7 @@ int RowItem ( char *key, ssize_t keyl, int frontend , ssize_t nfields ){
 void RowHtab (int frontend , ssize_t nfields){
     char *crd, *newbuf, nlen[256];
     uint32 tlen, nf, _ulen;
-    ssize_t count_len, bcount_len, lcount_len;
+    ssize_t count_len, gcount_len, lcount_len;
     ssize_t hit_len, miss_len, set_len, get_len;
     ssize_t byte_len,maxbyte_len, total;
 
@@ -399,7 +399,7 @@ void RowHtab (int frontend , ssize_t nfields){
     }while(0)
 
     COUNT( pools_htab->count, count_len );
-    COUNT( pools_htab->bcount, bcount_len );
+    COUNT( pools_htab->gcount, gcount_len );
     COUNT( pools_htab->lcount, lcount_len );
     COUNT( pools_htab->hit, hit_len );
     COUNT( pools_htab->miss, miss_len );
@@ -408,7 +408,7 @@ void RowHtab (int frontend , ssize_t nfields){
     COUNT( (((pools_htab->bytes)/1024)/1024), byte_len);
     COUNT( (((conn_global->maxbytes)/1024)/1024), maxbyte_len);
 
-    total = sizeof(uint32) + sizeof(uint16) + count_len + bcount_len
+    total = sizeof(uint32) + sizeof(uint16) + count_len + gcount_len
             + lcount_len + hit_len + miss_len + set_len + get_len
             + byte_len + maxbyte_len + sizeof(uint32)*nfields;
     newbuf = calloc(total+sizeof(char), sizeof(char));
@@ -426,7 +426,7 @@ void RowHtab (int frontend , ssize_t nfields){
     crd += sizeof(uint16);
      
     CALC(crd, pools_htab->count, count_len);
-    CALC(crd, pools_htab->bcount, bcount_len);
+    CALC(crd, pools_htab->gcount, gcount_len);
     CALC(crd, pools_htab->lcount, lcount_len);
     CALC(crd, pools_htab->hit, hit_len);
     CALC(crd, pools_htab->miss, miss_len);

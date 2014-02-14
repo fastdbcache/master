@@ -32,13 +32,9 @@ void hcreate ( int isize ){
     int max_slab, count_hslab;
     char cache_path[FILE_PATH_LENGTH];
     HROW *_hrow;
-
-    len = (ub4)isize;
-    //len = ((ub4)1<<isize);
     
     if(conn_global->cache_method == D_MMAP){
         pools_hfd = inithfd();
-        
     }
 
     if(conn_global->cache_method == D_MMAP){ 
@@ -52,6 +48,8 @@ void hcreate ( int isize ){
         DEBUG("pools_htab calloc error");
         exit(1);
     }
+    if(pools_htab->gcount == 0)pools_htab->gcount = 1;
+    if(pools_htab->lcount == 0)pools_htab->lcount = 1;
 
     if(conn_global->cache_method == D_MMAP){                
         bzero(cache_path, FILE_PATH_LENGTH); 
@@ -68,59 +66,26 @@ void hcreate ( int isize ){
     bzero(pools_harug->haru_pool, MAX_HARU_POOL);
     
     pools_haru_pool = pools_harug->haru_pool;
-   
+  
+    /* 
     if(conn_global->cache_method == D_MMAP){
         bzero(cache_path, FILE_PATH_LENGTH); 
         snprintf(cache_path, FILE_PATH_LENGTH-1, "%s/%s",conn_global->mmap_path, HashTable_for_list[2]);
-        pools_hitem_row = (ub4 *)mcalloc(len, sizeof(ub4),cache_path,O_RDWR|O_CREAT);
+        pools_hitem_row = (ub4 *)mcalloc(len, sizeof(ub4), cache_path,O_RDWR|O_CREAT);
     }else{ 
         pools_hitem_row = calloc(len, sizeof(ub4));
-    }
+    }  */
 
     bzero(hitem_group, MAX_HG_LENGTH);
-    if(conn_global->cache_method == D_MMAP){
-        bzero(cache_path, FILE_PATH_LENGTH); 
-        snprintf(cache_path, FILE_PATH_LENGTH-1, "%s/%s",conn_global->mmap_path, HashTable_for_list[6]);
-        hitem_group[0] = (HG *)mcalloc(1, sizeof(HG),cache_path,O_RDWR|O_CREAT);
-        if(!hitem_group[0]){
-            DEBUG("hitem_group init error");
-            exit(-1);
-        }
-        hitem_group[0]->bucket = len;
-        hitem_group[0]->count = 0;
-        hitem_group[0]->mask = hitem_group[0]->bucket-1;
-        bzero(cache_path, FILE_PATH_LENGTH); 
-        snprintf(cache_path, FILE_PATH_LENGTH-1, "%s/%s",conn_global->mmap_path, HashTable_for_list[7]);
-        hitem_group[0]->hrow = (HROW *)mcalloc(hitem_group[0]->bucket, sizeof(HROW), cache_path, O_RDWR|O_CREAT);        
-        if(!hitem_group[0]->hrow){
-            DEBUG("hitem_group->hrow init error");
-            exit(-1);
-        }
-    }else{
-        hitem_group[0] = calloc(1, sizeof(HG));
-        if(!hitem_group[0]){
-            DEBUG("hitem_group init error");
-            exit(-1);
-        }
-        hitem_group[0]->bucket = len;
-        hitem_group[0]->count = 0;
-        hitem_group[0]->mask = hitem_group[0]->bucket-1;
-        hitem_group[0]->hrow = (HROW *)calloc(hitem_group[0]->bucket, sizeof(HROW));        
-        if(!hitem_group[0]->hrow){
-            DEBUG("hitem_group->hrow init error");
-            exit(-1);
-        }
+    for(i=0; i<pools_htab->gcount; i++){
+        len = (ub4)isize<<i;
+        initHitemGroup ( len, i );
     }
     if(!hitem_group[0]->hrow){
         DEBUG("init hrow error");
         exit(-1);
     }
-    /*
-    for(i=0;i<hitem_group[0]->bucket; i++){
-        _hrow = hitem_group[0]->hrow+i;
-        for(m=0;m<MAX_HITEM_LENGTH; m++)
-        DEBUG("%d. hitem 2 hval:%d",i , _hrow->hitem[m].hval);
-    }*/
+    
     pools_hdr_head = hdrcreate();
     pools_hdr_tail = pools_hdr_head;
 
@@ -152,7 +117,9 @@ void hcreate ( int isize ){
     inithslab ( count_hslab );
 
     max_slab = hslabclass();
+    conn_global->max_slab = max_slab;
     if(conn_global->cache_method == D_MMAP){
+        max_slab = (int)(( conn_global->maxbytes / SLAB_BEGIN )/2);
         bzero(cache_path, FILE_PATH_LENGTH); 
         snprintf(cache_path, FILE_PATH_LENGTH-1, "%s/%s",conn_global->mmap_path, HashTable_for_list[5]);
         pools_fslab = (FSLAB *)mcalloc(max_slab, sizeof(FSLAB), cache_path, O_RDWR|O_CREAT);
@@ -160,13 +127,8 @@ void hcreate ( int isize ){
     else{
         pools_fslab = (FSLAB *)calloc(max_slab, sizeof(FSLAB));
     }  
-    for(i=0; i< MAX_SLAB_CLASS; i++){
-        pools_fslab[i].psize = 0;
-        pools_fslab[i].sid = 0;
-        pools_fslab[i].sa = 0;    
-    }
-
-    conn_global->max_slab = max_slab;
+    
+    
 
     /*pthread_mutex_init(&work_lock_fslab, NULL);  */
     pthread_mutex_init(&work_lock_hit, NULL);
@@ -187,6 +149,7 @@ void hcreate ( int isize ){
  */
 void inithslab ( int i ){
     int m;
+    ssize_t icount;
     char cache_path[FILE_PATH_LENGTH];
 
     if(conn_global->cache_method == D_MMAP){
@@ -197,32 +160,12 @@ void inithslab ( int i ){
         pools_hslab = (HSLAB *)calloc(i, sizeof(HSLAB));
     }
 
-    for(m=0; m<i; m++){ 
-        pools_hslab[m].sm=NULL;
-        pools_hslab[m].ss=0;
-        pools_hslab[m].sf=0;
-        /*pools_hslab[m].id=0;  */
+    icount = pools_htab->lcount;
+    for(m=0; m<icount; m++){ 
+        pools_hslab[m].sm = hslabcreate(m);        
     }
 
 }		/* -----  end of static function inithslab  ----- */
-
-/* 
- * ===  FUNCTION  ======================================================================
- *         Name:  hslabnull
- *  Description:  
- * =====================================================================================
- */
-HSLAB *hslabnull (  ){
-    HSLAB *_h;
-    _h = (HSLAB *)calloc(1, sizeof(HSLAB));
-    if(_h != NULL){
-        _h->sm = NULL;
-        _h->ss = 0;
-        _h->sf = 0;
-       
-    }
-    return _h;
-}		/* -----  end of function hslabnull  ----- */
 
 /* 
  * ===  FUNCTION  ======================================================================
@@ -230,19 +173,77 @@ HSLAB *hslabnull (  ){
  *  Description:  
  * =====================================================================================
  */
-HSLAB *hslabcreate ( int i ){
-    HSLAB *h;
+ub1 *hslabcreate ( int i ){
+    ub1 *h;
+    char cache_path[FILE_PATH_LENGTH];
 
-    h = hslabnull();
-    h->sm = (ub1 *)calloc(LIMIT_SLAB_BYTE, sizeof(ub1));
-    if(!h->sm)perror("h sm calloc error\n"); 
-    h->sf = slabclass[i].chunk;
-   
-    pools_htab->bytes += LIMIT_SLAB_BYTE;    
-    pools_htab->hslab_stat[i]++;
-     
+    if( pools_htab->bytes >= conn_global->maxbytes ){
+        DEBUG("not any momey for user bytes:%d,maxbytes: %d", pools_htab->bytes, conn_global->maxbytes);
+        return -1;
+    }  
+    if(conn_global->cache_method == D_MMAP){
+        bzero(cache_path, FILE_PATH_LENGTH); 
+        snprintf(cache_path, FILE_PATH_LENGTH-1, "%s/%s%05d",conn_global->mmap_path, HashTable_for_list[8], i);
+        h = (HSLAB *)mcalloc(1,conn_global->default_bytes ,cache_path,O_RDWR|O_CREAT);
+        DEBUG("mmap %s", cache_path);
+    }else{
+        h = (ub1 *)calloc(conn_global->default_bytes, sizeof(ub1));
+        pools_htab->bytes += conn_global->default_bytes;
+        pools_htab->lcount = i;
+        DEBUG("mem ");
+    }
+    
+    if(!h){ 
+        DEBUG("sm init error %d", conn_global->default_bytes);
+        return -1;
+    } 
     return h;
 }		/* -----  end of function hslabcreate  ----- */
+
+/* 
+ * ===  FUNCTION  ======================================================================
+ *         Name:  initHitemGroup
+ *  Description:  
+ * =====================================================================================
+ */
+void initHitemGroup ( ub4 size, int i ){
+    char cache_path[FILE_PATH_LENGTH];
+    if(conn_global->cache_method == D_MMAP){
+        bzero(cache_path, FILE_PATH_LENGTH); 
+        snprintf(cache_path, FILE_PATH_LENGTH-1, "%s/%s%05d",conn_global->mmap_path, HashTable_for_list[6], i);
+        hitem_group[i] = (HG *)mcalloc(1, sizeof(HG),cache_path,O_RDWR|O_CREAT);
+        if(!hitem_group[i]){
+            DEBUG("hitem_group init error");
+            exit(-1);
+        }
+        if(hitem_group[i]->bucket == 0){
+            hitem_group[i]->bucket = size;
+            hitem_group[i]->count = 0;
+            hitem_group[i]->mask = hitem_group[i]->bucket-1;
+        }
+        bzero(cache_path, FILE_PATH_LENGTH); 
+        snprintf(cache_path, FILE_PATH_LENGTH-1, "%s/%s%05d",conn_global->mmap_path, HashTable_for_list[7], i);
+        hitem_group[i]->hrow = (HROW *)mcalloc(hitem_group[i]->bucket, sizeof(HROW), cache_path, O_RDWR|O_CREAT);        
+        if(!hitem_group[i]->hrow){
+            DEBUG("hitem_group->hrow init error");
+            exit(-1);
+        }
+    }else{
+        hitem_group[i] = calloc(1, sizeof(HG));
+        if(!hitem_group[i]){
+            DEBUG("hitem_group init error");
+            exit(-1);
+        }
+        hitem_group[i]->bucket = size;
+        hitem_group[i]->count = 0;
+        hitem_group[i]->mask = hitem_group[i]->bucket-1;
+        hitem_group[i]->hrow = (HROW *)calloc(hitem_group[i]->bucket, sizeof(HROW));        
+        if(!hitem_group[i]->hrow){
+            DEBUG("hitem_group->hrow init error");
+            exit(-1);
+        }
+    }
+}		/* -----  end of function initHitemGroup  ----- */
 
 /* 
  * ===  FUNCTION  ======================================================================

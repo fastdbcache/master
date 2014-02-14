@@ -70,7 +70,7 @@ HITEM *hfind ( char *key, ub4 keyl ){
     do{
         pool_hg = hitem_group[m];
         if(pool_hg == NULL){
-            DEBUG("pool_hg is null");
+            DEBUG("pool_hg is null m:%d", m);
             break;
         }
         x=(hval&pool_hg->mask);
