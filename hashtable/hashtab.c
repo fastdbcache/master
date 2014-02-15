@@ -30,7 +30,7 @@
 void hgrow(int i)
 {
     ub4 len;
-    len = hitem_group[i-1].bucket;
+    len = hitem_group[(i-1)]->bucket;
     len = len << 1; 
 
     initHitemGroup(len, i);      
@@ -94,15 +94,12 @@ int hsms ( ub4 bytes ){
 void addfslab ( HITEM *_ph){
     int i; 
     uint32 pre_sid, pre_sa;
-    char cache_path[FILE_PATH_LENGTH];
 
     if(!_ph) return;
     i = hsms(_ph->psize);
 
-    if(pools_hslab[_ph->sid].sm == NULL){
-        bzero(cache_path, FILE_PATH_LENGTH); 
-        snprintf(cache_path, FILE_PATH_LENGTH-1, "%s/%s%05d",conn_global->mmap_path, HashTable_for_list[8], _ph->sid);
-        pools_hslab[_ph->sid].sm = (HSLAB *)mcalloc(1,conn_global->default_bytes ,cache_path,O_RDWR|O_CREAT);
+    if(pools_hslab[_ph->sid].sm == NULL){        
+        pools_hslab[_ph->sid].sm = hslabcreate(_ph->sid);
     }
 
     pre_sa = htonl(pools_fslab[i].sa);    
@@ -117,7 +114,6 @@ void addfslab ( HITEM *_ph){
     return;
 }		/* -----  end of static function addfslab  ----- */
 
-f
 /* 
  * ===  FUNCTION  ======================================================================
  *         Name:  freefslab
@@ -126,7 +122,6 @@ f
  */
 void freefslab ( int i ){
     uint32 pre_sa, pre_sid;
-    char cache_path[FILE_PATH_LENGTH];
     sb2 sid;
     ub4 sa;
     
@@ -134,9 +129,8 @@ void freefslab ( int i ){
     sa = pools_fslab[i].sa;
      
     if(pools_hslab[sid].sm == NULL){
-        bzero(cache_path, FILE_PATH_LENGTH); 
-        snprintf(cache_path, FILE_PATH_LENGTH-1, "%s/%s%05d",conn_global->mmap_path, HashTable_for_list[8], _ph->sid);
-        pools_hslab[sid].sm = (HSLAB *)mcalloc(1,conn_global->default_bytes ,cache_path,O_RDWR|O_CREAT);
+        
+        pools_hslab[sid].sm = hslabcreate(sid);
     }
     memcpy(&pre_sa, pools_hslab[sid].sm+sa, sizeof(uint32));
     pre_sa = ntohl(pre_sa);
@@ -189,9 +183,8 @@ FSLAB *findfslab ( ub4 _psize ){
  * =====================================================================================
  */
 int findslab ( ub4 _psize){
-    HSLAB *hslab, *hs_tmp;
+    HSLAB *hslab;
     int i;
-    char cache_path[FILE_PATH_LENGTH];
 
     if(_psize == -1){ 
         return -1;

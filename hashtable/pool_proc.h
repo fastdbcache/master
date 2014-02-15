@@ -28,7 +28,8 @@
 void hproc ( );
 void fetchdti (  );
 word haddHitem ( HDR *mhdr );
-void hrule ( HITEM *hitem, int i );
+void hrule ( HITEM *hitem, int isize, int x, int y, int id );
+void droprule ( int isize, HITEM *_ph );
 
 #ifdef __cplusplus
  }

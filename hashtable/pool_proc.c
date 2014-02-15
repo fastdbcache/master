@@ -74,16 +74,14 @@ void fetchdti (  ){
  * =====================================================================================
  */
 word haddHitem ( HDR *mhdr ){ 
-    HITEM  *ph, *hp;
+    HITEM  *ph;
     HDR *hdr;
     ub2    x, y ;
     uint64_t _new_hval, _new_hjval;
-    int i, m, n, slab_id;
-    ub1 *slab_sm;
+    int i, m, n ;
     HG *pool_hg;
     HROW *_hrow;
     ssize_t total_size;
-    uint32 pre_sid, pre_sa;
 
     hdr = mhdr;
     if(hdr == NULL) return -1;
@@ -173,6 +171,8 @@ int saveHitem ( HITEM *_ph, HDR *_hdr, int i ){
     HDR *hdr = _hdr;
     ssize_t total_size;
     uint32 pre_sid, pre_sa;
+    sb2 slab_id;
+    ub1 *slab_sm;
 
     total_size = slabclass[i].size + sizeof(uint32)*2;
     if(pools_fslab[i].sa != 0){
@@ -183,12 +183,13 @@ int saveHitem ( HITEM *_ph, HDR *_hdr, int i ){
         slab_id = findslab(total_size);
         if(slab_id == -1){
             DEBUG("slab_id == -1 psize: %d", ph->psize);
-            return -1;
+            droprule(i, ph);             
+        }else {        
+            ph->sid = slab_id;
+            ph->sa = pools_hslab[slab_id].ss - total_size;
         }
-        ph->sid = slab_id;
-        ph->sa = pools_hslab[slab_id].ss - total_size;
     }
-    if(ph->sa < 0) return -1;
+    if(ph->sa < 1) return -1;
     slab_sm = pools_hslab[ph->sid].sm + ph->sa;
     if(!slab_sm) return -1;
 
@@ -216,34 +217,40 @@ int saveHitem ( HITEM *_ph, HDR *_hdr, int i ){
  * =====================================================================================
  */
 void hrule ( HITEM *hitem, int isize, int x, int y, int id ){
-    int i, _size;
+    int  _size;
     HITEM *ph;
     HARU *_haru;
     HG *pool_hg;
     HROW *_hrow;
 
     if(!hitem) return;
-    if(i<0)return ;
+    if(isize<0)return ;
+    if(id >= MAX_HG_LENGTH) return ;
 
+    _size = isize;
     test_rule:
-        _haru = pools_haru_pool+isize;
-
+        _haru = pools_haru_pool+_size;
+        
         if(_haru->hid == 0){
             _haru->x = x;
             _haru->y = y;
             _haru->hid = id;
             return ;
         }
-        
+        if(_haru->x == x &&
+            _haru->y == y &&
+            _haru->hid == id) return ;
+        if(_haru->hid > MAX_HG_LENGTH) return ;
+
         pool_hg = hitem_group[_haru->hid];
         if(pool_hg == NULL){
-            DEBUG("pool_hg is null n:%d", n);
-            break;
+            DEBUG("pool_hg is null n:%d", _haru->hid);
+            return;
         }
         _hrow = pool_hg->hrow + _haru->x;
         ph = _hrow->hitem + _haru->y;
 
-        if(ph->hit > hitem->hit){
+        if(ph->ahit > hitem->ahit){
             _haru->x = x;
             _haru->y = y;
             _haru->hid = id;
@@ -252,6 +259,31 @@ void hrule ( HITEM *hitem, int isize, int x, int y, int id ){
             goto test_rule;
         }  
 }		/* -----  end of function hrule  ----- */
+
+
+/* 
+ * ===  FUNCTION  ======================================================================
+ *         Name:  droprule
+ *  Description:  
+ * =====================================================================================
+ */
+void droprule ( int isize, HITEM *_ph ){
+    HITEM *ph;
+    HARU *_haru;
+    HG *pool_hg;
+    HROW *_hrow;
+        
+    _haru = pools_haru_pool+isize;
+    pool_hg = hitem_group[_haru->hid];
+    _hrow = pool_hg->hrow + _haru->x;
+    ph = _hrow->hitem + _haru->y;
+
+    ph->drl = 0;
+    
+    _ph->sa = ph->sa;
+    _ph->sid = ph->sid;
+
+}		/* -----  end of function droprule  ----- */
 
  /* vim: set ts=4 sw=4: */
 

@@ -48,7 +48,6 @@ HITEM *hfind ( char *key, ub4 keyl ){
     int i, m;
     HG *pool_hg;
     HROW *_hrow;
-    HITEM **pools_hitem;
 
     i = m = 0;
     if(!key){DEBUG("key error %d",i); return NULL;}
@@ -56,8 +55,7 @@ HITEM *hfind ( char *key, ub4 keyl ){
      
     hval = lookup(key, keyl, 0);
     hjval = jenkins_one_at_a_time_hash(key, keyl);
-    x=(hval&pool_hg->mask);
-    y = hjval&(MAX_HITEM_LENGTH-1);
+    
 
     do{
         pool_hg = hitem_group[m];
@@ -65,7 +63,8 @@ HITEM *hfind ( char *key, ub4 keyl ){
             DEBUG("pool_hg is null m:%d", m);
             break;
         }
-        
+        x=(hval&pool_hg->mask);
+        y = hjval&(MAX_HITEM_LENGTH-1); 
         _hrow = pool_hg->hrow + x;        
         ph = _hrow->hitem + y;
 
@@ -94,18 +93,9 @@ HITEM *hfind ( char *key, ub4 keyl ){
                 HIT_LOCK();
                 ph->ahit++;
                 pools_htab->hit++;
-                for(i=0; i<MAX_HARU_POOL; i++){
-                    if( pools_haru_pool[i].id == x && pools_haru_pool[i].hid == y ){
-                        pools_haru_pool[i].hit++;                        
-                        break;
-                    }
-                }
-                if(pools_haru_pool[pools_harug->max].hit < pools_haru_pool[i].hit){
-                    pools_harug->max = i;
-                }
-                if(pools_haru_pool[pools_harug->mix].hit > pools_haru_pool[i].hit){
-                    pools_harug->mix = i;
-                }
+                i = hsms(ph->psize);
+                //hrule ( ph, i,  x,  y, m );
+                                
                 HIT_UNLOCK();
 
                 return ph;            
@@ -125,14 +115,12 @@ HITEM *hfind ( char *key, ub4 keyl ){
  */
 void getslab ( HITEM * hitem, SLABPACK *dest){
     HITEM *_ph = hitem;
-    char cache_path[FILE_PATH_LENGTH];
 
     if(!_ph) return;
     
     if(pools_hslab[_ph->sid].sm == NULL){
-        bzero(cache_path, FILE_PATH_LENGTH); 
-        snprintf(cache_path, FILE_PATH_LENGTH-1, "%s/%s%05d",conn_global->mmap_path, HashTable_for_list[8], _ph->sid);
-        pools_hslab[_ph->sid].sm = (HSLAB *)mcalloc(1,conn_global->default_bytes ,cache_path,O_RDWR|O_CREAT);
+        
+        pools_hslab[_ph->sid].sm = hslabcreate(_ph->sid);
     }
     dest->pack = pools_hslab[_ph->sid].sm + _ph->sa + sizeof(uint32)*2;    
     dest->len = _ph->drl;

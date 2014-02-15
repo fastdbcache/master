@@ -27,11 +27,10 @@
  * =====================================================================================
  */
 void hcreate ( int isize ){
-    int i, m;
+    int i;
     ub4 len;
     int max_slab, count_hslab;
     char cache_path[FILE_PATH_LENGTH];
-    HROW *_hrow;
     
     if(conn_global->cache_method == D_MMAP){
         pools_hfd = inithfd();
@@ -61,7 +60,6 @@ void hcreate ( int isize ){
         DEBUG("pools_harug init error");
         exit(-1);
     }
-    pools_harug->step = 0;
     
     pools_haru_pool = pools_harug->haru_pool;
   
@@ -176,13 +174,13 @@ ub1 *hslabcreate ( int i ){
     char cache_path[FILE_PATH_LENGTH];
 
     if( pools_htab->bytes >= conn_global->maxbytes ){
-        DEBUG("not any momey for user bytes:%d,maxbytes: %d", pools_htab->bytes, conn_global->maxbytes);
-        return -1;
+        DEBUG("not any momey for user bytes:%d,maxbytes: %d", pools_htab->bytes, conn_global->maxbytes);        
+        return NULL;
     }  
     if(conn_global->cache_method == D_MMAP){
         bzero(cache_path, FILE_PATH_LENGTH); 
         snprintf(cache_path, FILE_PATH_LENGTH-1, "%s/%s%05d",conn_global->mmap_path, HashTable_for_list[8], i);
-        h = (HSLAB *)mcalloc(1,conn_global->default_bytes ,cache_path,O_RDWR|O_CREAT);
+        h = (ub1 *)mcalloc(1,conn_global->default_bytes ,cache_path,O_RDWR|O_CREAT);
         if(pools_htab->lcount < (i+1)) {
             pools_htab->bytes += conn_global->default_bytes;
             pools_htab->lcount = i+1;
@@ -197,7 +195,7 @@ ub1 *hslabcreate ( int i ){
         
     if(!h){ 
         DEBUG("sm init error %d", conn_global->default_bytes);
-        return -1;
+        return NULL;
     } 
     return h;
 }		/* -----  end of function hslabcreate  ----- */
