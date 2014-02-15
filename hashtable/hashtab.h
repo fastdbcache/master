@@ -28,7 +28,7 @@
 #include "pool_struct.h"
 #include "pool_init.h"
 
-void hgrow();
+void hgrow(int i);
 HSLAB *findhslab ( ssize_t i, sb2 _sid);
 int hsms ( ub4 bytes );
 void addfslab ( HITEM *_ph);

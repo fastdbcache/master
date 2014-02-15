@@ -49,7 +49,6 @@ void hcreate ( int isize ){
         exit(1);
     }
     if(pools_htab->gcount == 0)pools_htab->gcount = 1;
-    if(pools_htab->lcount == 0)pools_htab->lcount = 1;
 
     if(conn_global->cache_method == D_MMAP){                
         bzero(cache_path, FILE_PATH_LENGTH); 
@@ -63,7 +62,6 @@ void hcreate ( int isize ){
         exit(-1);
     }
     pools_harug->step = 0;
-    bzero(pools_harug->haru_pool, MAX_HARU_POOL);
     
     pools_haru_pool = pools_harug->haru_pool;
   
@@ -119,7 +117,6 @@ void hcreate ( int isize ){
     max_slab = hslabclass();
     conn_global->max_slab = max_slab;
     if(conn_global->cache_method == D_MMAP){
-        max_slab = (int)(( conn_global->maxbytes / SLAB_BEGIN )/2);
         bzero(cache_path, FILE_PATH_LENGTH); 
         snprintf(cache_path, FILE_PATH_LENGTH-1, "%s/%s",conn_global->mmap_path, HashTable_for_list[5]);
         pools_fslab = (FSLAB *)mcalloc(max_slab, sizeof(FSLAB), cache_path, O_RDWR|O_CREAT);
@@ -161,6 +158,7 @@ void inithslab ( int i ){
     }
 
     icount = pools_htab->lcount;
+    if(icount==0) icount++;
     for(m=0; m<icount; m++){ 
         pools_hslab[m].sm = hslabcreate(m);        
     }
@@ -185,6 +183,10 @@ ub1 *hslabcreate ( int i ){
         bzero(cache_path, FILE_PATH_LENGTH); 
         snprintf(cache_path, FILE_PATH_LENGTH-1, "%s/%s%05d",conn_global->mmap_path, HashTable_for_list[8], i);
         h = (HSLAB *)mcalloc(1,conn_global->default_bytes ,cache_path,O_RDWR|O_CREAT);
+        if(pools_htab->lcount < (i+1)) {
+            pools_htab->bytes += conn_global->default_bytes;
+            pools_htab->lcount = i+1;
+        }
         DEBUG("mmap %s", cache_path);
     }else{
         h = (ub1 *)calloc(conn_global->default_bytes, sizeof(ub1));
@@ -192,7 +194,7 @@ ub1 *hslabcreate ( int i ){
         pools_htab->lcount = i;
         DEBUG("mem ");
     }
-    
+        
     if(!h){ 
         DEBUG("sm init error %d", conn_global->default_bytes);
         return -1;
@@ -208,6 +210,7 @@ ub1 *hslabcreate ( int i ){
  */
 void initHitemGroup ( ub4 size, int i ){
     char cache_path[FILE_PATH_LENGTH];
+
     if(conn_global->cache_method == D_MMAP){
         bzero(cache_path, FILE_PATH_LENGTH); 
         snprintf(cache_path, FILE_PATH_LENGTH-1, "%s/%s%05d",conn_global->mmap_path, HashTable_for_list[6], i);
@@ -219,11 +222,11 @@ void initHitemGroup ( ub4 size, int i ){
         if(hitem_group[i]->bucket == 0){
             hitem_group[i]->bucket = size;
             hitem_group[i]->count = 0;
-            hitem_group[i]->mask = hitem_group[i]->bucket-1;
+            hitem_group[i]->mask = size - 1;
         }
         bzero(cache_path, FILE_PATH_LENGTH); 
         snprintf(cache_path, FILE_PATH_LENGTH-1, "%s/%s%05d",conn_global->mmap_path, HashTable_for_list[7], i);
-        hitem_group[i]->hrow = (HROW *)mcalloc(hitem_group[i]->bucket, sizeof(HROW), cache_path, O_RDWR|O_CREAT);        
+        hitem_group[i]->hrow = (HROW *)mcalloc(hitem_group[i]->bucket , sizeof(HROW), cache_path, O_RDWR|O_CREAT);        
         if(!hitem_group[i]->hrow){
             DEBUG("hitem_group->hrow init error");
             exit(-1);
@@ -236,8 +239,8 @@ void initHitemGroup ( ub4 size, int i ){
         }
         hitem_group[i]->bucket = size;
         hitem_group[i]->count = 0;
-        hitem_group[i]->mask = hitem_group[i]->bucket-1;
-        hitem_group[i]->hrow = (HROW *)calloc(hitem_group[i]->bucket, sizeof(HROW));        
+        hitem_group[i]->mask = size - 1;
+        hitem_group[i]->hrow = (HROW *)calloc(size, sizeof(HROW));        
         if(!hitem_group[i]->hrow){
             DEBUG("hitem_group->hrow init error");
             exit(-1);

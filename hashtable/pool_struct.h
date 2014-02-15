@@ -116,8 +116,8 @@ struct __hitem_group
 {
     HROW    *hrow;
     size_t  mask;    /* (hashval & mask) is position in table */
-    ub4     count;  /* each hcol munber  */
-    ub4     bucket; /* each hclo use bucket munber */
+    ub4     count;  /* each hcol use munber  */
+    ub4     bucket; /* each hclo total bucket munber */
 };
 typedef  struct __hitem_group  HG;
 
@@ -131,18 +131,16 @@ typedef  struct __hitem_group  HG;
  * */
 struct __haru
 {
-  ub1           hid;     /* mmap hitem key id */
-  ub1           id;     /* mmap hitem id */
-  ub4           hit;    /* haru hit */
+  ub2           hid;     /* mmap hitem key hid */
+  ub2           x;     /* x */
+  ub2           y;      /* y */
 };
 typedef  struct __haru  HARU;
 
 struct __haru_group
 {
   HARU haru_pool[MAX_HARU_POOL];    /* haru  */
-  ssize_t       step;
-  ssize_t       max;
-  ssize_t       mix;
+  
 };
 typedef  struct __haru_group  HARUG;
 

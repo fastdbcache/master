@@ -101,7 +101,7 @@ int getInt ( int *result, size_t bytes, DBP *_dbp ){
 
         case 4:	
             memcpy(&t32, _dbp->inBuf + _dbp->inCursor, sizeof(uint32));
-            *result = (int)htonl(t32);
+            *result = (int)ntohl(t32);
             break;
 
         default:	

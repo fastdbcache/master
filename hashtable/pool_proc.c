@@ -76,79 +76,56 @@ void fetchdti (  ){
 word haddHitem ( HDR *mhdr ){ 
     HITEM  *ph, *hp;
     HDR *hdr;
-    ub4    x, y ;
+    ub2    x, y ;
     uint64_t _new_hval, _new_hjval;
     int i, m, n, slab_id;
     ub1 *slab_sm;
     HG *pool_hg;
     HROW *_hrow;
+    ssize_t total_size;
+    uint32 pre_sid, pre_sa;
 
     hdr = mhdr;
     if(hdr == NULL) return -1;
     if(hdr->drl > LIMIT_SLAB_BYTE) return -1;
     
-    _new_hval = lookup(hdr->key, hdr->keyl,0);
+    _new_hval = lookup(hdr->key, hdr->keyl, 0);
     _new_hjval = jenkins_one_at_a_time_hash(hdr->key, hdr->keyl);
 
     n = 0;
     i = hsms(hdr->drl);
     if(i == -1) return -1;
+    total_size = slabclass[i].size + sizeof(uint32)*2;
 
     do{
         pool_hg = hitem_group[n];
-        if(pool_hg == NULL) break;
+        if(pool_hg == NULL){
+            DEBUG("pool_hg is null n:%d", n);
+            break;
+        }
         x=(_new_hval&pool_hg->mask);
         _hrow = pool_hg->hrow + x;
         y = _new_hjval&(MAX_HITEM_LENGTH-1);
         ph = _hrow->hitem + y;
 
         if(!ph) {
-            DEBUG("ph is null");
+            DEBUG("ph is null x:%d, y:%d", x, y);
             break;
         }
         if(ph->hval == 0 || ph->drl == 0){
-            hp = ph;
-            if(hp->keyl > KEY_LENGTH){
-               free(hp);
+            if(hdr->keyl > KEY_LENGTH){
                DEBUG("keyl > KEY_LENGTH");
                return -1;
             }
+            if(saveHitem ( ph, hdr, i ) == -1){
+                return -1;
+            }
+            ph->hval = _new_hval;
+            ph->hjval = _new_hjval;
              
-            if(pools_fslab[i].sa != 0){
-                hp->sid = pools_fslab[i].sid;
-                hp->sa = pools_fslab[i].sa;
-                pools_fslab[i].sa = 0;
-            }else{
-                slab_id = findslab(slabclass[i].size);
-                if(slab_id == -1){
-                    DEBUG("slab_id == -1 psize: %d", hp->psize);
-                    return -1;
-                }
-                hp->sid = slab_id;
-                hp->sa = pools_hslab[slab_id].ss - slabclass[i].size;
-            }
-
-            memcpy(hp->key, hdr->key, hdr->keyl);
-            hp->keyl  = hdr->keyl;
-            hp->drl = hdr->drl;
-            hp->psize = slabclass[i].size;
-            hp->hval  = _new_hval;
-            hp->hjval = _new_hjval;
-            hp->utime = hdr->stime;
-            slab_sm = pools_hslab[hp->sid].sm + hp->sa;
-
-            if(hp->sa < 0){ 
-                DEBUG("psize error! sa: %d psize: %d", hp->sa, hp->psize);
-            }else{
-                memcpy(slab_sm , hdr->dr, hdr->drl);
-                
-                //pools_hitem_row[i]++;
-
-                //hrule(hp, H_INSERT); 
-            }
             pools_htab->count++; 
-            pools_htab->miss++;
             pool_hg->count++;
+            hrule ( ph, i,  x,  y, n );
             return 0;     
         }
         else if(_new_hval == ph->hval &&
@@ -158,18 +135,10 @@ word haddHitem ( HDR *mhdr ){
             m = hsms(ph->psize);
             if(m == -1) return -1; 
             if(m != i){  /* old size != new size , free old slab */
-                addfslab(ph);  /* free old slab */
-                if(pools_fslab[i].sa != 0){
-                    ph->sid = pools_fslab[i].sid;
-                    ph->sa = pools_fslab[i].sa;
-                    pools_fslab[i].sa = 0;
-                }else{
-                    slab_id = findslab(slabclass[i].size);
-                    if(slab_id == -1) return -1;
-                    ph->sid = slab_id;
-                    ph->sa = pools_hslab[slab_id].ss - slabclass[i].size;
-                }
-                ph->psize = slabclass[i].size;  /* update psize */                
+                addfslab(ph);  /* free old slab */                                
+            }
+            if(saveHitem ( ph, hdr, i ) == -1){
+                return -1;
             }
             /* 
             if((ph->amiss / ph->ahit) > LIMIT_PERCENT){
@@ -177,15 +146,8 @@ word haddHitem ( HDR *mhdr ){
                 break;
             }*/
              
-            if(ph->sa < 0)return -1;
-            slab_sm = pools_hslab[ph->sid].sm + ph->sa;
-            if(!slab_sm) return -1;
-            ph->utime = hdr->stime;
-            memcpy(slab_sm, hdr->dr, hdr->drl);
-            ph->drl = hdr->drl;
             ph->amiss++;
-            pools_htab->miss++;
-            //hrule(ph, H_UPDATE);
+            hrule ( ph, i,  x,  y, n );
             return 0;
         }else{
             DEBUG("x:%d, y:%d", x, y);                  
@@ -198,59 +160,97 @@ word haddHitem ( HDR *mhdr ){
     return -1;
 }		/* -----  end of function haddHitem  ----- */
 
+
+
+/* 
+ * ===  FUNCTION  ======================================================================
+ *         Name:  saveHitem
+ *  Description:  
+ * =====================================================================================
+ */
+int saveHitem ( HITEM *_ph, HDR *_hdr, int i ){
+    HITEM *ph = _ph;
+    HDR *hdr = _hdr;
+    ssize_t total_size;
+    uint32 pre_sid, pre_sa;
+
+    total_size = slabclass[i].size + sizeof(uint32)*2;
+    if(pools_fslab[i].sa != 0){
+        ph->sid = pools_fslab[i].sid;
+        ph->sa = pools_fslab[i].sa;
+        freefslab(i); 
+    }else{        
+        slab_id = findslab(total_size);
+        if(slab_id == -1){
+            DEBUG("slab_id == -1 psize: %d", ph->psize);
+            return -1;
+        }
+        ph->sid = slab_id;
+        ph->sa = pools_hslab[slab_id].ss - total_size;
+    }
+    if(ph->sa < 0) return -1;
+    slab_sm = pools_hslab[ph->sid].sm + ph->sa;
+    if(!slab_sm) return -1;
+
+    memcpy(ph->key, hdr->key, hdr->keyl);
+    ph->keyl  = hdr->keyl;
+    ph->drl = hdr->drl;
+    ph->psize = slabclass[i].size;    
+    ph->utime = hdr->stime;
+        
+    pre_sa = htonl(0); 
+    memcpy(slab_sm, &pre_sa, sizeof(uint32));
+    pre_sid = htonl(0); 
+    memcpy(slab_sm+sizeof(uint32), &pre_sid, sizeof(uint32));
+
+    memcpy(slab_sm+sizeof(uint32)*2, hdr->dr, hdr->drl);
+
+    pools_htab->miss++;
+
+    return 0;
+}		/* -----  end of function saveHitem  ----- */
 /* 
  * ===  FUNCTION  ======================================================================
  *         Name:  hrule
  *  Description:  
  * =====================================================================================
  */
-void hrule ( HITEM *hitem, H_CHANGE hstat ){
-    int i;
+void hrule ( HITEM *hitem, int isize, int x, int y, int id ){
+    int i, _size;
     HITEM *ph;
+    HARU *_haru;
+    HG *pool_hg;
+    HROW *_hrow;
 
     if(!hitem) return;
-    /*
-    if(pools_htab->bytes == conn_global->maxbytes &&
-        pools_harug->step == MAX_HARU_POOL){
-        for ( i=0; i<MAX_HARU_POOL; i++ ) {
-            ph = pools_haru_pool[i].phitem;
-            addfslab(ph);  / free old slab /
-        }   
-        pools_harug->step = 0;
-    }
+    if(i<0)return ;
 
-    for(i=0; i<pools_harug->step; i++){
-        ph = pools_haru_pool[i].phitem;
-        if(hitem->hval == ph->hval &&
-            (hitem->keyl == ph->keyl) &&
-            (hitem->hjval == ph->hjval) 
-            ){
-            return;
-        } 
-    }
+    test_rule:
+        _haru = pools_haru_pool+isize;
 
-    if(pools_harug->step < MAX_HARU_POOL){
-        pools_haru_pool[pools_harug->step].hit = 0;
-        pools_haru_pool[pools_harug->step++].phitem = hitem;
-        return;
-    } else{
-
-        / MRU /    
+        if(_haru->hid == 0){
+            _haru->x = x;
+            _haru->y = y;
+            _haru->hid = id;
+            return ;
+        }
         
-        if( hstat == H_UPDATE ){
-            pools_haru_pool[pools_harug->max].hit = 0;
-            pools_haru_pool[pools_harug->max].phitem = hitem;
+        pool_hg = hitem_group[_haru->hid];
+        if(pool_hg == NULL){
+            DEBUG("pool_hg is null n:%d", n);
+            break;
         }
-        else{
-            / LRU /
-            ph = pools_haru_pool[pools_harug->mix].phitem;
-            pools_haru_pool[pools_harug->mix].phitem = hitem;
-            pools_haru_pool[pools_harug->mix].hit = 0;
+        _hrow = pool_hg->hrow + _haru->x;
+        ph = _hrow->hitem + _haru->y;
 
-            addfslab(ph);   clear hit very limit /
-        }
-    } 
-  */
+        if(ph->hit > hitem->hit){
+            _haru->x = x;
+            _haru->y = y;
+            _haru->hid = id;
+        }else{
+            _size += MAX_SLAB_CLASS;
+            goto test_rule;
+        }  
 }		/* -----  end of function hrule  ----- */
 
  /* vim: set ts=4 sw=4: */

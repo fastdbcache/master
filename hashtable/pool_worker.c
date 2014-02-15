@@ -50,22 +50,14 @@ HITEM *hfind ( char *key, ub4 keyl ){
     HROW *_hrow;
     HITEM **pools_hitem;
 
-    /*ub1 md5[MD5_LENG];
-    MD5_CTX *ctx;  */
-
     i = m = 0;
     if(!key){DEBUG("key error %d",i); return NULL;}
-    /*
-    bzero(md5, MD5_LENG);
+    if(keyl < 0) return NULL;
      
-    ctx = calloc(1, sizeof(MD5_CTX));
-    MD5_Init(ctx);
-    MD5_Update(ctx, key, keyl);
-    MD5_Final(md5, ctx);
-    free(ctx);
-    */
     hval = lookup(key, keyl, 0);
     hjval = jenkins_one_at_a_time_hash(key, keyl);
+    x=(hval&pool_hg->mask);
+    y = hjval&(MAX_HITEM_LENGTH-1);
 
     do{
         pool_hg = hitem_group[m];
@@ -73,9 +65,8 @@ HITEM *hfind ( char *key, ub4 keyl ){
             DEBUG("pool_hg is null m:%d", m);
             break;
         }
-        x=(hval&pool_hg->mask);
-        _hrow = pool_hg->hrow + x;
-        y = hjval&(MAX_HITEM_LENGTH-1);
+        
+        _hrow = pool_hg->hrow + x;        
         ph = _hrow->hitem + y;
 
         if(!ph){
@@ -91,7 +82,7 @@ HITEM *hfind ( char *key, ub4 keyl ){
                 tlist = pools_tlist->next;
                 while ( tlist && tlist->key ) {
                     /*  has a bug */
-                    if(keyl >0 && memmem(key, (size_t)keyl, tlist->key, (size_t)tlist->keyl)!=NULL){
+                    if(memmem(key, (size_t)keyl, tlist->key, (size_t)tlist->keyl)!=NULL){
                         /* over time */
                         if(tlist->utime > ph->utime){
                             DEBUG("time out utime %llu, ph utime:%llu", tlist->utime, ph->utime);
@@ -143,7 +134,7 @@ void getslab ( HITEM * hitem, SLABPACK *dest){
         snprintf(cache_path, FILE_PATH_LENGTH-1, "%s/%s%05d",conn_global->mmap_path, HashTable_for_list[8], _ph->sid);
         pools_hslab[_ph->sid].sm = (HSLAB *)mcalloc(1,conn_global->default_bytes ,cache_path,O_RDWR|O_CREAT);
     }
-    dest->pack = pools_hslab[_ph->sid].sm + _ph->sa;    
+    dest->pack = pools_hslab[_ph->sid].sm + _ph->sa + sizeof(uint32)*2;    
     dest->len = _ph->drl;
    
 }		/* -----  end of function getslab  ----- */

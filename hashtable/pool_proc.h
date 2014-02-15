@@ -28,7 +28,7 @@
 void hproc ( );
 void fetchdti (  );
 word haddHitem ( HDR *mhdr );
-void hrule ( HITEM *hitem, H_CHANGE hstat );
+void hrule ( HITEM *hitem, int i );
 
 #ifdef __cplusplus
  }
