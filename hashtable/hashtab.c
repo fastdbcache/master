@@ -122,9 +122,9 @@ void addfslab ( HITEM *_ph){
  */
 void freefslab ( int i ){
     uint32 pre_sa, pre_sid;
-    sb2 sid;
-    ub4 sa;
-    
+    sb2 sid, len_sid;
+    ub4 sa, len_sa;
+        
     sid = pools_fslab[i].sid;
     sa = pools_fslab[i].sa;
      
@@ -133,12 +133,12 @@ void freefslab ( int i ){
         pools_hslab[sid].sm = hslabcreate(sid);
     }
     memcpy(&pre_sa, pools_hslab[sid].sm+sa, sizeof(uint32));
-    pre_sa = ntohl(pre_sa);
+    len_sa = (ub4)ntohl(pre_sa);
     memcpy(&pre_sid, pools_hslab[sid].sm+sa+sizeof(uint32), sizeof(uint32));
-    pre_sid = ntohl(pre_sid);
+    len_sid = (sb2)ntohl(pre_sid);
 
-    pools_fslab[i].sa = pre_sa;
-    pools_fslab[i].sid = pre_sid;
+    pools_fslab[i].sa = len_sa;
+    pools_fslab[i].sid = len_sid;
      
 }		/* -----  end of function freefslab  ----- */
 
