@@ -27,7 +27,7 @@
  * =====================================================================================
  */
 void hcreate ( int isize ){
-    int i;
+    int i, gcount;
     ub4 len;
     int max_slab, count_hslab;
     char cache_path[FILE_PATH_LENGTH];
@@ -47,7 +47,7 @@ void hcreate ( int isize ){
         DEBUG("pools_htab calloc error");
         exit(1);
     }
-    if(pools_htab->gcount == 0)pools_htab->gcount = 1;
+    
 
     if(conn_global->cache_method == D_MMAP){                
         bzero(cache_path, FILE_PATH_LENGTH); 
@@ -73,7 +73,10 @@ void hcreate ( int isize ){
     }  */
 
     bzero(hitem_group, MAX_HG_LENGTH);
-    for(i=0; i<pools_htab->gcount; i++){
+    gcount  = pools_htab->gcount;
+    if(gcount == 0)gcount = 1;
+    
+    for(i=0; i<gcount; i++){
         len = (ub4)isize<<i;
         initHitemGroup ( len, i );
     }
@@ -159,6 +162,8 @@ void inithslab ( int i ){
     if(icount==0) icount++;
     for(m=0; m<icount; m++){ 
         pools_hslab[m].sm = hslabcreate(m);        
+        pools_hslab[m].ss = 0;
+        pools_hslab[m].sf = conn_global->default_bytes;
     }
 
 }		/* -----  end of static function inithslab  ----- */
@@ -189,7 +194,7 @@ ub1 *hslabcreate ( int i ){
     }else{
         h = (ub1 *)calloc(conn_global->default_bytes, sizeof(ub1));
         pools_htab->bytes += conn_global->default_bytes;
-        pools_htab->lcount = i;
+        pools_htab->lcount = i+1;
         DEBUG("mem ");
     }
         
@@ -221,6 +226,7 @@ void initHitemGroup ( ub4 size, int i ){
             hitem_group[i]->bucket = size;
             hitem_group[i]->count = 0;
             hitem_group[i]->mask = size - 1;
+            pools_htab->gcount = i+1;
         }
         bzero(cache_path, FILE_PATH_LENGTH); 
         snprintf(cache_path, FILE_PATH_LENGTH-1, "%s/%s%05d",conn_global->mmap_path, HashTable_for_list[7], i);
@@ -243,6 +249,7 @@ void initHitemGroup ( ub4 size, int i ){
             DEBUG("hitem_group->hrow init error");
             exit(-1);
         }
+        pools_htab->gcount = i + 1;
     }
 }		/* -----  end of function initHitemGroup  ----- */
 
@@ -275,72 +282,6 @@ int hslabclass ( void ){
 
     return (++i);
 }		/* -----  end of function hslabclass  ----- */
-
-/* 
- * ===  FUNCTION  ======================================================================
- *         Name:  inithitem
- *  Description:  
- * =====================================================================================
- */
-HITEM **inithitem ( ub4 len ){
-    int i;
-    HITEM **hitem;
-    hitem = (HITEM **)calloc(len, sizeof(HITEM));
-    if(hitem == NULL) return NULL;
-    /* pools_hitem head not store anything */
-    for (i=0; i<len; ++i) {
-        hitem[i] = hitemcreate();
-    }
-    return hitem;
-}		/* -----  end of function inithitem  ----- */
-
-/* 
- * ===  FUNCTION  ======================================================================
- *         Name:  hitemcreate
- *  Description:  
- * =====================================================================================
- */
-
-HITEM *hitemcreate(){
-    HITEM *h;
-    h = (HITEM *)calloc(1, sizeof(HITEM));
-    if(h){
-        bzero(h->key, KEY_LENGTH);
-        h->keyl = 0;
-        h->drl = 0;
-        h->psize = 0;
-        h->sid = 0;
-        h->sa = 0;
-        h->hval = 0;
-        h->hjval = 0;
-        h->utime = 0;
-        h->offtime = 0;
-        h->ahit = 0;  
-        h->amiss = 0;
-    }
-    return h;
-}		/* -----  end of function hitemcreate  ----- */
-
-
-/* 
- * ===  FUNCTION  ======================================================================
- *         Name:  freehitem
- *  Description:  
- * =====================================================================================
- */
-void freehitem ( HITEM **_h, ub4 len ){
-    int i;
-
-    if(!*_h) return;
-    if(!_h) return;
-
-    for(i=0; i<len; i++){
-        if(!_h[i]) free(_h[i]);
-    }
-
-    free(*_h);
-
-}		/* -----  end of function freehitem  ----- */
 
 /* 
  * ===  FUNCTION  ======================================================================

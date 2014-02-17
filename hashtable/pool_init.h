@@ -29,9 +29,6 @@ void inithslab ( int i );
 ub1 *hslabcreate ( int i );
 int hslabclass ( void );
 void initHitemGroup ( ub4 size, int i );
-HITEM **inithitem ( ub4 len );
-HITEM *hitemcreate();
-void freehitem ( HITEM **_h, ub4 len );
 HDR *hdrcreate (  );
 ULIST *initulist (  );
 

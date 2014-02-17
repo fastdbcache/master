@@ -190,11 +190,14 @@ int findslab ( ub4 _psize){
         return -1;
     }
 
-    if(_psize > conn_global->default_bytes) return -1;
+    if(_psize > LIMIT_SLAB_BYTE) return -1;
 
     for(i=0; i<conn_global->chunk_bytes; i++){
         hslab = pools_hslab+i;
-        if(!hslab) return -1;
+        if(!hslab){
+            DEBUG("hslab is null error!!! in i:%d", i);
+            return -1;
+        }
 
         if( hslab->sm == NULL ){          
             
@@ -213,7 +216,7 @@ int findslab ( ub4 _psize){
             hslab->sf -= _psize;
             return i;
         }else{
-            DEBUG("sf:%llu, psize:%llu", hslab->sf, _psize);
+            DEBUG("sf:%llu, psize:%llu, i:%d, chunk_bytes:%d", hslab->sf, _psize, i, conn_global->chunk_bytes);
         }
     }
     

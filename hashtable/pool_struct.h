@@ -169,7 +169,6 @@ struct __htab
   ub4            set;     /* total set */
   ub4            get;     /* total get */
   ub4            bytes;    /* total data size */
-  sb2            hslab_stat[MAX_SLAB_CLASS];  /* hsalb pool length */
 };
 typedef  struct __htab  HTAB;
 

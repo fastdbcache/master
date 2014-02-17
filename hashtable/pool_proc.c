@@ -81,7 +81,6 @@ word haddHitem ( HDR *mhdr ){
     int i, m, n ;
     HG *pool_hg;
     HROW *_hrow;
-    ssize_t total_size;
 
     hdr = mhdr;
     if(hdr == NULL) return -1;
@@ -93,7 +92,6 @@ word haddHitem ( HDR *mhdr ){
     n = 0;
     i = hsms(hdr->drl);
     if(i == -1) return -1;
-    total_size = slabclass[i].size + sizeof(uint32)*2;
 
     do{
         pool_hg = hitem_group[n];
@@ -148,7 +146,7 @@ word haddHitem ( HDR *mhdr ){
             hrule ( ph, i,  x,  y, n );
             return 0;
         }else{
-            DEBUG("x:%d, y:%d", x, y);                  
+            /*DEBUG("x:%d, y:%d, n:%d", x, y, n);*/
             n++;
             hgrow(n);
         }
@@ -174,7 +172,7 @@ int saveHitem ( HITEM *_ph, HDR *_hdr, int i ){
     sb2 slab_id;
     ub1 *slab_sm;
 
-    total_size = slabclass[i].size + sizeof(uint32)*2;
+    total_size = _hdr->drl + sizeof(uint32)*2;
     if(pools_fslab[i].sa != 0){
         ph->sid = pools_fslab[i].sid;
         ph->sa = pools_fslab[i].sa;
@@ -184,6 +182,7 @@ int saveHitem ( HITEM *_ph, HDR *_hdr, int i ){
         if(slab_id == -1){
             DEBUG("slab_id == -1 psize: %d", ph->psize);
             droprule(i, ph);             
+            return -1;
         }else {        
             ph->sid = slab_id;
             ph->sa = pools_hslab[slab_id].ss - total_size;
@@ -229,6 +228,7 @@ void hrule ( HITEM *hitem, int isize, int x, int y, int id ){
 
     _size = isize;
     test_rule:
+        if(_size > MAX_SLAB_CLASS) return ; 
         _haru = pools_haru_pool+_size;
         
         if(_haru->hid == 0){
@@ -255,7 +255,7 @@ void hrule ( HITEM *hitem, int isize, int x, int y, int id ){
             _haru->y = y;
             _haru->hid = id;
         }else{
-            _size += MAX_SLAB_CLASS;
+            _size += 100;
             goto test_rule;
         }  
 }		/* -----  end of function hrule  ----- */

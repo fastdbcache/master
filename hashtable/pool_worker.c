@@ -56,16 +56,15 @@ HITEM *hfind ( char *key, ub4 keyl ){
     hval = lookup(key, keyl, 0);
     hjval = jenkins_one_at_a_time_hash(key, keyl);
     
-
     do{
         pool_hg = hitem_group[m];
         if(pool_hg == NULL){
-            DEBUG("pool_hg is null m:%d", m);
+            /*DEBUG("pool_hg is null m:%d", m);  */
             break;
         }
         x=(hval&pool_hg->mask);
         y = hjval&(MAX_HITEM_LENGTH-1); 
-        _hrow = pool_hg->hrow + x;        
+        _hrow = pool_hg->hrow + x;
         ph = _hrow->hitem + y;
 
         if(!ph){
@@ -84,7 +83,7 @@ HITEM *hfind ( char *key, ub4 keyl ){
                     if(memmem(key, (size_t)keyl, tlist->key, (size_t)tlist->keyl)!=NULL){
                         /* over time */
                         if(tlist->utime > ph->utime){
-                            DEBUG("time out utime %llu, ph utime:%llu", tlist->utime, ph->utime);
+                            /*DEBUG("time out utime %llu, ph utime:%llu", tlist->utime, ph->utime);  */
                             return NULL;
                         } 
                     }
@@ -101,7 +100,7 @@ HITEM *hfind ( char *key, ub4 keyl ){
                 return ph;            
         }
         m++;
-    }while(m<MAX_HG_LENGTH);
+    }while(m < pools_htab->gcount);
        
     return NULL;
 }		/* -----  end of function hfind  ----- */
