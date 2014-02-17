@@ -125,8 +125,6 @@ void hcreate ( int isize ){
     else{
         pools_fslab = (FSLAB *)calloc(max_slab, sizeof(FSLAB));
     }  
-    
-    
 
     /*pthread_mutex_init(&work_lock_fslab, NULL);  */
     pthread_mutex_init(&work_lock_hit, NULL);
@@ -222,18 +220,19 @@ void initHitemGroup ( ub4 size, int i ){
             DEBUG("hitem_group init error");
             exit(-1);
         }
-        if(hitem_group[i]->bucket == 0){
-            hitem_group[i]->bucket = size;
-            hitem_group[i]->count = 0;
-            hitem_group[i]->mask = size - 1;
-            pools_htab->gcount = i+1;
-        }
+        
         bzero(cache_path, FILE_PATH_LENGTH); 
         snprintf(cache_path, FILE_PATH_LENGTH-1, "%s/%s%05d",conn_global->mmap_path, HashTable_for_list[7], i);
         hitem_group[i]->hrow = (HROW *)mcalloc(hitem_group[i]->bucket , sizeof(HROW), cache_path, O_RDWR|O_CREAT);        
         if(!hitem_group[i]->hrow){
             DEBUG("hitem_group->hrow init error");
             exit(-1);
+        }
+        if(hitem_group[i]->bucket == 0){
+            hitem_group[i]->bucket = size;
+            hitem_group[i]->count = 0;
+            hitem_group[i]->mask = size - 1;
+            pools_htab->gcount = i+1;
         }
     }else{
         hitem_group[i] = calloc(1, sizeof(HG));

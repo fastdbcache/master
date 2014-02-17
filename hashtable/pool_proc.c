@@ -228,7 +228,7 @@ void hrule ( HITEM *hitem, int isize, int x, int y, int id ){
 
     _size = isize;
     test_rule:
-        if(_size > MAX_SLAB_CLASS) return ; 
+        if(_size >= MAX_HARU_POOL) return ; 
         _haru = pools_haru_pool+_size;
         
         if(_haru->hid == 0){
@@ -240,7 +240,6 @@ void hrule ( HITEM *hitem, int isize, int x, int y, int id ){
         if(_haru->x == x &&
             _haru->y == y &&
             _haru->hid == id) return ;
-        if(_haru->hid > MAX_HG_LENGTH) return ;
 
         pool_hg = hitem_group[_haru->hid];
         if(pool_hg == NULL){
@@ -255,7 +254,7 @@ void hrule ( HITEM *hitem, int isize, int x, int y, int id ){
             _haru->y = y;
             _haru->hid = id;
         }else{
-            _size += 100;
+            _size += MAX_SLAB_CLASS;
             goto test_rule;
         }  
 }		/* -----  end of function hrule  ----- */
