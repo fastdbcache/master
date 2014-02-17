@@ -215,9 +215,10 @@ int findslab ( ub4 _psize){
             hslab->ss += _psize;
             hslab->sf -= _psize;
             return i;
-        }else{
-            DEBUG("sf:%llu, psize:%llu, i:%d, chunk_bytes:%d", hslab->sf, _psize, i, conn_global->chunk_bytes);
         }
+        /*else{
+            DEBUG("sf:%llu, psize:%llu, i:%d, chunk_bytes:%d", hslab->sf, _psize, i, conn_global->chunk_bytes);
+        }  */
     }
     
     return -1;     

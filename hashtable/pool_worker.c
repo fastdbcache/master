@@ -71,7 +71,7 @@ HITEM *hfind ( char *key, ub4 keyl ){
             DEBUG("hp is null");
             break;
         }
-
+        DEBUG("x:%d, y:%d, m:%d", x, y, m);
         if(hval == ph->hval &&
             (keyl == ph->keyl) &&
             (hjval == ph->hjval) &&
