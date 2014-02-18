@@ -36,7 +36,7 @@ typedef struct _help_cmd HELP_CMD;
 
 #define COUNT(a, b) do{\
     ssize_t shift=1;        \
-    (b) = 0;            \
+    (b) = 1;            \
     do {\
         shift *= 10;        \
         (b)++;          \

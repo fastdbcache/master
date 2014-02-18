@@ -435,6 +435,7 @@ void RowHtab (int frontend , ssize_t nfields){
     CALC(crd, ((pools_htab->bytes/1024)/1024), byte_len);
     CALC(crd, ((conn_global->maxbytes/1024)/1024), maxbyte_len);
 
+    DEBUG("count %d --len:%d dd", pools_htab->count, count_len);
     Socket_Send(frontend, newbuf, total+sizeof(char));
     if(newbuf)
         free(newbuf);

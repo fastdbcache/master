@@ -123,6 +123,7 @@ word haddHitem ( HDR *mhdr ){
              
             pools_htab->count++; 
             pool_hg->count++;
+            DEBUG("new key:%s, count:%d", hdr->key, pools_htab->count);
             hrule ( ph, i,  x,  y, n );
             return 0;     
         }
@@ -143,7 +144,7 @@ word haddHitem ( HDR *mhdr ){
                 ph->drl = 0;
                 break;
             }*/
-             
+            DEBUG("old key:%s", hdr->key);         
             ph->amiss++;
             hrule ( ph, i,  x,  y, n );
             return 0;
@@ -192,7 +193,7 @@ int saveHitem ( HITEM *_ph, HDR *_hdr, int i ){
     if(ph->sa == -1) return -1;
     slab_sm = pools_hslab[ph->sid].sm + ph->sa;
     if(!slab_sm) return -1;
-
+    
     memcpy(ph->key, hdr->key, hdr->keyl);
     ph->keyl  = hdr->keyl;
     ph->drl = hdr->drl;

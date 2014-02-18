@@ -52,10 +52,7 @@ HITEM *hfind ( char *key, ub4 keyl ){
     i = m = 0;
     if(!key){DEBUG("key error %d",i); return NULL;}
     if(keyl < 0) return NULL;
-    if(keyl > (KEY_LENGTH-1) ){
-        DEBUG("key:%s", key);
-        return NULL;
-    }
+    if(keyl > (KEY_LENGTH-1) ) return NULL;
 
     hval = lookup(key, keyl, 0);
     hjval = jenkins_one_at_a_time_hash(key, keyl);
@@ -75,7 +72,8 @@ HITEM *hfind ( char *key, ub4 keyl ){
             DEBUG("hp is null");
             break;
         }
-       
+        //DEBUG("hval:%llu, x:%d, y:%d, m:%d", hval, x, y, m);
+        //DEBUG("ph->hval:%llu", ph->drl);
         if(hval == ph->hval &&
             (keyl == ph->keyl) &&
             (hjval == ph->hjval) &&
