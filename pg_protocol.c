@@ -266,7 +266,6 @@ int AuthPG(const int bfd,const int ffd, DBP *_dbp){
                         mem_pack->len = 0;
                         
                         hkey(_hdrtmp,_apack->inEnd-_apack->inCursor , mem_pack);
-
                         if(mem_pack->len > 0){
                             Socket_Send(rfd, mem_pack->pack, mem_pack->len);                        
                             /*

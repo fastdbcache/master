@@ -175,7 +175,8 @@ int saveHitem ( HITEM *_ph, HDR *_hdr, int i ){
     sb2 slab_id;
     ub1 *slab_sm;
 
-    total_size = _hdr->drl + sizeof(uint32)*2;
+   // total_size = _hdr->drl + sizeof(uint32)*2;
+    total_size = slabclass[i].size;
     if(pools_fslab[i].sa != -1 &&
        pools_fslab[i].psize != 0 ){
         ph->sid = pools_fslab[i].sid;

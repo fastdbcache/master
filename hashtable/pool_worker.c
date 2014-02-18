@@ -31,7 +31,7 @@ void hkey ( char *key, ub4 keyl, SLABPACK *dest){
     
     _h = hfind(key, keyl);
     
-  //  getslab(_h, dest);
+    getslab(_h, dest);
 }		/* -----  end of function hkey  ----- */
 
 /* 
