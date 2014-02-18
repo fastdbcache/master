@@ -84,9 +84,9 @@ word haddHitem ( HDR *mhdr ){
 
     hdr = mhdr;
     if(hdr == NULL) return -1;
-    if(hdr->drl > LIMIT_SLAB_BYTE) return -1;
-    if(hdr->keyl > KEY_LENGTH){
-       DEBUG("keyl > KEY_LENGTH");
+    if(hdr->drl > (LIMIT_SLAB_BYTE-sizeof(uint32)*2)) return -1;
+    if(hdr->keyl > (KEY_LENGTH-1)){
+       DEBUG("keyl > KEY_LENGTH key:%s", hdr->key);
        return -1;
     }
     _new_hval = lookup(hdr->key, hdr->keyl, 0);
@@ -201,7 +201,7 @@ int saveHitem ( HITEM *_ph, HDR *_hdr, int i ){
         
     pre_sa = htonl(-1); 
     memcpy(slab_sm, &pre_sa, sizeof(uint32));
-    pre_sid = htonl(-1); 
+    pre_sid = htonl(0); 
     memcpy(slab_sm+sizeof(uint32), &pre_sid, sizeof(uint32));
 
     memcpy(slab_sm+sizeof(uint32)*2, hdr->dr, hdr->drl);

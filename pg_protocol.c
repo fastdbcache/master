@@ -302,7 +302,7 @@ int AuthPG(const int bfd,const int ffd, DBP *_dbp){
                     if(_ulist &&
                         ply){
                         _ulist->keyl = ply->len;
-                        if(_ulist->keyl < KEY_LENGTH){
+                        if(_ulist->keyl < (KEY_LENGTH-1)){
                             memcpy(_ulist->key, ply->tab, _ulist->keyl);
                             _ulist->utime = get_sec();
                         }else{
