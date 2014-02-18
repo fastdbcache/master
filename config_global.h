@@ -41,7 +41,6 @@
 #include <fcntl.h>
 #include <unistd.h>
 #include <sys/mman.h>
-#include <netinet/in.h>
 #include <string.h>
 
 
@@ -85,6 +84,7 @@ typedef                 int  word;  /* fastest type available */
 #define DEFAULT_MEM_BYTE ( 10 * LIMIT_SLAB_BYTE )
 #define SLAB_BEGIN 88
 #define LIMIT_PERCENT 0.1
+#define FSLAB_OFFSET (sizeof(uint32)*2)
 
 #define MD5_LENG 33
 

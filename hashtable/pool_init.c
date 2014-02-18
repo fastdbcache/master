@@ -125,8 +125,15 @@ void hcreate ( int isize ){
     else{
         pools_fslab = (FSLAB *)calloc(max_slab, sizeof(FSLAB));
     }  
-
+    if(!pools_fslab){
+        for(i=0; i< max_slab; i++){
+            pools_fslab[i].sa = -1;
+            pools_fslab[i].psize = 0;
+        }
+    }
     /*pthread_mutex_init(&work_lock_fslab, NULL);  */
+    pthread_mutex_init(&work_lock_get, NULL);
+    pthread_mutex_init(&work_lock_set, NULL);
     pthread_mutex_init(&work_lock_hit, NULL);
     pthread_mutex_init(&work_lock_miss, NULL);
     pthread_mutex_init(&work_lock_bytes, NULL);
@@ -223,11 +230,12 @@ void initHitemGroup ( ub4 size, int i ){
         
         bzero(cache_path, FILE_PATH_LENGTH); 
         snprintf(cache_path, FILE_PATH_LENGTH-1, "%s/%s%05d",conn_global->mmap_path, HashTable_for_list[7], i);
-        hitem_group[i]->hrow = (HROW *)mcalloc(hitem_group[i]->bucket , sizeof(HROW), cache_path, O_RDWR|O_CREAT);        
+        hitem_group[i]->hrow = (HROW *)mcalloc(size , sizeof(HROW), cache_path, O_RDWR|O_CREAT);        
         if(!hitem_group[i]->hrow){
             DEBUG("hitem_group->hrow init error");
             exit(-1);
         }
+
         if(hitem_group[i]->bucket == 0){
             hitem_group[i]->bucket = size;
             hitem_group[i]->count = 0;
@@ -243,7 +251,7 @@ void initHitemGroup ( ub4 size, int i ){
         hitem_group[i]->bucket = size;
         hitem_group[i]->count = 0;
         hitem_group[i]->mask = size - 1;
-        hitem_group[i]->hrow = (HROW *)calloc(size, sizeof(HROW));        
+        hitem_group[i]->hrow = (HROW *)calloc(size, sizeof(HROW));
         if(!hitem_group[i]->hrow){
             DEBUG("hitem_group->hrow init error");
             exit(-1);

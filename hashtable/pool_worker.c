@@ -31,7 +31,7 @@ void hkey ( char *key, ub4 keyl, SLABPACK *dest){
     
     _h = hfind(key, keyl);
     
-    getslab(_h, dest);
+  //  getslab(_h, dest);
 }		/* -----  end of function hkey  ----- */
 
 /* 
@@ -71,11 +71,11 @@ HITEM *hfind ( char *key, ub4 keyl ){
             DEBUG("hp is null");
             break;
         }
-        DEBUG("x:%d, y:%d, m:%d", x, y, m);
+        
         if(hval == ph->hval &&
             (keyl == ph->keyl) &&
             (hjval == ph->hjval) &&
-            (ph->drl > 0) 
+            (ph->drl != 0) 
             ){
                 tlist = pools_tlist->next;
                 while ( tlist && tlist->key ) {
@@ -92,8 +92,6 @@ HITEM *hfind ( char *key, ub4 keyl ){
                 HIT_LOCK();
                 ph->ahit++;
                 pools_htab->hit++;
-                i = hsms(ph->psize);
-                //hrule ( ph, i,  x,  y, m );
                                 
                 HIT_UNLOCK();
 
@@ -116,14 +114,14 @@ void getslab ( HITEM * hitem, SLABPACK *dest){
     HITEM *_ph = hitem;
 
     if(!_ph) return;
-    
+    if(_ph->sa == -1)return ;
+     
     if(pools_hslab[_ph->sid].sm == NULL){
         
         pools_hslab[_ph->sid].sm = hslabcreate(_ph->sid);
     }
-    dest->pack = pools_hslab[_ph->sid].sm + _ph->sa + sizeof(uint32)*2;    
+    dest->pack = pools_hslab[_ph->sid].sm + _ph->sa + sizeof(uint32)*2;
     dest->len = _ph->drl;
-   
 }		/* -----  end of function getslab  ----- */
 
 /* 
@@ -202,7 +200,6 @@ void pushList ( char *key, ub4 keyl, ub4 utime ){
         _t = calloc(1, sizeof(TLIST));
         if(_t){
             if(keyl < KEY_LENGTH){            
-                DEBUG("table:%s", key);
                 memcpy(_t->key, key, keyl);
                 _t->keyl = keyl;
                 _t->utime = utime + conn_global->delaytime; /* delay any time for update */

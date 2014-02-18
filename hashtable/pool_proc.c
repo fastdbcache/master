@@ -85,12 +85,15 @@ word haddHitem ( HDR *mhdr ){
     hdr = mhdr;
     if(hdr == NULL) return -1;
     if(hdr->drl > LIMIT_SLAB_BYTE) return -1;
-    
+    if(hdr->keyl > KEY_LENGTH){
+       DEBUG("keyl > KEY_LENGTH");
+       return -1;
+    }
     _new_hval = lookup(hdr->key, hdr->keyl, 0);
     _new_hjval = jenkins_one_at_a_time_hash(hdr->key, hdr->keyl);
 
     n = 0;
-    i = hsms(hdr->drl);
+    i = hsms((hdr->drl + sizeof(uint32)*2));
     if(i == -1) return -1;
 
     do{
@@ -108,16 +111,15 @@ word haddHitem ( HDR *mhdr ){
             DEBUG("ph is null x:%d, y:%d", x, y);
             break;
         }
-        if(ph->hval == 0 || ph->drl == 0){
-            if(hdr->keyl > KEY_LENGTH){
-               DEBUG("keyl > KEY_LENGTH");
-               return -1;
-            }
+        if(ph->drl == 0){
+             
             if(saveHitem ( ph, hdr, i ) == -1){
                 return -1;
             }
             ph->hval = _new_hval;
             ph->hjval = _new_hjval;
+            ph->ahit = 0;
+            ph->amiss = 0;
              
             pools_htab->count++; 
             pool_hg->count++;
@@ -173,22 +175,21 @@ int saveHitem ( HITEM *_ph, HDR *_hdr, int i ){
     ub1 *slab_sm;
 
     total_size = _hdr->drl + sizeof(uint32)*2;
-    if(pools_fslab[i].sa != 0){
+    if(pools_fslab[i].sa != -1 &&
+       pools_fslab[i].psize != 0 ){
         ph->sid = pools_fslab[i].sid;
         ph->sa = pools_fslab[i].sa;
         freefslab(i); 
-    }else{        
+    }else{
         slab_id = findslab(total_size);
         if(slab_id == -1){
-            DEBUG("slab_id == -1 psize: %d", ph->psize);
             droprule(i, ph);             
-            return -1;
         }else {        
             ph->sid = slab_id;
             ph->sa = pools_hslab[slab_id].ss - total_size;
         }
     }
-    if(ph->sa < 1) return -1;
+    if(ph->sa == -1) return -1;
     slab_sm = pools_hslab[ph->sid].sm + ph->sa;
     if(!slab_sm) return -1;
 
@@ -198,9 +199,9 @@ int saveHitem ( HITEM *_ph, HDR *_hdr, int i ){
     ph->psize = slabclass[i].size;    
     ph->utime = hdr->stime;
         
-    pre_sa = htonl(0); 
+    pre_sa = htonl(-1); 
     memcpy(slab_sm, &pre_sa, sizeof(uint32));
-    pre_sid = htonl(0); 
+    pre_sid = htonl(-1); 
     memcpy(slab_sm+sizeof(uint32), &pre_sid, sizeof(uint32));
 
     memcpy(slab_sm+sizeof(uint32)*2, hdr->dr, hdr->drl);
@@ -231,7 +232,9 @@ void hrule ( HITEM *hitem, int isize, int x, int y, int id ){
         if(_size >= MAX_HARU_POOL) return ; 
         _haru = pools_haru_pool+_size;
         
-        if(_haru->hid == 0){
+        if(_haru->hid == 0 &&
+           _haru->x == 0 &&
+           _haru->y == 0 ){
             _haru->x = x;
             _haru->y = y;
             _haru->hid = id;
@@ -273,14 +276,29 @@ void droprule ( int isize, HITEM *_ph ){
     HROW *_hrow;
         
     _haru = pools_haru_pool+isize;
+    if(_haru->hid==0){
+        _ph->sa = -1;
+        _ph->drl = 0;
+        return ;
+    }
+
     pool_hg = hitem_group[_haru->hid];
     _hrow = pool_hg->hrow + _haru->x;
     ph = _hrow->hitem + _haru->y;
+    if(ph->drl == 0){
+        _ph->sa = -1;
+        _ph->drl = 0;
+        return;
+    }
 
     ph->drl = 0;
-    
+    ph->sa = -1;
+    ph->hval = 0;
     _ph->sa = ph->sa;
     _ph->sid = ph->sid;
+    _haru->hid = 0;
+    _haru->x = 0;
+    _haru->y = 0;
 
 }		/* -----  end of function droprule  ----- */
 

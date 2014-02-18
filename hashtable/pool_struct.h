@@ -79,7 +79,7 @@ struct __fslab
 {
   ssize_t           psize;     /* hpool size */
   sb2           sid;       /* slab id */
-  ub4           sa;       /* data row start addr of hslab  sa*psize  sa = ss */   
+  uint32           sa;       /* data row start addr of hslab  sa*psize  sa = ss */   
   /*struct __fslab *next;      next */
 };
 typedef  struct __fslab  FSLAB;
@@ -95,7 +95,7 @@ struct __hitem
   ub4           drl;      /* length of data row */
   ssize_t           psize;    /* hpools size */
   sb2           sid;      /* slab id */
-  ub4           sa;       /* data row start addr of hslab  sa*psize  sa = ss */
+  uint32           sa;       /* data row start addr of hslab  sa*psize  sa = ss */
   uint64_t          hval;     /* hash value for key */
   uint64_t           hjval;     /* hash value for key */
   ub4           utime;    /* */
@@ -197,6 +197,8 @@ typedef struct __hsms HSMS;
 HTAB *pools_htab;   /* stat record */
 ub4 *pools_hitem_row;
 
+pthread_mutex_t work_lock_get;
+pthread_mutex_t work_lock_set;
 pthread_mutex_t work_lock_hit;
 pthread_mutex_t work_lock_miss;
 pthread_mutex_t work_lock_bytes;
@@ -217,6 +219,22 @@ HSMS slabclass[MAX_SLAB_CLASS];
 
 HARUG *pools_harug;
 HARU *pools_haru_pool;
+
+#define GET_LOCK() do{\
+    pthread_mutex_lock(&work_lock_get); \
+}while(0)
+
+#define GET_UNLOCK() do{\
+    pthread_mutex_unlock(&work_lock_get); \
+}while(0)
+
+#define SET_LOCK() do{\
+    pthread_mutex_lock(&work_lock_set); \
+}while(0)
+
+#define SET_UNLOCK() do{\
+    pthread_mutex_unlock(&work_lock_set); \
+}while(0)
 
 #define HIT_LOCK() do{\
     pthread_mutex_lock(&work_lock_hit); \

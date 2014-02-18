@@ -257,7 +257,10 @@ int AuthPG(const int bfd,const int ffd, DBP *_dbp){
                 isDATA = FALSE;
                 _hdrtmp = _apack->inBuf + _apack->inCursor;
                 isSELECT = findSQL(_hdrtmp, _apack->inEnd-_apack->inCursor);
-                if(isSELECT == E_SELECT){
+                if(isSELECT == E_SELECT){                    
+                    GET_LOCK();
+                    pools_htab->get++;
+                    GET_UNLOCK();
                     mem_pack = (SLABPACK *)calloc(1, sizeof(SLABPACK));
                     if(mem_pack){ 
                         mem_pack->len = 0;
@@ -291,6 +294,9 @@ int AuthPG(const int bfd,const int ffd, DBP *_dbp){
                         free(mem_pack);
                     }
                 }else if(isSELECT==E_DELETE || isSELECT==E_UPDATE || isSELECT==E_INSERT){
+                    SET_LOCK();
+                    pools_htab->set++;
+                    SET_UNLOCK();
                     ply = parser_do (_hdrtmp, _apack->inEnd-_apack->inCursor);
                     _ulist = initulist();
                     if(_ulist &&
