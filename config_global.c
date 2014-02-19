@@ -47,22 +47,24 @@ void conn_init_global ( void ){
     conn_global->process_num = 2;
 
     conn_global->factor = 1.25;
-    conn_global->maxbytes = 64 * 1024 * 1024 ;
+    conn_global->maxbytes = 6 * 1024 * 1024 ;
     conn_global->delaytime = 0;
-    conn_global->cache_method = D_MEM;
+    conn_global->cache_method = D_MMAP;
 
     conn_global->fdbc = "fastdbcache version 0.0.1";
 
-    conn_global->dmaxbytes = 8 * 1024 * 1024;
-    conn_global->deptype = D_MEM;
-    conn_global->hasdep = H_FALSE;
+    conn_global->dmaxbytes = 2 * 1024 * 1024;
+    conn_global->deptype = D_MMAP;
+    conn_global->hasdep = H_TRUE;
     conn_global->quotient = 2;
     conn_global->deprule = NULL;
     conn_global->mmap_path = "/usr/local/fdbc/cache";
     conn_global->mmdb_length = DEFAULT_MMAP_BYTE;
 
+
+    conn_global->maxconn = MAXCONNS;
     /*
-    if(conn_global->deptype == D_MEM){
+    if(conn_global->deptype == D_MMAP){
         stat(conn_global->mmap_path, &sb);
         if(!S_ISDIR(sb.st_mode)){
             DEBUG("cache is not dir %s, mode:%d", conn_global->mmap_path, sb.st_mode);
@@ -104,7 +106,7 @@ void conn_get_global (  ){
     conn_global->process_num = atoi(conf_get("process_num"));
 
     conn_global->factor = 1.25;
-    conn_global->maxbytes = 64 * 1024 * 1024;
+    conn_global->maxbytes = 6 * 1024 * 1024;
     conn_global->delaytime = atoi(conf_get("delay_time"));
     conn_global->mmap_path = conf_get("cache_path");
      
@@ -125,7 +127,7 @@ void initDeposit ( ){
     if(memcmp(conf_get("deposit_enable_cache"), "on", 2)) return;
     
     if(memcmp(conf_get("deposit_method"),"mem", 3))return;
-    conn_global->deptype = D_MEM;
+    conn_global->deptype = D_MMAP;
 
     if(atol(conf_get("deposit_maxbytes")) <=0 )return;
     conn_global->dmaxbytes = atol(conf_get("deposit_maxbytes"));
@@ -135,7 +137,7 @@ void initDeposit ( ){
 
     conn_global->deprule = conf_get("deposit_rule");
      
-    conn_global->hasdep = H_FALSE;
+    conn_global->hasdep = H_TRUE;
 }		/* -----  end of function initDeposit  ----- */
 
 
@@ -147,7 +149,7 @@ void initDeposit ( ){
  */
 void pathCheck ( ){
     struct stat sb;
-    if(conn_global->deptype == D_MEM){
+    if(conn_global->deptype == D_MMAP){
         stat(conn_global->mmap_path, &sb);
         if(!S_ISDIR(sb.st_mode)){
             DEBUG("cache is not dir %s, mode:%d", conn_global->mmap_path, sb.st_mode);

@@ -81,14 +81,14 @@ typedef                 int  word;  /* fastest type available */
 #define CHUNK_ALIGN_BYTES 8
 #define LIMIT_SLAB_BYTE ( 1024 * 1024 )
 #define MAX_SLAB_BYTE ( 128 * LIMIT_SLAB_BYTE )
-#define DEFAULT_MEM_BYTE ( 10 * LIMIT_SLAB_BYTE )
+#define DEFAULT_MEM_BYTE ( 1 * LIMIT_SLAB_BYTE )
 #define SLAB_BEGIN 88
 #define LIMIT_PERCENT 0.1
 #define FSLAB_OFFSET (sizeof(uint32)*2)
 
 #define MD5_LENG 33
 
-#define MAXCONNS 1024
+#define MAXCONNS 5
 
 #define FILE_PATH_LENGTH 256
 #define LIMIT_MMAP_BYTE ( 1024 * 1024 )
@@ -187,7 +187,7 @@ HFD *pools_hfd;
 #define TAIL_HFD(tail) do{\
     HFD *_nhfd;             \
     _nhfd = pools_hfd;      \
-    while(_nhfd->next){     \
+    while(_nhfd && _nhfd->next){     \
         _nhfd = _nhfd->next;\
     }                       \
     (tail) = _nhfd;         \
@@ -258,6 +258,8 @@ struct __conn{
 
     char *mmap_path;
     ssize_t mmdb_length;
+
+    sb2 maxconn;
 };
 
 _conn *conn_global;

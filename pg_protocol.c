@@ -170,7 +170,7 @@ int AuthPG(const int bfd,const int ffd, DBP *_dbp){
                 isDep = conn_global->quotient-1;                 
             }else{
                 RQ_BUSY(isDep);
-                /*  DEBUG("free isDep:%d", isDep); */
+                /* DEBUG("free isDep:%d", isDep);*/
             }
             if(isDep < conn_global->quotient &&
                 pools_dest->doing == H_FALSE){
@@ -314,9 +314,8 @@ int AuthPG(const int bfd,const int ffd, DBP *_dbp){
                             conn_global->deprule){
                        
                             RQ_BUSY(isDep);
-                        
                             if(isDep > conn_global->quotient){
-                                                            
+                                /* DEBUG("isDep:%d, quotient:%d", isDep, conn_global->quotient);             */
                                 if(memmem(conn_global->deprule, strlen(conn_global->deprule), ply->tab, ply->len)!=NULL){
                                     if(-1 == leadadd ( (ub1 *)_apack->inBuf, (ub4)_apack->inEnd)){
                                         goto leaderr;

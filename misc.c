@@ -169,8 +169,12 @@ void *mcalloc ( size_t nmemb, size_t size, const char *pathname, int flags ){
         close(fd);
         return NULL;
     }
-
+    _hfd_next = NULL;
+    if(!pools_hfd){
+        pools_hfd = inithfd();
+    }
     TAIL_HFD(_hfd_next);
+                       
     _hfd = inithfd();
     if(_hfd){
         _hfd->fd = fd;
@@ -194,6 +198,7 @@ HFD *inithfd ( ){
     if(!_hfd) return NULL;
     _hfd->fd = 0;
     _hfd->fsize = 0; 
+    _hfd->next = NULL;
     return _hfd;
 }		/* -----  end of function inithfd  ----- */
 

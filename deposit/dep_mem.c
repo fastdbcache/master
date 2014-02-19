@@ -28,6 +28,7 @@ DEST *mem_init ( size_t byte ){
     int i, num;
 
     num = (int)(byte / (LIMIT_SLAB_BYTE));
+    DEBUG("num:%d", num);
     _dest = calloc(1, sizeof(DEST));
     if(!_dest) return NULL;
 

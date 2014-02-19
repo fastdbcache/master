@@ -88,11 +88,14 @@ int main(int argc, char* argv[]){
     } 
 
     pools_hfd = inithfd();
-    
+    if(!pools_hfd) {
+        DEBUG("pools_hfd init error");
+        exit(-1);
+    }
     hcreate(8);
 
     /*rq_init(MAXCONN);*/
-    rq_init(256);
+    rq_init(conn_global->maxconn);
 
     work_thread_init(conn_global->process_num);
 

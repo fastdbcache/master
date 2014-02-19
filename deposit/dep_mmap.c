@@ -89,7 +89,7 @@ int mmap_set ( ub1 *key, ub4 keyl ){
     _lens = alignByte(keyl);
 
     _mmpo = pools_dest->pool_mmpo;
-       
+    DEBUG("offset:%llu", _mmpo->offset); 
     if((_mmpo->offset + sizeof(uint32)*3 + _lens) > conn_global->mmdb_length){
         _mmpo->id++; 
         
@@ -97,7 +97,12 @@ int mmap_set ( ub1 *key, ub4 keyl ){
         snprintf(mmdb_name, FILE_PATH_LENGTH-1, "%s/db.%010d",conn_global->mmap_path, _mmpo->id);
         
         _mmpo->offset = 0;                
+        DEBUG("mmdb_name:%s", mmdb_name);
         pools_mmap[0] = (char *)mcalloc(1, sizeof(char)*DEFAULT_MMAP_BYTE, mmdb_name, O_RDWR|O_CREAT);
+        if(!pools_mmap[0]){
+            DEBUG("pools_mmap init error");
+            return -1;
+        }
     }
 
     mmdb = pools_mmap[0];
@@ -180,5 +185,34 @@ int mmap_pushdb ( DBP *_dbp ){
 
     return 0;
 }		/* -----  end of function mmap_pushdb  ----- */
+
+
+/* 
+ * ===  FUNCTION  ======================================================================
+ *         Name:  mmapdb
+ *  Description:  
+ * =====================================================================================
+ */
+void mmapdb ( int id ){
+    void *pdb;
+    MMPO *_mmpo;
+    ub4  _lens;
+    uint32 val, uuid, offset;
+    char mmdb_name[FILE_PATH_LENGTH], *mmdb;
+
+    
+    bzero(mmdb_name, FILE_PATH_LENGTH);
+    snprintf(mmdb_name, FILE_PATH_LENGTH-1, "%s/mmpo.db.%010d",conn_global->mmap_path, id);
+    
+    _mmpo->offset = 0;                
+    DEBUG("mmdb_name:%s", mmdb_name);
+    pdb = mcalloc(1, sizeof(char)*DEFAULT_MMAP_BYTE, mmdb_name, O_RDWR|O_CREAT);
+    if(!pdb){
+        DEBUG("pools_mmap init error");
+        return NULL;
+    }
+
+    return pdb;
+}		/* -----  end of function mmapdb  ----- */
 
  /* vim: set ts=4 sw=4: */

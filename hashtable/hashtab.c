@@ -101,6 +101,7 @@ void addfslab ( HITEM *_ph){
 
     if(pools_hslab[_ph->sid].sm == NULL){        
         pools_hslab[_ph->sid].sm = hslabcreate(_ph->sid);
+        if(pools_hslab[_ph->sid].sm == NULL) return;
     }
 
     pre_sa = htonl(pools_fslab[i].sa);    
@@ -130,9 +131,9 @@ void freefslab ( int i ){
     sa = pools_fslab[i].sa;
     if(sa == -1)return;
      
-    if(pools_hslab[sid].sm == NULL){
-        
+    if(pools_hslab[sid].sm == NULL){        
         pools_hslab[sid].sm = hslabcreate(sid);
+        if(pools_hslab[sid].sm == NULL) return;
     }
 
     memcpy(&pre_sa, pools_hslab[sid].sm+sa, sizeof(uint32));
@@ -206,12 +207,12 @@ int findslab ( ub4 _psize){
             
             hslab->sm = hslabcreate(i); 
             
-            if(!hslab->sm){ 
+            if(hslab->sm == NULL){ 
                 DEBUG("sm init error %d", conn_global->default_bytes);
                 return -1;
             }
             hslab->ss = 0;
-            hslab->sf = conn_global->default_bytes;            
+            hslab->sf = conn_global->default_bytes;
         }
 
         if(hslab->sf > _psize){            

@@ -52,7 +52,10 @@ void fetchdti (  ){
         if(!pd->key){
             goto clear;
         }
-        haddHitem(pd);
+        
+        if( pools_htab->bytes < conn_global->maxbytes ){        
+            haddHitem(pd);
+        }
 
         clear:
             if(pd == pools_hdr_head){
@@ -112,7 +115,6 @@ word haddHitem ( HDR *mhdr ){
             break;
         }
         if(ph->drl == 0){
-             
             if(saveHitem ( ph, hdr, i ) == -1){
                 return -1;
             }
@@ -123,7 +125,6 @@ word haddHitem ( HDR *mhdr ){
              
             pools_htab->count++; 
             pool_hg->count++;
-            DEBUG("new key:%s, count:%d", hdr->key, pools_htab->count);
             hrule ( ph, i,  x,  y, n );
             return 0;     
         }
@@ -144,14 +145,15 @@ word haddHitem ( HDR *mhdr ){
                 ph->drl = 0;
                 break;
             }*/
-            DEBUG("old key:%s", hdr->key);         
             ph->amiss++;
             hrule ( ph, i,  x,  y, n );
             return 0;
-        }else{
-            /*DEBUG("x:%d, y:%d, n:%d", x, y, n);*/
+        }else{            
             n++;
-            hgrow(n);
+            
+            if(n == pools_htab->gcount){
+                hgrow(n);
+            }
         }
         
     }while(n<MAX_HG_LENGTH);
@@ -175,7 +177,6 @@ int saveHitem ( HITEM *_ph, HDR *_hdr, int i ){
     sb2 slab_id;
     ub1 *slab_sm;
 
-   // total_size = _hdr->drl + sizeof(uint32)*2;
     total_size = slabclass[i].size;
     if(pools_fslab[i].sa != -1 &&
        pools_fslab[i].psize != 0 ){
@@ -192,6 +193,12 @@ int saveHitem ( HITEM *_ph, HDR *_hdr, int i ){
         }
     }
     if(ph->sa == -1) return -1;
+    if((ph->sa+total_size) > conn_global->default_bytes){
+        DEBUG("sa add total_size error");
+        return -1;
+    }
+    if(pools_hslab[ph->sid].sm == NULL) return -1;
+
     slab_sm = pools_hslab[ph->sid].sm + ph->sa;
     if(!slab_sm) return -1;
     
@@ -200,7 +207,6 @@ int saveHitem ( HITEM *_ph, HDR *_hdr, int i ){
     ph->drl = hdr->drl;
     ph->psize = slabclass[i].size;    
     ph->utime = hdr->stime;
-        
     pre_sa = htonl(-1); 
     memcpy(slab_sm, &pre_sa, sizeof(uint32));
     pre_sid = htonl(0); 

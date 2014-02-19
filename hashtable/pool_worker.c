@@ -67,12 +67,12 @@ HITEM *hfind ( char *key, ub4 keyl ){
         y = hjval&(MAX_HITEM_LENGTH-1); 
         _hrow = pool_hg->hrow + x;
         ph = _hrow->hitem + y;
-
+        
         if(!ph){
             DEBUG("hp is null");
             break;
         }
-        //DEBUG("hval:%llu, x:%d, y:%d, m:%d", hval, x, y, m);
+        //DEBUG("pool_hg:%llu, _hrow:%llu, ph:%llu,m:%d, key:%s",pool_hg, _hrow, ph, m, key);
         //DEBUG("ph->hval:%llu", ph->drl);
         if(hval == ph->hval &&
             (keyl == ph->keyl) &&
@@ -121,6 +121,7 @@ void getslab ( HITEM * hitem, SLABPACK *dest){
     if(pools_hslab[_ph->sid].sm == NULL){
         
         pools_hslab[_ph->sid].sm = hslabcreate(_ph->sid);
+        if(pools_hslab[_ph->sid].sm == NULL) return;
     }
     dest->pack = pools_hslab[_ph->sid].sm + _ph->sa + sizeof(uint32)*2;
     dest->len = _ph->drl;
