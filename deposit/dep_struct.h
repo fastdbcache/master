@@ -56,10 +56,10 @@ struct __depstat
 { 
     ub4         maxbyte;  /* max  byte for deposit  */
     H_STATE     isfull;   /* default H_FALSE , H_TRUE is full */
-    sb2         total;    /* total >= count  */
-    sb2         count;   /* how much malloc depo sm */
-    sb2         sd;     /* now start DEPO */
-    sb2         nd;    /* now doing DEPO */
+    int         total;    /* total >= count  */
+    int         count;   /* how much malloc depo sm */
+    int         sd;     /* now start DEPO */
+    int         nd;    /* now doing DEPO */
     MMPO        *pool_mmpo;  /* for mmap 0 is sa, 1 is na */
     H_USESTAT   fe;     /* the first deposit is free default H_USE , H_FREE is free */
     H_STATE doing;      /* H_TRUE one thread to do, H_FALSE none to do */

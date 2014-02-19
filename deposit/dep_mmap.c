@@ -24,7 +24,7 @@
  * =====================================================================================
  */
 MMPO *mmpo_init (  ){
-    MMPO *_mmpo;   
+    MMPO *_mmpo, *_mmpo_des;
     char meta[]="mmpo.meta";
     char mmdb[FILE_PATH_LENGTH];
 
@@ -32,10 +32,13 @@ MMPO *mmpo_init (  ){
     snprintf(mmdb, FILE_PATH_LENGTH-1, "%s/%s",conn_global->mmap_path, meta);
               
     _mmpo = (MMPO *) mcalloc(2, sizeof(MMPO), mmdb, O_RDWR|O_CREAT);
-    
-    pools_mmap[_mmpo->id++] = (char *)mmapdb(_mmpo->id++);
-    _mmpo->offset = 0;
-    return _mmpo;
+    _mmpo_des = _mmpo;
+
+    pools_mmap[0] = mmapdb(_mmpo->id);
+    _mmpo = _mmpo+1;
+    pools_mmap[1] = mmapdb(_mmpo->id);
+
+    return _mmpo_des;
 }		/* -----  end of function mmpo_init  ----- */
 
 /* 
@@ -48,8 +51,8 @@ DEST *mmap_init ( size_t byte ){
     int num;
     DEST *_dest;
     uint32 val;
-    
-    num = (int)(byte / (LIMIT_SLAB_BYTE));
+   
+    num = byte / (DEFAULT_MMAP_BYTE);
     _dest = (DEST *)calloc(1, sizeof(DEST));
     if(!_dest) return NULL;
 
@@ -94,20 +97,15 @@ int mmap_set ( ub1 *key, ub4 keyl ){
     DEBUG("offset:%llu", _mmpo->offset); 
     if((_mmpo->offset + sizeof(uint32)*3 + _lens) > conn_global->mmdb_length){
         _mmpo->id++; 
-           
-        bzero(mmdb_name, FILE_PATH_LENGTH);
-        snprintf(mmdb_name, FILE_PATH_LENGTH-1, "%s/db.%010d",conn_global->mmap_path, _mmpo->id);
-        
+                
         _mmpo->offset = 0;                
         DEBUG("mmdb_name:%s", mmdb_name);
-        pools_mmap[0] = (char *)mcalloc(1, sizeof(char)*DEFAULT_MMAP_BYTE, mmdb_name, O_RDWR|O_CREAT);
+        pools_mmap[0] = (char *)mmapdb(_mmpo->id);
         if(!pools_mmap[0]){
             DEBUG("pools_mmap init error");
             return -1;
         }
 
-        pools_mmap[_mmpo->id++] = (char *)mmapdb(_mmpo->id++);
-        _mmpo->offset = 0;
     }
 
     mmdb = pools_mmap[0];
@@ -146,15 +144,22 @@ int mmap_pushdb ( DBP *_dbp ){
     }
     mmdb = pools_mmap[1];
     mmdb += _mmpo->offset;
-  
+    if( _mmpo->offset+sizeof(uint32)  >= conn_global->mmdb_length ){
+        if(pools_dest->pool_mmpo[0].id == _mmpo->id) return -1;        
+        _mmpo->id++;
+        
+        pools_mmap[1] =(char *)mmapdb(_mmpo->id);
+        _mmpo->offset = 0; 
+        mmdb = pools_mmap[1];
+        mmdb += _mmpo->offset;
+    }
     memcpy(&val, mmdb, sizeof(uint32));
     uuid = ntohl(val);
     if(uuid == 0){
         if(pools_dest->pool_mmpo[0].id == _mmpo->id) return -1;        
         _mmpo->id++;
-        bzero(mmdb_name, FILE_PATH_LENGTH);
-        snprintf(mmdb_name, FILE_PATH_LENGTH-1, "db.%010d", _mmpo->id);
-        pools_mmap[1] = (char *)mcalloc(1, sizeof(char)*DEFAULT_MMAP_BYTE, mmdb_name, O_RDWR);
+        
+        pools_mmap[1] =(char *)mmapdb(_mmpo->id);
         _mmpo->offset = 0; 
         mmdb = pools_mmap[1];
         mmdb += _mmpo->offset;
@@ -204,7 +209,7 @@ void *mmapdb ( int id ){
     ub4  _lens;
     uint32 val, uuid, offset;
     char mmdb_name[FILE_PATH_LENGTH], *mmdb;
-    
+        
     bzero(mmdb_name, FILE_PATH_LENGTH);
     snprintf(mmdb_name, FILE_PATH_LENGTH-1, "%s/mmpo.db.%010d",conn_global->mmap_path, id);
     
