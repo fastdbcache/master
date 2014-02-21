@@ -68,7 +68,7 @@ struct __depstat
 typedef  struct __depstat  DEST;
 
 DEST *pools_dest;
-char pools_mmap[2];
+char *pools_mmap[2];
 pthread_mutex_t work_lock_depo;
 pthread_mutex_t work_lock_deps_do;
 

@@ -170,7 +170,7 @@ int AuthPG(const int bfd,const int ffd, DBP *_dbp){
                 isDep = conn_global->quotient-1;                 
             }else{
                 RQ_BUSY(isDep);
-                /* DEBUG("free isDep:%d", isDep);*/
+                 DEBUG("free isDep:%d, quotient:%d", isDep, conn_global->quotient);
             }
             if(isDep < conn_global->quotient &&
                 pools_dest->doing == H_FALSE){

@@ -82,7 +82,7 @@ void _lysave(_ly *myly, char *_src){
 
     if(myly->tab == NULL){
         myly->len = len;
-        myly->tab = malloc( myly->len*sizeof(char));
+        myly->tab = calloc(1, myly->len*sizeof(char));
         if(!myly->tab){
             freely(myly);
             myly = NULL;
