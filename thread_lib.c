@@ -58,9 +58,7 @@ void libevent_work_thread(int fd, short ev, void *arg){
     if(pg_len != pack_len) goto ok;
                
     AuthPG(pg_fds, ffd, _dbp);
-                  
-    work_child->isjob = JOB_FREE;
-          
+                            
     if(notify_token_thread == NT_FREE){
         uint64_t u;
         ssize_t s;
@@ -74,11 +72,12 @@ void libevent_work_thread(int fd, short ev, void *arg){
 
 
     ok:    
+        work_child->rq_item->isjob = JOB_FREE;
+        work_child->isjob = JOB_FREE;
         close(pg_fds) ;
         close(work_child->rq_item->frontend->ffd);
         //if(close(work_child->rq_item->frontend->ffd) == -1)DEBUG("close fd error");
-        work_child->rq_item->isjob = JOB_FREE;
-        work_child->isjob = JOB_FREE;        
+                
 }
 
 void work_thread_init(int nthreads){
@@ -266,6 +265,9 @@ void libevent_token_thread( int fd, short ev,void *arg){
                     break;
                 }
                 if(write(thread->notify_write_fd, "", 1) != 1){
+                    rq_item->isjob = JOB_HAS;
+                    work_child->isjob = JOB_FREE;
+                    close(rq_item->frontend->ffd);
                     DEBUG("write thread error");
                 }
             }
@@ -339,7 +341,7 @@ int rq_push(int client_fd){
     if(rq_queue_head->isjob != JOB_FREE) return -1;
 
     rq_queue_head->frontend->ffd = client_fd;
-    rq_queue_head->frontend->ctime = get_sec() ;
+    rq_queue_head->frontend->ctime = 0 ;
     rq_queue_head->isjob = JOB_HAS;
     rq_queue_head = rq_queue_head->next;
 

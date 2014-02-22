@@ -33,23 +33,21 @@ void on_accept(int fd, short ev, void *arg){
         DEBUG("accept error %s --", err);
 		return;
 	}
-    if(rq_push(client_fd) == 0){
-        if(notify_token_thread == NT_FREE){
-            /*  thread = work_threads+1;
-              write(thread->notify_write_fd, "", 1);       
-                 token_sem_post();*/
-             u = 1;
-             s = write(token_efd, &u , sizeof(uint64_t));
-
-             if(s != sizeof(uint64_t))DEBUG("write to token_efd");
- 
-        }
-        /*else{
-            DEBUG("notify_token error");
-        }    */  
-    }else{
+    if(rq_push(client_fd) != 0){
+        RQ_BUSY(isDep);           
+        DEBUG("action isDep:%d", isDep);
         close(client_fd);
         d_log("RQ is full");
+    }
+    if(notify_token_thread == NT_FREE){
+        /*  thread = work_threads+1;
+          write(thread->notify_write_fd, "", 1);       
+             token_sem_post();*/
+         u = 1;
+         s = write(token_efd, &u , sizeof(uint64_t));
+
+         if(s != sizeof(uint64_t))DEBUG("write to token_efd");
+
     }
 
     if(proc_status == NT_FREE){

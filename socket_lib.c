@@ -291,13 +291,14 @@ size_t Socket_Send(int c_fd, const void *buf, ssize_t len){
 		{
 			if(errno == EAGAIN || errno == EINTR)
 			{
+
+                DEBUG("Oh dear, something went wrong with read()! %s", strerror(errno));
 				continue;
 			}
 		}else if(nsend == 0)return -1;	
         
         offset += nsend;
         if(offset == len) stop = 1;
-
 	}while(!stop);
 
 	return offset;
