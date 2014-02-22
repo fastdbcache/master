@@ -202,7 +202,11 @@ int AuthPG(const int bfd,const int ffd, DBP *_dbp){
             if(lead_res == -1){
                 pools_dest->doing = H_FALSE;
                 depo_lock = H_FALSE;
-                
+                if(conn_global->deptype == D_MEM){
+                    depo_pack->inBuf = NULL;
+                    depo_pack->inEnd = 0;
+                    depo_pack->inBufSize = 0;
+                }
                 leadexit(depo_pack);               
                 DEBUG("exit lead");
             }
@@ -211,10 +215,10 @@ int AuthPG(const int bfd,const int ffd, DBP *_dbp){
             Socket_Send(bfd, depo_pack->inBuf, depo_pack->inEnd);
             DEBUG("inEnd:%d", depo_pack->inEnd);
             if(*depo_pack->inBuf == 'X'){
-                if(conn_global->deptype == D_MMAP){
-                    free(depo_pack->inBuf);
-                    depo_pack->inBuf = NULL;
-                }
+                //if(conn_global->deptype == D_MMAP){
+                 //   free(depo_pack->inBuf);
+                  //  depo_pack->inBuf = NULL;
+                //}
                 freedbp(depo_pack);
                 /*freedbp(_apack);   */
                 return -1;

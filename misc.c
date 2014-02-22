@@ -59,7 +59,7 @@ int CheckBufSpace ( ssize_t endPos, DBP *_dbp ){
     char *newbuf;
 
     if(!_dbp)return -1;
-    
+   
     if(_dbp->inEnd != 0){
         _dbp->inCursor = _dbp->inEnd;
     }
