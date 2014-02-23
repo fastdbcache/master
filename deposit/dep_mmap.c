@@ -211,6 +211,7 @@ int mmap_pushdb ( DBP *_dbp ){
         uuid = ntohl(val);
 
         if(uuid == 0 ){
+            unmmapdb();
             if(pools_dest->pool_mmpo[0].id > _mmpo->id){
                 _mmpo->id++;        
                 pools_mmap[1] =(char *)mmapdb(_mmpo->id);
@@ -221,9 +222,8 @@ int mmap_pushdb ( DBP *_dbp ){
                 _mmpo->offset = 0;
                 goto found_mmdb;     
             }else{
-                DEBUG("pushdb id eq");
-
-                unmmapdb();
+                
+                DEBUG("pushdb id eq");                
                 return -1;
             }
         }
