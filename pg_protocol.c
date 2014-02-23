@@ -197,16 +197,16 @@ int AuthPG(const int bfd,const int ffd, DBP *_dbp){
             if(!depo_pack){
                 depo_pack = initdbp();
             }
-            
+            depo_pack->inEnd = 0; 
             lead_res = leadpush(depo_pack);
             if(lead_res == -1){
                 pools_dest->doing = H_FALSE;
                 depo_lock = H_FALSE;
                 if(conn_global->deptype == D_MEM){
                     depo_pack->inBuf = NULL;
-                    depo_pack->inEnd = 0;
                     depo_pack->inBufSize = 0;
                 }
+                depo_pack->inEnd = 0;
                 leadexit(depo_pack);               
                 DEBUG("exit lead");
             }

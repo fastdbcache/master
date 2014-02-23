@@ -224,7 +224,6 @@ int mmap_pushdb ( DBP *_dbp ){
         return -1;
     }
     memcpy(_dbp->inBuf, mmdb+sizeof(uint32)*2, len);
-    _dbp->inEnd = len;
     
     ply = parser_do (_dbp->inBuf+sizeof(char)+sizeof(uint32), len-sizeof(char)-sizeof(uint32));
 
@@ -238,16 +237,13 @@ int mmap_pushdb ( DBP *_dbp ){
     /*DEBUG("pushdb len:%d, tab:%s", ply->len, ply->tab);  */
     pushList((ub1 *)ply->tab, ply->len, utime);
 
-    //len = alignByte(len);
-        
     etime = htonl((int)utime);
-    //_mmpo->offset += sizeof(uint32)*2+len;
     memcpy(mmdb+sizeof(uint32)*2+len, &etime, sizeof(uint32) );
     _mmpo->offset += alignByte(len+sizeof(uint32)*3);
     
     _mmpo->uuid++;    
 
-    return 0;
+    return len;
 }		/* -----  end of function mmap_pushdb  ----- */
 
 
