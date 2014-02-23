@@ -202,9 +202,10 @@ int AuthPG(const int bfd,const int ffd, DBP *_dbp){
         }
         
         if(depo_lock == H_TRUE){
-            DEBUG("1");
             if(*_apack->inBuf == 'C' ||
-                *_apack->inBuf == 'E'){
+                *_apack->inBuf == 'T' ||
+                *_apack->inBuf == 'E' ||
+                *_apack->inBuf == 'D'){
                 goto free_pack;
             }
             if(!depo_pack){
@@ -221,12 +222,12 @@ int AuthPG(const int bfd,const int ffd, DBP *_dbp){
                 }
                 depo_pack->inEnd = 0;
                 leadexit(depo_pack);               
-                DEBUG("exit lead");
             }
-            if(!depo_pack->inBuf) return -1;
-            DEBUG("2 lead_res:%d, depo_pack->inEnd:%d", lead_res, depo_pack->inEnd);
+            /*if(!depo_pack->inBuf) return -1;
+            uint32 ulens;
+            memcpy(&ulens, depo_pack->inBuf+sizeof(char), sizeof(uint32));
+            DEBUG("ask:%c 2 lead_res:%d, depo_pack->inEnd:%d, ulens:%llu",*_apack->inBuf, lead_res, depo_pack->inEnd, ntohl(ulens));    */
             Socket_Send(bfd, depo_pack->inBuf, depo_pack->inEnd);
-            DEBUG("inEnd:%d", depo_pack->inEnd);
             if(*depo_pack->inBuf == 'X'){
                 //if(conn_global->deptype == D_MMAP){
                  //   free(depo_pack->inBuf);
@@ -245,7 +246,7 @@ int AuthPG(const int bfd,const int ffd, DBP *_dbp){
                 DEBUG("error");
             }
         }
-        /*DEBUG("1.ask:%c", *(_apack->inBuf));    */
+        /*DEBUG("1.ask:%c", *(_apack->inBuf));  */
         switch ( *_apack->inBuf ) {
             case 'R':	
                 /* total eq 8 is AuthenticationOk */

@@ -44,6 +44,7 @@ MMPO *mmpo_init (  );
 DEST *mmap_init ( size_t byte );
 int mmap_set ( ub1 *key, ub4 keyl );
 void *mmapdb ( int id );
+void unmmapdb ( );
 #ifdef __cplusplus
  }
 #endif

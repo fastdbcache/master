@@ -142,12 +142,15 @@ void getCont (  ){
  */
 void *mcalloc ( size_t nmemb, size_t size, const char *pathname, int flags ){
     int fd;
-    int result;
+    int result, len;
     size_t line;
     void *start;
     struct stat sb;
     char name[1];
     HFD *_hfd, *_hfd_next;    
+
+    len = strlen(pathname);
+    if(len >FILE_PATH_LENGTH) return NULL;
 
     fd = open(pathname, flags, (mode_t)0660);
     if(fd==-1){
@@ -187,17 +190,52 @@ void *mcalloc ( size_t nmemb, size_t size, const char *pathname, int flags ){
         pools_hfd = inithfd();
     }
     TAIL_HFD(_hfd_next);
-                       
+                           
     _hfd = inithfd();
     if(_hfd){
         _hfd->fd = fd;
         _hfd->fsize = sb.st_size;
+        memcpy(_hfd->name, pathname, len); 
+        _hfd->name[len+1]='\0';
+        _hfd->len = len;
+        _hfd->ptr = start;
         _hfd_next->next = _hfd;
     }
 
     return start;
 }		/* -----  end of function mcalloc  ----- */
 
+
+/* 
+ * ===  FUNCTION  ======================================================================
+ *         Name:  unmmap
+ *  Description:  
+ * =====================================================================================
+ */
+void unmmap ( const char *pathname ){
+    HFD *_hfd, *_hfd_next;
+    int len;
+    _hfd = pools_hfd;
+    len = strlen(pathname);
+    while(_hfd && _hfd->next){
+        _hfd_next = _hfd;
+        _hfd = _hfd->next;
+        if(_hfd->len == len &&
+            strncmp(_hfd->name, pathname, len)==0){
+
+            if (munmap(_hfd->ptr, _hfd->fsize) == -1) {
+                perror("Error un-mmapping the file");
+                /* Decide here whether to close(fd) and exit() or not. Depends... */
+            }            
+            close(_hfd->fd);
+            _hfd_next->next = _hfd->next;
+            free(_hfd);
+            _hfd=NULL;
+            return;
+        }
+    }
+    
+}		/* -----  end of function unmmap  ----- */
 /* 
  * ===  FUNCTION  ======================================================================
  *         Name:  inithfd
@@ -211,6 +249,9 @@ HFD *inithfd ( ){
     if(!_hfd) return NULL;
     _hfd->fd = 0;
     _hfd->fsize = 0; 
+    _hfd->name[0] = '\0'; 
+    _hfd->len = 0;
+    _hfd->ptr = NULL;
     _hfd->next = NULL;
     return _hfd;
 }		/* -----  end of function inithfd  ----- */

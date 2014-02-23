@@ -43,6 +43,7 @@ void freedbp ( DBP *_dbp );
 int CheckBufSpace ( ssize_t endPos, DBP *_dbp );
 int getInt ( int *result, size_t bytes, DBP *_dbp );
 void *mcalloc ( size_t nmemb, size_t size, const char *pathname, int flags);
+void unmmap ( const char *pathname );
 HFD *inithfd ( );
 void freehfd ( HFD *_hfd );
 

@@ -32,6 +32,7 @@
 
 #include "dep_mmap.h"
 
+uint32 last_mmpo_id = 0;
 /* 
  * ===  FUNCTION  ======================================================================
  *         Name:  mmpo_init
@@ -134,10 +135,10 @@ int mmap_set ( ub1 *key, ub4 keyl ){
                 return -1;
             }
         }
-
-        _mmpo->id++; 
-         
-        _mmpo->offset = 0;                
+        //if(_mmpo->id != pools_dest->pool_mmpo[1].id)
+        //    unmmapdb(pools_mmap[0], _mmpo->id);         
+        _mmpo->offset = 0;        
+         _mmpo->id++;   
         pools_mmap[0] = (char *)mmapdb(_mmpo->id);
         if(!pools_mmap[0]){
             DEBUG("pools_mmap init error");
@@ -221,6 +222,8 @@ int mmap_pushdb ( DBP *_dbp ){
                 goto found_mmdb;     
             }else{
                 DEBUG("pushdb id eq");
+
+                unmmapdb();
                 return -1;
             }
         }
@@ -258,7 +261,7 @@ int mmap_pushdb ( DBP *_dbp ){
     
     _mmpo->uuid++;    
 
-    return len;
+    return 0;
 }		/* -----  end of function mmap_pushdb  ----- */
 
 
@@ -287,5 +290,33 @@ void *mmapdb ( int id ){
 
     return pdb;
 }		/* -----  end of function mmapdb  ----- */
+
+
+/* 
+ * ===  FUNCTION  ======================================================================
+ *         Name:  unmmapdb
+ *  Description:  
+ * =====================================================================================
+ */
+void unmmapdb (){
+    char mmdb_name[FILE_PATH_LENGTH], *mmdb;
+    uint32 id;
+    MMPO *_mmpo;
+
+    _mmpo = pools_dest->pool_mmpo+1;
+    if(!_mmpo) {
+        DEBUG("mmpo error");
+        return -1;
+    }
+    id = last_mmpo_id;
+    for(; id<_mmpo->id; id++){
+        bzero(mmdb_name, FILE_PATH_LENGTH);
+        snprintf(mmdb_name, FILE_PATH_LENGTH-1, "%s/mmpo.db.%010d",conn_global->mmap_path, id);
+        DEBUG("unmmapdb: %s",mmdb_name); 
+        unmmap ( mmdb_name );
+    }
+    last_mmpo_id = id;
+
+}		/* -----  end of function unmmapdb  ----- */
 
  /* vim: set ts=4 sw=4: */

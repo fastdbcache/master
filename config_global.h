@@ -193,6 +193,9 @@ struct __fd
 {
     int fd;
     size_t fsize;
+    char name[FILE_PATH_LENGTH];
+    int len;
+    char *ptr;
     struct __fd *next;
 };
 typedef struct __fd HFD;
