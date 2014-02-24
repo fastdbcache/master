@@ -292,9 +292,9 @@ void checkLimit ( DBP *dbp ){
     snprintf(setlimit, 19, " %s %d;", limit, conn_global->limit_rows);
 
     len = strlen(setlimit)+1;
-    i = 1;
+    i = 0;
 
-    while(i<_dbp->inEnd){
+    while(i++<_dbp->inEnd){
         if((*(_dbp->inBuf+_dbp->inEnd-i) >47 &&
             *(_dbp->inBuf+_dbp->inEnd-i) <58 )||
             (*(_dbp->inBuf+_dbp->inEnd-i) >64 &&
@@ -303,25 +303,28 @@ void checkLimit ( DBP *dbp ){
            (*(_dbp->inBuf+_dbp->inEnd-i) <123 )||
             *(_dbp->inBuf+_dbp->inEnd-i) ==34 ||
             *(_dbp->inBuf+_dbp->inEnd-i) ==39 ){                        
+            i=0;
             break;
         }
         if(*(_dbp->inBuf+_dbp->inEnd-i) == ';'){
+            DEBUG("i ll:%d", i);
+            
+            DEBUG("i:%d", i);
             break;
-        }
-        i++;
+        } 
     }
     if(i==_dbp->inEnd)return;
      
-    DEBUG("start sql:%s",_dbp->inBuf+_dbp->inCursor);
+    DEBUG("i:%d, start sql:%s",i, _dbp->inBuf+_dbp->inCursor);
     start_addr = _dbp->inEnd-i;
-    DEBUG("i:%d , start_addr:%d",i, start_addr);
-
+    
     if(CheckBufSpace((len - i), _dbp) != 0){
         DEBUG("CheckBufSpace error");
         return -1;
     }
-    memcpy(_dbp->inBuf+start_addr+1, setlimit, len);
-    
+    DEBUG("i:%d , start_addr:%d, end:%d",i, start_addr, _dbp->inEnd);
+    memcpy(_dbp->inBuf+start_addr, setlimit, len);
+     
     _dbp->inCursor = sizeof(char)+sizeof(uint32);
     total_len = htonl((_dbp->inEnd-sizeof(char)));
     memcpy(_dbp->inBuf+sizeof(char), &total_len, sizeof(uint32));
