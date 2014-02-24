@@ -312,9 +312,9 @@ int hslabclass ( void ){
  */
 HDR *hdrcreate (  ){
     HDR *d;
-    d = (HDR *)calloc(1, sizeof(HDR));
+    d = (HDR *)calloc(1, sizeof(HDR));    
     if(d){
-        d->key = NULL;
+        d->key[0] = '\0';
         d->keyl = 0;
         d->stime = 0;
         d->flag = H_TRUE;

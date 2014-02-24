@@ -120,6 +120,7 @@ int mem_set ( ub1 *key, ub4 keyl ){
         _depo->se=0;
         if(_dest->count * (LIMIT_SLAB_BYTE) > _dest->maxbyte) {
             DEPO_UNLOCK();
+            DEBUG("no momey use for dep_mem");
             return -1;    
         }
         _depo->sm = calloc(1, LIMIT_SLAB_BYTE*sizeof(ub1));

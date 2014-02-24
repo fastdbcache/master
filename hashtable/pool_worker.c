@@ -237,8 +237,7 @@ void pushList ( char *key, ub4 keyl, ub4 utime ){
  */
 void freeHdr ( HDR *fhdr ){
     if(!fhdr)return;
-    if(fhdr->key)
-        free(fhdr->key);
+    
     if(fhdr->dr)
         free(fhdr->dr);
     free(fhdr);

@@ -227,6 +227,7 @@ void unmmap ( const char *pathname ){
                 perror("Error un-mmapping the file");
                 /* Decide here whether to close(fd) and exit() or not. Depends... */
             }            
+            DEBUG("size:%llu", _hfd->fsize);
             close(_hfd->fd);
             _hfd_next->next = _hfd->next;
             free(_hfd);
@@ -269,6 +270,63 @@ void freehfd ( HFD *_hfd ){
     close(_hfd->fd);
     free(_hfd);
 }		/* -----  end of function freehfd  ----- */
+
+
+/* 
+ * ===  FUNCTION  ======================================================================
+ *         Name:  checkLimit
+ *  Description:  
+ * =====================================================================================
+ */
+void checkLimit ( DBP *dbp ){
+    DBP *_dbp;
+    char limit[]="LIMIT";
+    char setlimit[20];
+    int len, i;
+    uint32 start_addr, total_len;
+
+    _dbp = dbp;
+    
+    if(memmem(_dbp->inBuf, _dbp->inEnd, limit, 5) != NULL) return;
+    bzero(setlimit, 20);
+    snprintf(setlimit, 19, " %s %d;", limit, conn_global->limit_rows);
+
+    len = strlen(setlimit)+1;
+    i = 1;
+
+    while(i<_dbp->inEnd){
+        if((*(_dbp->inBuf+_dbp->inEnd-i) >47 &&
+            *(_dbp->inBuf+_dbp->inEnd-i) <58 )||
+            (*(_dbp->inBuf+_dbp->inEnd-i) >64 &&
+            *(_dbp->inBuf+_dbp->inEnd-i) <91 )||
+            *(_dbp->inBuf+_dbp->inEnd-i) >96 &&
+           (*(_dbp->inBuf+_dbp->inEnd-i) <123 )||
+            *(_dbp->inBuf+_dbp->inEnd-i) ==34 ||
+            *(_dbp->inBuf+_dbp->inEnd-i) ==39 ){                        
+            break;
+        }
+        if(*(_dbp->inBuf+_dbp->inEnd-i) == ';'){
+            break;
+        }
+        i++;
+    }
+    if(i==_dbp->inEnd)return;
+     
+    DEBUG("start sql:%s",_dbp->inBuf+_dbp->inCursor);
+    start_addr = _dbp->inEnd-i;
+    DEBUG("i:%d , start_addr:%d",i, start_addr);
+
+    if(CheckBufSpace((len - i), _dbp) != 0){
+        DEBUG("CheckBufSpace error");
+        return -1;
+    }
+    memcpy(_dbp->inBuf+start_addr+1, setlimit, len);
+    
+    _dbp->inCursor = sizeof(char)+sizeof(uint32);
+    total_len = htonl((_dbp->inEnd-sizeof(char)));
+    memcpy(_dbp->inBuf+sizeof(char), &total_len, sizeof(uint32));
+     
+}		/* -----  end of function checkLimit  ----- */
 
  /* vim: set ts=4 sw=4: */
 

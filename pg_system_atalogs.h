@@ -38,6 +38,8 @@
 
 static const char *Query_for_list[] = {
     "pg_",
+    "INFORMATION_SCHEMA",
+    "information",
    /*  {12, "pg_aggregate"},
     "pg_am",
     "pg_amop",

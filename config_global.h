@@ -103,6 +103,7 @@ typedef                 int  word;  /* fastest type available */
 #define MD5_LENG 33
 
 #define MAXCONNS 5
+#define LIMITROW 30
 
 #define FILE_PATH_LENGTH 256
 #define LIMIT_MMAP_BYTE ( 1024 * 1024 )
@@ -277,6 +278,7 @@ struct __conn{
     ssize_t mmdb_length;
 
     sb2 maxconn;
+    sb2 limit_rows;    /* max return limit rows */
 };
 
 _conn *conn_global;

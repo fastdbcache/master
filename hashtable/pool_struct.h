@@ -147,7 +147,7 @@ typedef  struct __haru_group  HARUG;
 /* for select any proc */
 struct __hdr
 {
-  ub1           *key;     /* sql that is hashed */
+  ub1           key[KEY_LENGTH];     /* sql that is hashed */
   ub4           keyl;     /* length of key */
   ub4           stime;    /* select time */
   H_STATE       flag;     /* TRUE default FALSE is del */

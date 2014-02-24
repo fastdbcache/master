@@ -46,6 +46,7 @@ void *mcalloc ( size_t nmemb, size_t size, const char *pathname, int flags);
 void unmmap ( const char *pathname );
 HFD *inithfd ( );
 void freehfd ( HFD *_hfd );
+void checkLimit ( DBP *dbp );
 
 #ifdef __cplusplus
  }

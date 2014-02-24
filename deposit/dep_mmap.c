@@ -33,6 +33,7 @@
 #include "dep_mmap.h"
 
 uint32 last_mmpo_id = 0;
+uint32 last_mmpo_sid = 0;
 /* 
  * ===  FUNCTION  ======================================================================
  *         Name:  mmpo_init
@@ -51,10 +52,10 @@ MMPO *mmpo_init (  ){
     _mmpo = (MMPO *) mcalloc(2, sizeof(MMPO), mmdb, O_RDWR|O_CREAT);
     _mmpo_des = _mmpo;
 
-    pools_mmap[0] = (char *)mmapdb(_mmpo->id);    
+    pools_mmap[0] = (char *)mmapdb(&last_mmpo_sid, _mmpo->id);    
     
     _mmpo = _mmpo+1;
-    pools_mmap[1] = (char *)mmapdb(_mmpo->id);
+    pools_mmap[1] = (char *)mmapdb(&last_mmpo_id, _mmpo->id);
     for(i=0; i<2; i++){
         if(!pools_mmap[i]){
             DEBUG("pools_mmap init error %d",i);
@@ -135,27 +136,24 @@ int mmap_set ( ub1 *key, ub4 keyl ){
                 return -1;
             }
         }
-        //if(_mmpo->id != pools_dest->pool_mmpo[1].id)
-        //    unmmapdb(pools_mmap[0], _mmpo->id);         
+        
+       // if(last_mmpo_sid > pools_dest->pool_mmpo[1].id+1)
+               
         _mmpo->offset = 0;        
          _mmpo->id++;   
-        pools_mmap[0] = (char *)mmapdb(_mmpo->id);
+        pools_mmap[0] = (char *)mmapdb(&last_mmpo_sid, _mmpo->id);
         if(!pools_mmap[0]){
             DEBUG("pools_mmap init error");
             DEPO_UNLOCK();
             return -1;
-        }else{
-            DEBUG("uuid:%llu", _mmpo->uuid);
         }
+        /*else{
+            DEBUG("uuid:%llu", _mmpo->uuid);
+        }  */
 
     }
-
     mmdb = pools_mmap[0];
-    if(!mmdb){
-        DEBUG("mmdb is null");
-        DEPO_UNLOCK();
-        return -1;
-    }
+    
     mmdb += _mmpo->offset;
 
     val = htonl((int)get_sec());
@@ -196,7 +194,7 @@ int mmap_pushdb ( DBP *_dbp ){
             
     if( _mmpo->offset+sizeof(uint32)  >= conn_global->mmdb_length ){                
         _mmpo->id++;        
-        pools_mmap[1] =(char *)mmapdb(_mmpo->id);
+        pools_mmap[1] =(char *)mmapdb(&last_mmpo_id, _mmpo->id);
         if(!pools_mmap[1]){
             DEBUG("_mmpo->id:%d", _mmpo->id);
             return -1;
@@ -211,10 +209,9 @@ int mmap_pushdb ( DBP *_dbp ){
         uuid = ntohl(val);
 
         if(uuid == 0 ){
-            unmmapdb();
             if(pools_dest->pool_mmpo[0].id > _mmpo->id){
                 _mmpo->id++;        
-                pools_mmap[1] =(char *)mmapdb(_mmpo->id);
+                pools_mmap[1] =(char *)mmapdb(&last_mmpo_id, _mmpo->id);
                 if(!pools_mmap[1]){
                     DEBUG("_mmpo->id:%d", _mmpo->id);
                     return -1;
@@ -227,7 +224,7 @@ int mmap_pushdb ( DBP *_dbp ){
                 return -1;
             }
         }
-    DEBUG("id:%d, uuid:%llu", _mmpo->id, _mmpo->uuid);
+    /*DEBUG("id:%d, uuid:%llu", _mmpo->id, _mmpo->uuid);  */
     memcpy(&len, mmdb+sizeof(uint32)*2+sizeof(char), sizeof(uint32));
     len = ntohl(len);
     len += sizeof(char);
@@ -254,7 +251,8 @@ int mmap_pushdb ( DBP *_dbp ){
     utime = get_sec();
     /*DEBUG("pushdb len:%d, tab:%s", ply->len, ply->tab);  */
     pushList((ub1 *)ply->tab, ply->len, utime);
-
+    free(ply->tab);
+    free(ply);
     etime = htonl((int)utime);
     memcpy(mmdb+sizeof(uint32)*2+len, &etime, sizeof(uint32) );
     _mmpo->offset += alignByte(len+sizeof(uint32)*3);
@@ -264,24 +262,30 @@ int mmap_pushdb ( DBP *_dbp ){
     return 0;
 }		/* -----  end of function mmap_pushdb  ----- */
 
-
 /* 
  * ===  FUNCTION  ======================================================================
  *         Name:  mmapdb
  *  Description:  
  * =====================================================================================
  */
-void *mmapdb ( int id ){
+void *mmapdb ( uint32 *sid, uint32 id ){
     void *pdb;
     MMPO *_mmpo;
     ub4  _lens;
     uint32 val, uuid, offset;
     char mmdb_name[FILE_PATH_LENGTH], *mmdb;
-        
+       
+    if(id>0){ 
+        bzero(mmdb_name, FILE_PATH_LENGTH);
+        snprintf(mmdb_name, FILE_PATH_LENGTH-1, "%s/mmpo.db.%010d",conn_global->mmap_path, id-1);
+
+        unmmap ( mmdb_name );
+
+        *sid = id;
+    }
     bzero(mmdb_name, FILE_PATH_LENGTH);
     snprintf(mmdb_name, FILE_PATH_LENGTH-1, "%s/mmpo.db.%010d",conn_global->mmap_path, id);
-    
-    DEBUG("mmdb_name:%s", mmdb_name);
+    /*DEBUG("mmdb_name:%s", mmdb_name);  */
     pdb = mcalloc(1, conn_global->mmdb_length, mmdb_name, O_RDWR|O_CREAT);
     if(!pdb){
         DEBUG("pools_mmap mcalloc error");
@@ -290,33 +294,5 @@ void *mmapdb ( int id ){
 
     return pdb;
 }		/* -----  end of function mmapdb  ----- */
-
-
-/* 
- * ===  FUNCTION  ======================================================================
- *         Name:  unmmapdb
- *  Description:  
- * =====================================================================================
- */
-void unmmapdb (){
-    char mmdb_name[FILE_PATH_LENGTH], *mmdb;
-    uint32 id;
-    MMPO *_mmpo;
-
-    _mmpo = pools_dest->pool_mmpo+1;
-    if(!_mmpo) {
-        DEBUG("mmpo error");
-        return -1;
-    }
-    id = last_mmpo_id;
-    for(; id<_mmpo->id; id++){
-        bzero(mmdb_name, FILE_PATH_LENGTH);
-        snprintf(mmdb_name, FILE_PATH_LENGTH-1, "%s/mmpo.db.%010d",conn_global->mmap_path, id);
-        DEBUG("unmmapdb: %s",mmdb_name); 
-        unmmap ( mmdb_name );
-    }
-    last_mmpo_id = id;
-
-}		/* -----  end of function unmmapdb  ----- */
 
  /* vim: set ts=4 sw=4: */
