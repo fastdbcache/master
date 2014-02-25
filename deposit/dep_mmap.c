@@ -87,7 +87,7 @@ DEST *mmap_init ( size_t byte ){
     _dest->sd = 0;
     _dest->nd = 0;
     _dest->fe = H_USE;
-
+    _dest->dep_dbp = NULL;
     _dest->pool_mmpo = mmpo_init();
     _dest->doing = H_FALSE;
     _dest->pool_depo = NULL;
