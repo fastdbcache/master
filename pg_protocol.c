@@ -281,7 +281,6 @@ int AuthPG(const int bfd,const int ffd, DBP *_dbp){
                     GET_UNLOCK();
                     checkLimit(_apack);
                     _hdrtmp = _apack->inBuf + _apack->inCursor;
-                    DEBUG("_hdrtmp:%s", _hdrtmp);
                     mem_pack = (SLABPACK *)calloc(1, sizeof(SLABPACK));
                     if(mem_pack){ 
                         mem_pack->len = 0;

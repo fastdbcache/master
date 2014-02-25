@@ -303,7 +303,7 @@ void checkLimit ( DBP *dbp ){
            (*(_dbp->inBuf+_dbp->inEnd-i) <123 )||
             *(_dbp->inBuf+_dbp->inEnd-i) ==34 ||
             *(_dbp->inBuf+_dbp->inEnd-i) ==39 ){                        
-            i=0;
+            i=1;
             break;
         }
         if(*(_dbp->inBuf+_dbp->inEnd-i) == ';'){
@@ -326,6 +326,7 @@ void checkLimit ( DBP *dbp ){
     memcpy(_dbp->inBuf+start_addr, setlimit, len);
      
     _dbp->inCursor = sizeof(char)+sizeof(uint32);
+    DEBUG("sql:%s", _dbp->inBuf+_dbp->inCursor);
     total_len = htonl((_dbp->inEnd-sizeof(char)));
     memcpy(_dbp->inBuf+sizeof(char), &total_len, sizeof(uint32));
      
