@@ -307,26 +307,21 @@ void checkLimit ( DBP *dbp ){
             break;
         }
         if(*(_dbp->inBuf+_dbp->inEnd-i) == ';'){
-            DEBUG("i ll:%d", i);
             
-            DEBUG("i:%d", i);
             break;
         } 
     }
     if(i==_dbp->inEnd)return;
      
-    DEBUG("i:%d, start sql:%s",i, _dbp->inBuf+_dbp->inCursor);
     start_addr = _dbp->inEnd-i;
     
     if(CheckBufSpace((len - i), _dbp) != 0){
         DEBUG("CheckBufSpace error");
         return -1;
     }
-    DEBUG("i:%d , start_addr:%d, end:%d",i, start_addr, _dbp->inEnd);
     memcpy(_dbp->inBuf+start_addr, setlimit, len);
      
     _dbp->inCursor = sizeof(char)+sizeof(uint32);
-    DEBUG("sql:%s", _dbp->inBuf+_dbp->inCursor);
     total_len = htonl((_dbp->inEnd-sizeof(char)));
     memcpy(_dbp->inBuf+sizeof(char), &total_len, sizeof(uint32));
      

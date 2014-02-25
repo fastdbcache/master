@@ -207,7 +207,10 @@ int AuthPG(const int bfd,const int ffd, DBP *_dbp){
                 goto free_pack;
             }
             if(!depo_pack){
-                depo_pack = initdbp();
+                if(!pools_dest->dep_dbp){
+                    pools_dest->dep_dbp = initdbp();
+                }
+                depo_pack = pools_dest->dep_dbp;
             }
             depo_pack->inEnd = 0; 
             lead_res = leadpush(depo_pack);
@@ -225,7 +228,6 @@ int AuthPG(const int bfd,const int ffd, DBP *_dbp){
             Socket_Send(bfd, depo_pack->inBuf, depo_pack->inEnd);
             if(*depo_pack->inBuf == 'X'){
                 
-                freedbp(depo_pack);
                 return -1;
             }
             FB(1);

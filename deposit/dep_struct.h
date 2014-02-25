@@ -78,6 +78,7 @@ struct __depstat
     H_USESTAT   fe;     /* the first deposit is free default H_USE , H_FREE is free */
     H_STATE doing;      /* H_TRUE one thread to do, H_FALSE none to do */
     DEPO        **pool_depo;
+    DBP         *dep_dbp;
 };
 typedef  struct __depstat  DEST;
 

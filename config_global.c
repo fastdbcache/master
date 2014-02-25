@@ -142,7 +142,7 @@ void initDeposit ( ){
     if(memcmp(conf_get("deposit_enable_cache"), "on", 2)) return;
     
     if(memcmp(conf_get("deposit_method"),"mem", 3))return;
-    conn_global->deptype = D_MEM;
+    conn_global->deptype = D_MMAP;
 
     if(atol(conf_get("deposit_maxbytes")) <=0 )return;
     conn_global->dmaxbytes = atol(conf_get("deposit_maxbytes"));
