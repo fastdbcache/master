@@ -127,7 +127,7 @@ int mem_set ( ub1 *key, ub4 keyl ){
         }else{
             DEBUG("use mem:%llu, max:%llu", _dest->count * (LIMIT_SLAB_BYTE), _dest->maxbyte);
         }
-        _depo->sm = calloc(1, LIMIT_SLAB_BYTE*sizeof(ub1));
+        _depo->sm = (ub1 *)calloc(1, LIMIT_SLAB_BYTE*sizeof(ub1));
         if(!_depo->sm){
             DEPO_UNLOCK();
             return -1;
