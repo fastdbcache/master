@@ -76,7 +76,8 @@ int mem_set ( ub1 *key, ub4 keyl ){
     DEST *_dest = pools_dest; 
     DEPO *_depo;
     ub4  _lens;
-   
+    uint32 mask;
+ 
     if(!_dest){  
         DEBUG("pools_dest is null");
         return -1;
@@ -87,13 +88,14 @@ int mem_set ( ub1 *key, ub4 keyl ){
     }
 
     _lens = alignByte(keyl);
+    mask = _dest->total-1;
     /* _end = (LIMIT_SLAB_BYTE / _len); */
     DEPO_LOCK();
     _depo = _dest->pool_depo[_dest->sd];
     if(_depo->se + _lens > (LIMIT_SLAB_BYTE)){
-        if(_dest->sd < (_dest->total-1) &&
-            ((_dest->sd+1)%_dest->total) != _dest->nd){
-            _dest->sd++;
+        if(_dest->sd < mask &&
+            ((_dest->sd+1)&mask) != _dest->nd){
+            _dest->sd = (_dest->sd+1)&mask;
             
         /*}else if(_dest->sd == _dest->nd &&
                 _depo->ss == _depo->se){  */
@@ -151,10 +153,10 @@ int mem_set ( ub1 *key, ub4 keyl ){
 int mem_pushdb ( DBP *_dbp ){
     DEST *_dest = pools_dest; 
     DEPO *_depo;      
-    uint32 _lens, offset;
+    uint32 _lens, offset, mask;
     _ly *ply;
     long utime;
-       
+     
     DEBUG("mem_pushdb"); 
     if(!_dbp) return -1;
      
@@ -162,20 +164,18 @@ int mem_pushdb ( DBP *_dbp ){
     if(!_depo){
         return -1;
     }
+    mask = _dest->total-1;
     /*  DEBUG("pushdb sd:%d nd:%d, sp:%d, ss:%d, se:%d",_dest->sd, _dest->nd, _depo->sp, _depo->ss, _depo->se);   */
     if(_depo->sp == _depo->se &&
         _depo->ss == _depo->se){
 
         if(_dest->sd == _dest->nd){
             return -1;
-        }else if(_dest->nd < (_dest->total-1)){
-            
+        }else {
             _depo->sp=0;
             _depo->ss=0;
             _depo->se=0;
-            _dest->nd++;
-        }else{
-            _dest->nd = 0;                
+            _dest->nd = ((_dest->nd+1)&mask);
         }
         _depo = _dest->pool_depo[_dest->nd];
         
