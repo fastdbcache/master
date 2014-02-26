@@ -45,10 +45,6 @@ void hcreate ( int isize ){
     int max_slab, count_hslab;
     char cache_path[FILE_PATH_LENGTH];
     
-    if(conn_global->cache_method == D_MMAP){
-        pools_hfd = inithfd();
-    }
-
     if(conn_global->cache_method == D_MMAP){ 
         bzero(cache_path, FILE_PATH_LENGTH); 
         snprintf(cache_path, FILE_PATH_LENGTH-1, "%s/%s",conn_global->mmap_path, HashTable_for_list[0]);

@@ -78,6 +78,9 @@ int main(int argc, char* argv[]){
     pathCheck ( );
 	d_log(conn_global->fdbc);
 
+    pools_hfd = inithfd();
+    hcreate(8);
+
     if(conn_global->hasdep == H_TRUE)
         leadinit(conn_global->dmaxbytes);
 
@@ -99,14 +102,7 @@ int main(int argc, char* argv[]){
             DEBUG("failed to set rlimit for open files. Try starting as root or requesting smaller maxconns value.");
             exit(1);
         }    
-    } 
-
-    pools_hfd = inithfd();
-    if(!pools_hfd) {
-        DEBUG("pools_hfd init error");
-        exit(-1);
-    }
-    hcreate(8);
+    }         
 
     /*rq_init(MAXCONN);*/
     rq_init(conn_global->maxconn);

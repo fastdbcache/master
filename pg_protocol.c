@@ -186,6 +186,7 @@ int AuthPG(const int bfd,const int ffd, DBP *_dbp){
                 if(pools_dest->doing == H_FALSE){
                     pools_dest->doing = H_TRUE;
                     depo_lock = H_TRUE;                    
+                   
                 }else{
                     DEP_DO_UNLOCK();
                     return -1;
@@ -227,7 +228,9 @@ int AuthPG(const int bfd,const int ffd, DBP *_dbp){
             
             Socket_Send(bfd, depo_pack->inBuf, depo_pack->inEnd);
             if(*depo_pack->inBuf == 'X'){
-                
+                pools_dest->ispush = H_TRUE; 
+                pools_dest->isfull = H_FALSE;
+                DEBUG("push one");
                 return -1;
             }
             FB(1);

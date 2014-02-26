@@ -143,9 +143,10 @@ void getCont (  ){
 void *mcalloc ( size_t nmemb, size_t size, const char *pathname, int flags ){
     int fd;
     int result, len;
-    size_t line;
+    size_t line, isize;
     void *start;
     struct stat sb;
+    
     char name[1];
     HFD *_hfd, *_hfd_next;    
 
@@ -179,7 +180,8 @@ void *mcalloc ( size_t nmemb, size_t size, const char *pathname, int flags ){
         lseek(fd,0,SEEK_SET);
         fstat(fd, &sb);
     }
-    start = mmap(NULL, sb.st_size, PROT_READ|PROT_WRITE, MAP_SHARED, fd, 0);
+    isize = alignByte(sb.st_size);
+    start = mmap(NULL, isize, PROT_READ|PROT_WRITE, MAP_SHARED, fd, 0);
     if(start == MAP_FAILED){
         DEBUG("init mmap error %s", pathname);
         close(fd);
@@ -188,20 +190,22 @@ void *mcalloc ( size_t nmemb, size_t size, const char *pathname, int flags ){
     _hfd_next = NULL;
     if(!pools_hfd){
         pools_hfd = inithfd();
+        DEBUG("init pools_hfd");
     }
     TAIL_HFD(_hfd_next);
                            
     _hfd = inithfd();
     if(_hfd){
         _hfd->fd = fd;
-        _hfd->fsize = sb.st_size;
+        _hfd->fsize = isize;
         memcpy(_hfd->name, pathname, len); 
         _hfd->name[len+1]='\0';
         _hfd->len = len;
         _hfd->ptr = start;
+        DEBUG("start pathname:%s, prt:%llu",pathname, _hfd->ptr);
         _hfd_next->next = _hfd;
     }
-
+    
     return start;
 }		/* -----  end of function mcalloc  ----- */
 
@@ -217,17 +221,18 @@ void unmmap ( const char *pathname ){
     int len;
     _hfd = pools_hfd;
     len = strlen(pathname);
+    
     while(_hfd && _hfd->next){
         _hfd_next = _hfd;
+         
         _hfd = _hfd->next;
         if(_hfd->len == len &&
             strncmp(_hfd->name, pathname, len)==0){
-
+            DEBUG("end pathname:%s prt:%llu",pathname, _hfd->ptr);
             if (munmap(_hfd->ptr, _hfd->fsize) == -1) {
-                perror("Error un-mmapping the file");
+                DEBUG("Error un-mmapping the file");
                 /* Decide here whether to close(fd) and exit() or not. Depends... */
-            }            
-            DEBUG("size:%llu", _hfd->fsize);
+            }           
             close(_hfd->fd);
             _hfd_next->next = _hfd->next;
             free(_hfd);
@@ -280,14 +285,33 @@ void freehfd ( HFD *_hfd ){
  */
 void checkLimit ( DBP *dbp ){
     DBP *_dbp;
-    char limit[]="LIMIT";
+    char limit[]="limit";
     char setlimit[20];
-    int len, i;
+    int len, i, m, lnext, issub;
     uint32 start_addr, total_len;
 
     _dbp = dbp;
-    
-    if(memmem(_dbp->inBuf, _dbp->inEnd, limit, 5) != NULL) return;
+    if(!_dbp) return ;
+    lnext = 0;
+    issub = 0;
+    for(m=0; m<_dbp->inEnd; m++){
+        if(*(_dbp->inBuf+_dbp->inCursor+m) == '(')
+            issub = 1;
+        
+        if(*(_dbp->inBuf+_dbp->inCursor+m) == ')'){
+            issub = 0;
+            lnext = 0;
+        }
+        if(issub == 1)continue;
+
+        if(tolower(*(_dbp->inBuf+_dbp->inCursor+m)) == limit[lnext]){
+            lnext++;            
+            if(lnext == 5)return;
+        }else{
+            lnext = 0;
+        }
+    }
+
     bzero(setlimit, 20);
     snprintf(setlimit, 19, " %s %d;", limit, conn_global->limit_rows);
 
@@ -322,6 +346,7 @@ void checkLimit ( DBP *dbp ){
     memcpy(_dbp->inBuf+start_addr, setlimit, len);
      
     _dbp->inCursor = sizeof(char)+sizeof(uint32);
+    DEBUG("sql:%s", _dbp->inBuf+_dbp->inCursor);
     total_len = htonl((_dbp->inEnd-sizeof(char)));
     memcpy(_dbp->inBuf+sizeof(char), &total_len, sizeof(uint32));
      

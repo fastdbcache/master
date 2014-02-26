@@ -69,8 +69,9 @@ void libevent_work_thread(int fd, short ev, void *arg){
         }
         //printf("token_efd\n");
     }
-
-
+    if(_dbp->inBufSize > LIMIT_SLAB_BYTE){
+        DEBUG("inBufSize:%llu", _dbp->inBufSize);
+    }
     ok:    
         work_child->rq_item->isjob = JOB_FREE;
         work_child->isjob = JOB_FREE;

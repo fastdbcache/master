@@ -70,6 +70,7 @@ struct __depstat
 { 
     ub4         maxbyte;  /* max  byte for deposit  */
     H_STATE     isfull;   /* default H_FALSE , H_TRUE is full */
+    H_STATE     ispush;    /* push add is doing work */
     int         total;    /* total >= count  */
     int         count;   /* how much malloc depo sm */
     int         sd;     /* now start DEPO */

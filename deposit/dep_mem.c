@@ -49,6 +49,7 @@ DEST *mem_init ( size_t byte ){
     _dest->maxbyte = byte;
     _dest->count = 1;
     _dest->isfull = H_FALSE;
+    _dest->ispush = H_FALSE;
     _dest->sd = 0;
     _dest->nd = 0;
     _dest->fe = H_USE;
@@ -85,25 +86,23 @@ int mem_set ( ub1 *key, ub4 keyl ){
         return -1;
     }
 
-    _lens = keyl;
-    if (_lens % CHUNK_ALIGN_BYTES)
-            _lens += CHUNK_ALIGN_BYTES - (_lens % CHUNK_ALIGN_BYTES);
+    _lens = alignByte(keyl);
     /* _end = (LIMIT_SLAB_BYTE / _len); */
     DEPO_LOCK();
     _depo = _dest->pool_depo[_dest->sd];
     if(_depo->se + _lens > (LIMIT_SLAB_BYTE)){
-
         if(_dest->sd < (_dest->total-1) &&
-            (_dest->sd+1) != _dest->nd){
+            ((_dest->sd+1)%_dest->total) != _dest->nd){
             _dest->sd++;
             
         /*}else if(_dest->sd == _dest->nd &&
                 _depo->ss == _depo->se){  */
-        }else if(_dest->isfull == H_TRUE){
+        }else if(_dest->ispush == H_TRUE){
             _dest->sd = 0;
             _dest->nd = 0;
-            _dest->isfull = H_FALSE;
+            /*_dest->isfull = H_FALSE;  */
         }else {
+            DEBUG("full");
             _dest->isfull = H_TRUE;
             DEPO_UNLOCK();
             return -1;
@@ -118,10 +117,12 @@ int mem_set ( ub1 *key, ub4 keyl ){
         _depo->ss=0;
         _depo->sp=0;
         _depo->se=0;
-        if(_dest->count * (LIMIT_SLAB_BYTE) > _dest->maxbyte) {
-            DEPO_UNLOCK();
+        if(_dest->count * (LIMIT_SLAB_BYTE) > _dest->maxbyte) {            
             DEBUG("no momey use for dep_mem");
+            DEPO_UNLOCK();
             return -1;    
+        }else{
+            DEBUG("use mem:%llu, max:%llu", _dest->count * (LIMIT_SLAB_BYTE), _dest->maxbyte);
         }
         _depo->sm = calloc(1, LIMIT_SLAB_BYTE*sizeof(ub1));
         if(!_depo->sm){
@@ -130,7 +131,7 @@ int mem_set ( ub1 *key, ub4 keyl ){
         }
         _dest->count++;
     }
-    
+    DEBUG("sd:%d, ss:%llu", _dest->sd, _depo->ss);
     memcpy(_depo->sm+_depo->se, key, keyl);
     _depo->se += _lens;
  
@@ -152,7 +153,8 @@ int mem_pushdb ( DBP *_dbp ){
     uint32 _lens, offset;
     _ly *ply;
     long utime;
-        
+       
+    DEBUG("mem_pushdb"); 
     if(!_dbp) return -1;
      
     _depo = _dest->pool_depo[_dest->nd];
