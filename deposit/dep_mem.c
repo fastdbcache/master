@@ -104,6 +104,7 @@ int mem_set ( ub1 *key, ub4 keyl ){
         }else {
             DEBUG("full");
             _dest->isfull = H_TRUE;
+            _dest->ispush = H_FALSE;
             DEPO_UNLOCK();
             return -1;
         }
