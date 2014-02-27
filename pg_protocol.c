@@ -207,30 +207,35 @@ int AuthPG(const int bfd,const int ffd, DBP *_dbp){
                 *_apack->inBuf == 'D'){
                 goto free_pack;
             }
-            if(!depo_pack){
-                if(!pools_dest->dep_dbp){
-                    pools_dest->dep_dbp = initdbp();
-                }
-                depo_pack = pools_dest->dep_dbp;
+            if(!pools_dest->dep_dbp){
+                pools_dest->dep_dbp = initdbp();
+                
             }
+            depo_pack = pools_dest->dep_dbp;
             depo_pack->inEnd = 0; 
             lead_res = leadpush(depo_pack);
             if(lead_res == -1){
                 pools_dest->doing = H_FALSE;
                 depo_lock = H_FALSE;
-                if(conn_global->deptype == D_MEM){
+                if(conn_global->deptype == D_MEM &&
+                    depo_pack->inBufSize == 0){
                     depo_pack->inBuf = NULL;
-                    depo_pack->inBufSize = 0;
-                }
+                } 
                 depo_pack->inEnd = 0;
+                DEBUG("dep_dbp:%llu, inend:%d", pools_dest->dep_dbp->inBufSize, pools_dest->dep_dbp->inEnd);
                 leadexit(depo_pack);               
             }
             
             Socket_Send(bfd, depo_pack->inBuf, depo_pack->inEnd);
             if(*depo_pack->inBuf == 'X'){
-                pools_dest->ispush = H_TRUE; 
                 pools_dest->isfull = H_FALSE;
                 DEBUG("push one");
+                if(conn_global->deptype == D_MEM &&
+                    depo_pack->inBufSize > 0 &&
+                    !depo_pack->inBuf){
+                    free(depo_pack->inBuf);
+                    depo_pack->inBuf = NULL;
+                }
                 return -1;
             }
             FB(1);
@@ -341,7 +346,7 @@ int AuthPG(const int bfd,const int ffd, DBP *_dbp){
                                 if(memmem(conn_global->deprule, strlen(conn_global->deprule), ply->tab, ply->len)!=NULL){
                                     if(-1 == leadadd ( (ub1 *)_apack->inBuf, (ub4)_apack->inEnd)){
                                         goto leaderr;
-                                    }                                    
+                                    }
                                     int ii;
                                     if(isSELECT == E_DELETE){
                                         ii = 3; 
@@ -357,6 +362,7 @@ int AuthPG(const int bfd,const int ffd, DBP *_dbp){
                                     FB(0);
                                     free(ply->tab);
                                     free(ply);
+                                    ply = NULL;
                                     goto free_pack;
                                 }                                                                                            
                             }

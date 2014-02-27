@@ -513,13 +513,15 @@ void RowHelp ( HELP_CMD *_helps, int frontend , ssize_t nfields ){
 void CommandComplete (int sqlcmd, ssize_t rows, int frontend ){
     char res[32];
     char *SQLS[]={"SELECT", "UPDATE FDBC","INSERT FDBC 0", "DELETE FDBC"};
-    char *newbuf, *crd;
+    char newbuf[200], *crd;
     ssize_t total, len;
 
     snprintf(res, 31, "%s %d", SQLS[sqlcmd], rows);
     total = sizeof(uint32) + strlen(res) + 1;
-    crd = calloc(total+sizeof(char), sizeof(char));
-    newbuf = crd;
+    //crd = calloc(total+sizeof(char), sizeof(char));
+    bzero(newbuf, 200);
+    crd = newbuf;
+
     memcpy(crd, "C", sizeof(char));
     crd+=sizeof(char);
     len = total;
@@ -529,7 +531,6 @@ void CommandComplete (int sqlcmd, ssize_t rows, int frontend ){
     memcpy(crd, res, strlen(res)+1);
 
     Socket_Send(frontend, newbuf, len+sizeof(char));
-    free(newbuf);
 }		/* -----  end of function CommandComplete  ----- */
 
 
@@ -540,11 +541,13 @@ void CommandComplete (int sqlcmd, ssize_t rows, int frontend ){
  * =====================================================================================
  */
 void ReadyForQuery ( int frontend ){
-    char *newbuf, *crd;
+    char newbuf[200], *crd;
     ssize_t total, len;
     total = sizeof(uint32)+sizeof(char);
-    crd = calloc(sizeof(char)+total, sizeof(char));
-    newbuf = crd;
+    //crd = calloc(sizeof(char)+total, sizeof(char));
+    
+    bzero(newbuf, 200);
+    crd = newbuf;
     memcpy(crd, "Z", sizeof(char));
     crd += sizeof(char);
     len = total;
@@ -553,7 +556,7 @@ void ReadyForQuery ( int frontend ){
     crd+=sizeof(uint32);
     memcpy(crd, "I", sizeof(char)); 
     Socket_Send(frontend, newbuf, len+sizeof(char));
-    free(newbuf);
+    //free(newbuf);
 }		/* -----  end of function ReadyForQuery  ----- */
 
 /* 

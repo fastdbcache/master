@@ -49,7 +49,6 @@ DEST *mem_init ( size_t byte ){
     _dest->maxbyte = byte;
     _dest->count = 1;
     _dest->isfull = H_FALSE;
-    _dest->ispush = H_FALSE;
     _dest->sd = 0;
     _dest->nd = 0;
     _dest->fe = H_USE;
@@ -88,25 +87,24 @@ int mem_set ( ub1 *key, ub4 keyl ){
     }
 
     _lens = alignByte(keyl);
-    mask = _dest->total-1;
+    mask = _dest->total;
     /* _end = (LIMIT_SLAB_BYTE / _len); */
     DEPO_LOCK();
     _depo = _dest->pool_depo[_dest->sd];
     if(_depo->se + _lens > (LIMIT_SLAB_BYTE)){
         if(_dest->sd < mask &&
-            ((_dest->sd+1)&mask) != _dest->nd){
-            _dest->sd = (_dest->sd+1)&mask;
+            ((_dest->sd+1)%mask) != _dest->nd){
+            _dest->sd = (_dest->sd+1)%mask;
             
         /*}else if(_dest->sd == _dest->nd &&
                 _depo->ss == _depo->se){  */
-        }else if(_dest->ispush == H_TRUE){
+        /*}else if(_dest->ispush == H_TRUE){
             _dest->sd = 0;
             _dest->nd = 0;
-            /*_dest->isfull = H_FALSE;  */
+            _dest->isfull = H_FALSE;  */
         }else {
             DEBUG("full");
             _dest->isfull = H_TRUE;
-            _dest->ispush = H_FALSE;
             DEPO_UNLOCK();
             return -1;
         }
@@ -158,24 +156,29 @@ int mem_pushdb ( DBP *_dbp ){
     long utime;
      
     DEBUG("mem_pushdb"); 
-    if(!_dbp) return -1;
+    if(!_dbp){
+        DEBUG("dbp is null");
+        return -1;
+    }
      
     _depo = _dest->pool_depo[_dest->nd];
     if(!_depo){
+        DEBUG("depo is null");
         return -1;
     }
-    mask = _dest->total-1;
+    mask = _dest->total;
     /*  DEBUG("pushdb sd:%d nd:%d, sp:%d, ss:%d, se:%d",_dest->sd, _dest->nd, _depo->sp, _depo->ss, _depo->se);   */
     if(_depo->sp == _depo->se &&
         _depo->ss == _depo->se){
 
         if(_dest->sd == _dest->nd){
+            DEBUG("sd eq ne end");
             return -1;
         }else {
             _depo->sp=0;
             _depo->ss=0;
             _depo->se=0;
-            _dest->nd = ((_dest->nd+1)&mask);
+            _dest->nd = ((_dest->nd+1)%mask);
         }
         _depo = _dest->pool_depo[_dest->nd];
         
@@ -202,6 +205,7 @@ int mem_pushdb ( DBP *_dbp ){
         _lens = ntohl(_lens);
 
         if(_depo->ss+sizeof(char)+_lens > _depo->sp){
+            DEBUG("ss > sp");
             return -1;
         }
         _lens -= sizeof(uint32);

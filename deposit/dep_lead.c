@@ -143,7 +143,6 @@ int leadexit ( DBP *_dbp ){
         return -1;
     }
     
-    _dbp->inEnd = len;
     memcpy(_dbp->inBuf, "X", sizeof(char));
     blen = htonl(sizeof(uint32));
     memcpy(_dbp->inBuf+sizeof(char), &blen, sizeof(uint32));
