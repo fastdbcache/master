@@ -132,21 +132,16 @@ int leadpush ( DBP *_dbp ){
  *  Description:  
  * =====================================================================================
  */
-int leadexit ( DBP *_dbp ){    
-    ssize_t len = sizeof(char)+sizeof(uint32);
+int leadexit ( int bfd ){    
     int blen;
-
-    if(!_dbp) return -1;
-
-    if(CheckBufSpace(len, _dbp) != 0){
-        DEBUG("CheckBufSpace error");
-        return -1;
-    }
+    char len[4];
     
-    memcpy(_dbp->inBuf, "X", sizeof(char));
+    Socket_Send(bfd, "X", sizeof(char));
+    
     blen = htonl(sizeof(uint32));
-    memcpy(_dbp->inBuf+sizeof(char), &blen, sizeof(uint32));
+    memcpy(len, &blen, sizeof(uint32));
 
+    Socket_Send(bfd, len, sizeof(uint32));
     return 0;
 }		/* -----  end of function leadexit  ----- */
 

@@ -108,6 +108,7 @@ void leadinit ( size_t byte );
 int leadadd ( ub1 *key, ub4 keyl );
 int leadpush ( DBP *_dbp );
 DEPO *deposit_init (  );
+int leadexit ( int bfd );
 
 #ifdef __cplusplus
  }

@@ -209,35 +209,22 @@ int AuthPG(const int bfd,const int ffd, DBP *_dbp){
             }
             if(!pools_dest->dep_dbp){
                 pools_dest->dep_dbp = initdbp();
-                
             }
             depo_pack = pools_dest->dep_dbp;
             depo_pack->inEnd = 0; 
             lead_res = leadpush(depo_pack);
             if(lead_res == -1){
                 pools_dest->doing = H_FALSE;
-                depo_lock = H_FALSE;
-                if(conn_global->deptype == D_MEM &&
-                    depo_pack->inBufSize == 0){
-                    depo_pack->inBuf = NULL;
-                } 
-                depo_pack->inEnd = 0;
-                DEBUG("dep_dbp:%llu, inend:%d", pools_dest->dep_dbp->inBufSize, pools_dest->dep_dbp->inEnd);
-                leadexit(depo_pack);               
-            }
-            
-            Socket_Send(bfd, depo_pack->inBuf, depo_pack->inEnd);
-            if(*depo_pack->inBuf == 'X'){
                 pools_dest->isfull = H_FALSE;
+                depo_lock = H_FALSE;
+                 
+                leadexit(bfd);
                 DEBUG("push one");
-                if(conn_global->deptype == D_MEM &&
-                    depo_pack->inBufSize > 0 &&
-                    !depo_pack->inBuf){
-                    free(depo_pack->inBuf);
-                    depo_pack->inBuf = NULL;
-                }
                 return -1;
             }
+            
+            Socket_Send(bfd, depo_pack->inBuf, depo_pack->inEnd); 
+            
             FB(1);
             goto free_pack;
         }
