@@ -1,6 +1,5 @@
 /*
  * Author: vyouzhi <vyouzhi@163.com>
- * http://www.xda.cn
  *
  * File: func.c
  * Create Date: 2012-07-17 15:15:58
@@ -32,18 +31,42 @@
 
 #include "func.h"
 
+
+/* 
+ * ===  FUNCTION  ======================================================================
+ *         Name:  file_put_contents
+ *  Description:  
+ * =====================================================================================
+ */
 void file_put_contents(const char *filename, const char *value, unsigned long val_len){
     FILE *fp;    
 
     fp = fopen(filename, "a+");
     fwrite(value, sizeof(char), val_len, fp);
     fclose(fp);
-}
+}		/* -----  end of function file_put_contents  ----- */
+
+
+/* 
+ * ===  FUNCTION  ======================================================================
+ *         Name:  mv
+ *  Description:  
+ * =====================================================================================
+ */
 
 void mv(const char *dst, const char *src){
     rename(src, dst);
     unlink(src);
-}
+
+}		/* -----  end of function mv  ----- */
+
+
+/* 
+ * ===  FUNCTION  ======================================================================
+ *         Name:  frand
+ *  Description:  
+ * =====================================================================================
+ */
 
 char *frand(void){
     char str[64] = "t00uAv1wB2xCy3Dz4EF5Gs6HaIb7cJdK8eLf9gMhNOiPjQkRmSnTUoVWqXYpZr";
@@ -65,7 +88,15 @@ char *frand(void){
     }
     p = strdup(str_rand);
     return p;
-}
+}		/* -----  end of function frand  ----- */
+
+
+/* 
+ * ===  FUNCTION  ======================================================================
+ *         Name:  files_size
+ *  Description:  
+ * =====================================================================================
+ */
 
 unsigned long files_size(char *filename){
     struct stat buf;
@@ -73,7 +104,15 @@ unsigned long files_size(char *filename){
         return 0;
     }
     return (unsigned long)buf.st_size;
-}
+}		/* -----  end of function files_size  ----- */
+
+
+/* 
+ * ===  FUNCTION  ======================================================================
+ *         Name:  files_uid
+ *  Description:  
+ * =====================================================================================
+ */
 
 int files_uid(char *filename){
     struct stat buf;
@@ -81,7 +120,15 @@ int files_uid(char *filename){
         return -1;
     }
     return buf.st_uid;
-}
+}		/* -----  end of function files_uid  ----- */
+
+
+/* 
+ * ===  FUNCTION  ======================================================================
+ *         Name:  files_iswrite
+ *  Description:  
+ * =====================================================================================
+ */
 
 int files_iswrite(char *filename){
     struct stat buf;
@@ -89,7 +136,15 @@ int files_iswrite(char *filename){
         return -1;
     }
     return ((buf.st_mode & S_IWGRP) != 0)?1:0;
-}
+}		/* -----  end of function files_iswrite  ----- */
+
+
+/* 
+ * ===  FUNCTION  ======================================================================
+ *         Name:  decompress_one_file
+ *  Description:  
+ * =====================================================================================
+ */
 
 int decompress_one_file(char *infilename, char *outfilename){
     gzFile infile = gzopen(infilename, "rb");
@@ -105,8 +160,16 @@ int decompress_one_file(char *infilename, char *outfilename){
     gzclose(infile);
     /*fclose(outfile);*/
     return 0;
-}
+}		/* -----  end of function decompress_one_file  ----- */
 
+
+
+/* 
+ * ===  FUNCTION  ======================================================================
+ *         Name:  mem_uncompress
+ *  Description:  
+ * =====================================================================================
+ */
 int mem_uncompress(const char *src,unsigned long src_len, char **dst , unsigned long *dst_len){
     int factor=1, status;
     
@@ -122,7 +185,7 @@ int mem_uncompress(const char *src,unsigned long src_len, char **dst , unsigned 
     
     free(*dst);
     return status;
-}
+}		/* -----  end of function mem_uncompress  ----- */
 
 /* vim: set ts=4 sw=4: */
 

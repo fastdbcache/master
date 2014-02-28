@@ -33,8 +33,12 @@
 
 
 /* 
- * client to pg
- * */
+ * ===  FUNCTION  ======================================================================
+ *         Name:  PGStartupPacket3
+ *  Description:  
+ * =====================================================================================
+ */
+
 int PGStartupPacket3(int fd, DBP *_dbp){
     size_t pv_len;
     int pv;
@@ -72,8 +76,16 @@ int PGStartupPacket3(int fd, DBP *_dbp){
     }
     
     return -1;
-     
-}
+}		/* -----  end of function PGStartupPacket3  ----- */
+
+
+/* 
+ * ===  FUNCTION  ======================================================================
+ *         Name:  AuthPG
+ *  Description:  
+ * =====================================================================================
+ */
+
 
 int AuthPG(const int bfd,const int ffd, DBP *_dbp){
     char *_hdrtmp, key[KEY_LENGTH], qerr[ERR_LENG];
@@ -479,7 +491,7 @@ int AuthPG(const int bfd,const int ffd, DBP *_dbp){
 
     /*freedbp(_apack);   */
     _apack = NULL;
-}
+}		/* -----  end of function AuthPG  ----- */
 
 
 /* 

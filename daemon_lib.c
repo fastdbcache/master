@@ -1,7 +1,6 @@
 /*
  *   Author:
  *   vyouzhi <vyouzhi@163.com>
- *   http://www.xda.cn
  *
  *   File:                    daemon_lib.c
  *   Create Date:      2011-10-09 23:50:24
@@ -24,6 +23,13 @@
 
 #define MAXFD 64
 
+
+/* 
+ * ===  FUNCTION  ======================================================================
+ *         Name:  daemon_init
+ *  Description:  
+ * =====================================================================================
+ */
 
 int daemon_init(const char *pname, int facility){
 	int i;
@@ -59,7 +65,16 @@ int daemon_init(const char *pname, int facility){
 	open("/dev/null", O_RDWR);
 	
 	return(0);
-}
+}		/* -----  end of function daemon_init  ----- */
+
+
+
+/* 
+ * ===  FUNCTION  ======================================================================
+ *         Name:  save_pid
+ *  Description:  
+ * =====================================================================================
+ */
 
 void save_pid(const pid_t pid, const char *pid_file) {
     FILE *fp;
@@ -76,7 +91,15 @@ void save_pid(const pid_t pid, const char *pid_file) {
         d_log("Could not close the pid file ");
         return;
     }
-}
+}		/* -----  end of function save_pid  ----- */
+
+
+/* 
+ * ===  FUNCTION  ======================================================================
+ *         Name:  remove_pidfile
+ *  Description:  
+ * =====================================================================================
+ */
 
 void remove_pidfile(const char *pid_file) {
   if (pid_file == NULL)
@@ -85,7 +108,7 @@ void remove_pidfile(const char *pid_file) {
   if (unlink(pid_file) != 0) {
       d_log("Could not remove the pid file ");
   }
+}		/* -----  end of function remove_pidfile  ----- */
 
-}
 /* vim: set ts=4 sw=4: */
 

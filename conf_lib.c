@@ -1,7 +1,6 @@
 /*
  *   Author:
  *   vyouzhi <vyouzhi@163.com>
- *   http://www.xda.cn
  *
  *   File:                    conf_lib.c
  *   Create Date:      2011-07-10 10:21:07
@@ -27,6 +26,14 @@
 
 #include "conf_lib.h"
 
+
+/* 
+ * ===  FUNCTION  ======================================================================
+ *         Name:  Trims
+ *  Description:  
+ * =====================================================================================
+ */
+
 char *Trims(char *srcVal){
 	char *cp1 = srcVal, *cp2 = srcVal;
 
@@ -44,7 +51,15 @@ char *Trims(char *srcVal){
 		   *srcVal = 0;
 	}
 	return srcVal;
-}
+}		/* -----  end of function Trims  ----- */
+
+
+/* 
+ * ===  FUNCTION  ======================================================================
+ *         Name:  conf_init
+ *  Description:  
+ * =====================================================================================
+ */
 
 void conf_init(char *path){
 	FILE *fp;
@@ -79,16 +94,22 @@ void conf_init(char *path){
 		}
 	}
 	fclose(fp);
-}
+}		/* -----  end of function conf_init  ----- */
 
+
+/* 
+ * ===  FUNCTION  ======================================================================
+ *         Name:  conf_get
+ *  Description:  
+ * =====================================================================================
+ */
 char *conf_get(char *val){
 	char *p;
 	if((p = getenv(val)) == NULL){
 		printf("can't get val conf: %s\n", val);
 	}
 	return p;
-}
-
+}		/* -----  end of function conf_get  ----- */
 
 /* vim: set ts=4 sw=4: */
 

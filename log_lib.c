@@ -1,6 +1,5 @@
 /*
  * Author: vyouzhi <vyouzhi@163.com>
- * http://www.xda.cn
  *
  * File: log_lib.c
  * Create Date: 2011-10-10 09:37:15
@@ -22,11 +21,19 @@
  */
 #include "log_lib.h"
 
+
+/* 
+ * ===  FUNCTION  ======================================================================
+ *         Name:  d_log
+ *  Description:  
+ * =====================================================================================
+ */
+
 void d_log(const char *logs){
 	openlog(LOGFILE, LOG_PID|LOG_CONS, LOG_LOCAL0);
 	syslog(LOG_ALERT,"info: %s\n", logs);
 	closelog();
-}
+}		/* -----  end of function d_log  ----- */
 
 /*
 static void doLog(LogContext *pContext, const char *caption, \

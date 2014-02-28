@@ -1,12 +1,24 @@
 /*
  * Author: vyouzhi <vyouzhi@163.com>
- * http://www.xda.cn
  *
- * File: thread_lib.c
- * Create Date: 2011-09-26 15:07:25
+ * File: socketbase.c
+ * Create Date: 2011-08-05 20:20:44
  *
  */
-
+/*    Copyright 2009 10gen Inc.
+ *
+ *    Licensed under the Apache License, Version 2.0 (the "License");
+ *    you may not use this file except in compliance with the License.
+ *    You may obtain a copy of the License at
+ *
+ *    http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *    Unless required by applicable law or agreed to in writing, software
+ *    distributed under the License is distributed on an "AS IS" BASIS,
+ *    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *    See the License for the specific language governing permissions and
+ *    limitations under the License.
+ */
 #include "thread_lib.h"
 #include "config_global.h"
 #include "func.h"
@@ -14,7 +26,14 @@
 #include "error_lib.h"
 #include "time_lib.h"
 
-/* work thread start */
+
+
+/* 
+ * ===  FUNCTION  ======================================================================
+ *         Name:  libevent_work_thread
+ *  Description:  
+ * =====================================================================================
+ */
 int init_count = 0;
 void libevent_work_thread(int fd, short ev, void *arg){
     LIBEVENT_WORK_THREAD *me =(LIBEVENT_WORK_THREAD *)arg;
@@ -78,8 +97,15 @@ void libevent_work_thread(int fd, short ev, void *arg){
         close(pg_fds) ;
         close(work_child->rq_item->frontend->ffd);
         //if(close(work_child->rq_item->frontend->ffd) == -1)DEBUG("close fd error");
-                
-}
+}		/* -----  end of function libevent_work_thread  ----- */
+               
+
+/* 
+ * ===  FUNCTION  ======================================================================
+ *         Name:  work_thread_init
+ *  Description:  
+ * =====================================================================================
+ */
 
 void work_thread_init(int nthreads){
     int i;
@@ -117,7 +143,14 @@ void work_thread_init(int nthreads){
     }
     wtq_queue_head->next = wtq_queue_tail;
     pthread_mutex_unlock(&init_work_lock);
-}
+}		/* -----  end of function work_thread_init  ----- */
+
+/* 
+ * ===  FUNCTION  ======================================================================
+ *         Name:  setup_thread
+ *  Description:  
+ * =====================================================================================
+ */
 
 void setup_thread(LIBEVENT_WORK_THREAD *me) {
     me->base = event_init();
@@ -135,7 +168,15 @@ void setup_thread(LIBEVENT_WORK_THREAD *me) {
         d_log("Can't monitor libevent notify pipe");
         exit(1);
     }
-}
+
+}		/* -----  end of function setup_thread  ----- */
+
+/* 
+ * ===  FUNCTION  ======================================================================
+ *         Name:  create_worker
+ *  Description:  
+ * =====================================================================================
+ */
 
 void create_worker(void *(*func)(void *), void *arg) {
     pthread_t       thread;
@@ -148,7 +189,15 @@ void create_worker(void *(*func)(void *), void *arg) {
         printf("here---\n");
         exit(1);
     }
-}
+}		/* -----  end of function create_worker  ----- */
+
+
+/* 
+ * ===  FUNCTION  ======================================================================
+ *         Name:  worker_libevent
+ *  Description:  
+ * =====================================================================================
+ */
 
 void *worker_libevent(void *arg) {
     WTQ *work_child;
@@ -181,8 +230,17 @@ void *worker_libevent(void *arg) {
     wtq_queue_head->next = wtq_queue_tail;
 
     event_base_loop(me->base, 0);
-}
+}		/* -----  end of function worker_libevent  ----- */
+
 /* work threads end */
+
+
+/* 
+ * ===  FUNCTION  ======================================================================
+ *         Name:  token_thread_init
+ *  Description:  
+ * =====================================================================================
+ */
 
 /* token thread start */
 void token_thread_init(){
@@ -209,7 +267,14 @@ void token_thread_init(){
     }   
 
     setup_token(main_token_thread, token_thread);
-}
+}		/* -----  end of function token_thread_init  ----- */
+
+/* 
+ * ===  FUNCTION  ======================================================================
+ *         Name:  setup_token
+ *  Description:  
+ * =====================================================================================
+ */
 
 void setup_token(void *(*func)(void *), void *arg) {
     pthread_t       thread;
@@ -221,12 +286,27 @@ void setup_token(void *(*func)(void *), void *arg) {
         d_log("Can't create thread");
         exit(1);
     }
-}
+}		/* -----  end of function setup_token  ----- */
+
+
+/* 
+ * ===  FUNCTION  ======================================================================
+ *         Name:  main_token_thread
+ *  Description:  
+ * =====================================================================================
+ */
 
 void *main_token_thread(void *arg){
     LIBEVENT_TOKEN_THREAD *me = arg;
     event_base_loop(me->base, 0);
-}
+}		/* -----  end of function main_token_thread  ----- */
+
+/* 
+ * ===  FUNCTION  ======================================================================
+ *         Name:  libevent_token_thread
+ *  Description:  
+ * =====================================================================================
+ */
 
 void libevent_token_thread( int fd, short ev,void *arg){
     uint64_t u;
@@ -280,13 +360,17 @@ void libevent_token_thread( int fd, short ev,void *arg){
     }while(1);
 
     notify_token_thread = NT_FREE;
-}
+}		/* -----  end of function libevent_token_thread  ----- */
+
 /* token thread end */
 
-
-/*
- * for init cc
+/* 
+ * ===  FUNCTION  ======================================================================
+ *         Name:  rq_item_init
+ *  Description:  for init cc
+ * =====================================================================================
  */
+
 RQ *rq_item_init(){
     RQ *rq;
 
@@ -306,11 +390,15 @@ RQ *rq_item_init(){
     rq->next = NULL;
 
     return rq; 
-}
+}		/* -----  end of function rq_item_init  ----- */
 
-/*
- * for start init rq
+/* 
+ * ===  FUNCTION  ======================================================================
+ *         Name:  rq_init
+ *  Description:  for start init rq
+ * =====================================================================================
  */
+
 int rq_init(int numbers){
     int n;
     RQ *rq_child;
@@ -330,10 +418,13 @@ int rq_init(int numbers){
     rq_queue_head = rq_queue_tail;
 
     return 0;
-}
+}		/* -----  end of function rq_init  ----- */
 
-/*
- * for main thread
+/* 
+ * ===  FUNCTION  ======================================================================
+ *         Name:  rq_push
+ *  Description:  for main thread
+ * =====================================================================================
  */
 int rq_push(int client_fd){
 
@@ -347,11 +438,16 @@ int rq_push(int client_fd){
     rq_queue_head = rq_queue_head->next;
 
     return 0;
-}
 
-/*
- *  for token_process
+}		/* -----  end of function rq_push  ----- */
+
+/* 
+ * ===  FUNCTION  ======================================================================
+ *         Name:  rq_pop
+ *  Description:   for token_process
+ * =====================================================================================
  */
+
 RQ *rq_pop(){
     RQ *rq_i;
     
@@ -365,11 +461,15 @@ RQ *rq_pop(){
     rq_queue_tail = rq_queue_tail->next;
 
     return rq_i; 
-}
+}		/* -----  end of function rq_pop  ----- */
 
-/*
- *  for token_process
+/* 
+ * ===  FUNCTION  ======================================================================
+ *         Name:  rq_free
+ *  Description:  for token_process
+ * =====================================================================================
  */
+
 void rq_free(RQ *child){
 
     if(child != NULL){
@@ -380,10 +480,15 @@ void rq_free(RQ *child){
             free(child->frontend);
         free(child);
     }
-}
+}		/* -----  end of function rq_free  ----- */
 
+/* 
+ * ===  FUNCTION  ======================================================================
+ *         Name:  wtq_init
+ *  Description:  WTQ
+ * =====================================================================================
+ */
 
-/* WTQ */
 WTQ *wtq_init(){
 
     WTQ *work_child;
@@ -392,7 +497,7 @@ WTQ *wtq_init(){
     work_child->next = NULL;
     
     return work_child;
-}
+}		/* -----  end of function wtq_init  ----- */
 
 /* vim: set ts=4 sw=4: */
 

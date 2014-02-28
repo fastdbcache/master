@@ -1,6 +1,5 @@
 /*
  * Author: vyouzhi <vyouzhi@163.com>
- * http://www.xda.cn
  *
  * File: socketbase.c
  * Create Date: 2011-08-05 20:20:44
@@ -43,6 +42,13 @@
 #include "log_lib.h"
 #include "config_global.h"
 
+
+/* 
+ * ===  FUNCTION  ======================================================================
+ *         Name:  SetNonBlocking
+ *  Description:  
+ * =====================================================================================
+ */
 int SetNonBlocking(int s){
     int opts;
     opts=fcntl(s, F_GETFL);
@@ -58,7 +64,14 @@ int SetNonBlocking(int s){
         exit(1);
     }
 	return 0;
-}
+}		/* -----  end of function SetNonBlocking  ----- */
+
+/* 
+ * ===  FUNCTION  ======================================================================
+ *         Name:  SetUnsetBlocking
+ *  Description:  
+ * =====================================================================================
+ */
 
 int SetUnsetBlocking(int s){
     int opts;
@@ -74,7 +87,14 @@ int SetUnsetBlocking(int s){
         exit(1);
     }
 	return 0;
-}
+}		/* -----  end of function SetUnsetBlocking  ----- */
+
+/* 
+ * ===  FUNCTION  ======================================================================
+ *         Name:  new_socket_unix
+ *  Description:  
+ * =====================================================================================
+ */
 int new_socket_unix(void) {
     int sfd;
 
@@ -85,7 +105,14 @@ int new_socket_unix(void) {
 	SetNonBlocking(sfd);
 
     return sfd;
-}
+}		/* -----  end of function new_socket_unix  ----- */
+
+/* 
+ * ===  FUNCTION  ======================================================================
+ *         Name:  server_socket_unix
+ *  Description:  
+ * =====================================================================================
+ */
 
 int server_socket_unix(void) {
     int sfd;
@@ -141,7 +168,15 @@ int server_socket_unix(void) {
     }
 
     return sfd;
-}
+}		/* -----  end of function server_socket_unix  ----- */
+
+
+/* 
+ * ===  FUNCTION  ======================================================================
+ *         Name:  Set_SockOpt
+ *  Description:  
+ * =====================================================================================
+ */
 
 int Set_SockOpt(int sockfd){
 	socklen_t sendbuflen = (256*1024*1024);
@@ -196,7 +231,16 @@ int Set_SockOpt(int sockfd){
     }
 
 	return 0;
-}
+}		/* -----  end of function Set_SockOpt  ----- */
+
+
+
+/* 
+ * ===  FUNCTION  ======================================================================
+ *         Name:  Socket_Init
+ *  Description:  
+ * =====================================================================================
+ */
 
 int Socket_Init(void){
 
@@ -231,7 +275,15 @@ int Socket_Init(void){
 	}
 	
 	return (sockfd);
-}
+}		/* -----  end of function Socket_Init  ----- */
+
+
+/* 
+ * ===  FUNCTION  ======================================================================
+ *         Name:  Client_Init
+ *  Description:  
+ * =====================================================================================
+ */
 
 int Client_Init(char *host, int port){
 	int flag = 1, client_fd;
@@ -264,8 +316,15 @@ int Client_Init(char *host, int port){
     }*/
     //SetUnsetBlocking(client_fd); 
 	return client_fd;
-}
+}		/* -----  end of function Client_Init  ----- */
 
+
+/* 
+ * ===  FUNCTION  ======================================================================
+ *         Name:  Socket_Read
+ *  Description:  
+ * =====================================================================================
+ */
 size_t Socket_Read(int c_fd, void *buf, ssize_t len){
     size_t nread;
     ssize_t offset=0, stop=0;
@@ -287,7 +346,15 @@ size_t Socket_Read(int c_fd, void *buf, ssize_t len){
     }while(!stop);
 
     return nread;
-}
+}		/* -----  end of function Socket_Read  ----- */
+
+
+/* 
+ * ===  FUNCTION  ======================================================================
+ *         Name:  Socket_Send
+ *  Description:  
+ * =====================================================================================
+ */
 
 size_t Socket_Send(int c_fd, const void *buf, ssize_t len){
 	ssize_t stop=0, offset=0;
@@ -316,11 +383,19 @@ size_t Socket_Send(int c_fd, const void *buf, ssize_t len){
 	}while(!stop);
 
 	return offset;
-}
+}		/* -----  end of function Socket_Send  ----- */
+
+
+/* 
+ * ===  FUNCTION  ======================================================================
+ *         Name:  Socket_Close
+ *  Description:  
+ * =====================================================================================
+ */
 
 void Socket_Close(int sock_fd){
 	close(sock_fd);
-}
+}		/* -----  end of function Socket_Close  ----- */
 
 
 /* vim: set ts=4 sw=4: */

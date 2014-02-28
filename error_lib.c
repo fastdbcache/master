@@ -1,6 +1,5 @@
 /*
  * Author: vyouzhi <vyouzhi@163.com>
- * http://www.xda.cn
  *
  * File: error_lib.c
  * Create Date: 2011-10-10 14:38:14
@@ -22,6 +21,14 @@
  */
 #include "error_lib.h"
 
+
+/* 
+ * ===  FUNCTION  ======================================================================
+ *         Name:  error_init
+ *  Description:  
+ * =====================================================================================
+ */
+
 void error_init(int error_num){
 	int i;
 	ERROR_LIST *el;
@@ -35,15 +42,31 @@ void error_init(int error_num){
         
 	} 
 	user_errls = err_list;
-}
+}		/* -----  end of function error_init  ----- */
+
+
+/* 
+ * ===  FUNCTION  ======================================================================
+ *         Name:  error_add
+ *  Description:  
+ * =====================================================================================
+ */
 
 void error_add(pid_t pid){
 
 	user_errls->pid = pid;
 
 	user_errls = user_errls->next;	
+}		/* -----  end of function error_add  ----- */
 
-}
+
+
+/* 
+ * ===  FUNCTION  ======================================================================
+ *         Name:  error_find
+ *  Description:  
+ * =====================================================================================
+ */
 
 ERROR_LIST *error_find(void){
 	ERROR_LIST *fel;
@@ -56,7 +79,15 @@ ERROR_LIST *error_find(void){
 	for(;fel && fel->pid != pid; fel=fel->next);
 
 	return fel;
-}
+}		/* -----  end of function error_find  ----- */
+
+
+/* 
+ * ===  FUNCTION  ======================================================================
+ *         Name:  error_store
+ *  Description:  
+ * =====================================================================================
+ */
 
 void error_store(int eid){
 	ERROR_LIST *sel;
@@ -66,9 +97,15 @@ void error_store(int eid){
     if(NULL != sel){
     	sel->reflag = eid;
     }
+}		/* -----  end of function error_store  ----- */
 
-}
 
+/* 
+ * ===  FUNCTION  ======================================================================
+ *         Name:  error_get
+ *  Description:  
+ * =====================================================================================
+ */
 int error_get(void){
 	ERROR_LIST *gel;
     int el;
@@ -78,8 +115,8 @@ int error_get(void){
     el = gel->reflag;
     gel->reflag = 0;
     
-  
 	return el;
-}
+}		/* -----  end of function error_get  ----- */
+
 /* vim: set ts=4 sw=4: */
 

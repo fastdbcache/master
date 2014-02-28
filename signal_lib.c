@@ -1,6 +1,5 @@
 /*
  * Author: vyouzhi <vyouzhi@163.com>
- * http://www.xda.cn
  *
  * File: signal_lib.c
  * Create Date: 2011-09-26 15:57:16
@@ -23,12 +22,27 @@
 
 #include "signal_lib.h"
 
+
+/* 
+ * ===  FUNCTION  ======================================================================
+ *         Name:  sig_handler
+ *  Description:  
+ * =====================================================================================
+ */
+
 void sig_handler(const int sig){
     exit(-1);
 	return;
-}
+}		/* -----  end of function sig_handler  ----- */
 
-/* Set signal handler */
+
+/* 
+ * ===  FUNCTION  ======================================================================
+ *         Name:  set_signal
+ *  Description:  
+ * =====================================================================================
+ */
+
 void set_signal(void){
 	
 	signal(SIGINT, sig_handler);
@@ -38,6 +52,7 @@ void set_signal(void){
 	signal(SIGHUP, sig_handler);
     signal(SIGPIPE, SIG_IGN);
 	return;
-}
+}		/* -----  end of function set_signal  ----- */
+
 /* vim: set ts=4 sw=4: */
 

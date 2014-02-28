@@ -1,6 +1,6 @@
 /*
  * Author: vyouzhi <vyouzhi@163.com>
- * http://www.xda.cn
+ * 
  *
  * File: libevent_lib.c
  * Create Date: 2011-09-22 09:29:21
@@ -22,6 +22,15 @@
  */
 #include "action_lib.h"
 
+
+/* 
+ * ===  FUNCTION  ======================================================================
+ *         Name:  on_accept
+ *  Description:  
+ * =====================================================================================
+ */
+
+		
 void on_accept(int fd, short ev, void *arg){
 	int client_fd, err_len;
     char *err, *err_log;
@@ -69,7 +78,14 @@ void on_accept(int fd, short ev, void *arg){
     }
 
     
-}
+} /* -----  end of function on_accept  ----- */
+
+/* 
+ * ===  FUNCTION  ======================================================================
+ *         Name:  conn_new
+ *  Description:  
+ * =====================================================================================
+ */
 
 void conn_new(int sfd, struct event_base *base){
 	conns = (conn *)calloc(1, sizeof(conn));
@@ -79,7 +95,7 @@ void conn_new(int sfd, struct event_base *base){
 	event_base_set(base, &conns->event);
 	event_add(&conns->event, 0);
 
-}
+}		/* -----  end of function conn_new  ----- */
 
 /* 
  * ===  FUNCTION  ======================================================================
