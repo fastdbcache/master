@@ -55,6 +55,9 @@ void setRowDescription ( char **parastat, char *crd, ssize_t count, ssize_t nfie
 int RowItem ( char *key, ssize_t keyl, int frontend , ssize_t nfields );
 void setCacheRowDescriptions ( int frontend );
 
+void fdbcQeuryError ( int frontend );
+void RowError ( int offset,  int frontend, ssize_t nfields );
+
 void CommandComplete ( int sqlcmd, ssize_t rows, int frontend );
 void ReadyForQuery ( int frontend );
 

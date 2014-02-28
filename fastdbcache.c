@@ -112,6 +112,9 @@ int main(int argc, char* argv[]){
     token_thread_init();
     notify_token_thread = NT_FREE;
 
+    pools_qerr = (QERR *)calloc(1, sizeof(QERR));
+    pools_qerr->errs = (ERREC *)calloc(ERR_ROW, sizeof(ERREC));
+
     main_base = event_init();
     /* register moduels 
 	modules_register();*/

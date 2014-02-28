@@ -80,7 +80,6 @@ HITEM *hfind ( char *key, ub4 keyl ){
         y = hjval&(MAX_HITEM_LENGTH-1); 
         _hrow = pool_hg->hrow + x;
         ph = _hrow->hitem + y;
-        
         if(!ph){
             DEBUG("hp is null");
             break;

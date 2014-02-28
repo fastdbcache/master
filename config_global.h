@@ -104,6 +104,9 @@ typedef                 int  word;  /* fastest type available */
 
 #define MAXCONNS 5
 #define LIMITROW 30
+#define ERR_LENG 200
+#define ERR_ROW 10
+
 
 #define FILE_PATH_LENGTH 256
 #define LIMIT_MMAP_BYTE ( 1024 * 1024 )
@@ -189,6 +192,23 @@ struct __deporule{
     size_t  len;		/* length for table */
     DEPR *next;
 };
+
+
+struct __error_record {
+    char error[ERR_LENG];
+    char etime[26];
+};				/* ----------  end of struct __error_record  ---------- */
+
+typedef struct __error_record ERREC;
+
+struct __query_error {
+    ERREC *errs;
+    int offset;
+};				/* ----------  end of struct __query_error  ---------- */
+
+typedef struct __query_error QERR;
+QERR *pools_qerr;
+pthread_mutex_t query_error_lock;
 
 struct __fd
 {
@@ -288,6 +308,15 @@ void conn_get_global ();
 void initDeposit ( );
 void pathCheck ( );
 ub4 alignByte ( ub4 len );
+
+
+#define QERR_LOCK() do{\
+    pthread_mutex_lock(&query_error_lock); \
+}while(0)
+
+#define QERR_UNLOCK() do{\
+    pthread_mutex_unlock(&query_error_lock); \
+}while(0)
 #ifdef __cplusplus
  }
 #endif

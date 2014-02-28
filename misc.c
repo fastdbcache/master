@@ -346,7 +346,6 @@ void checkLimit ( DBP *dbp ){
     memcpy(_dbp->inBuf+start_addr, setlimit, len);
      
     _dbp->inCursor = sizeof(char)+sizeof(uint32);
-    DEBUG("sql:%s", _dbp->inBuf+_dbp->inCursor);
     total_len = htonl((_dbp->inEnd-sizeof(char)));
     memcpy(_dbp->inBuf+sizeof(char), &total_len, sizeof(uint32));
      

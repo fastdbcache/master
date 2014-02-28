@@ -35,6 +35,8 @@
 HELP_CMD help_cmd[]={
     {"item",  "found any key in memory"},
     {"stat", "check system status"},
+    {"last_error", "get last ten sql error"},
+
     {"version", "version for fdbc"},
     {NULL,NULL},
 };
@@ -270,6 +272,40 @@ void fdbcHelp ( int frontend ){
 
 /* 
  * ===  FUNCTION  ======================================================================
+ *         Name:  fdbcQeuryError
+ *  Description:  
+ * =====================================================================================
+ */
+void fdbcQeuryError ( int frontend ){
+    int deslen;
+    ssize_t nfields;
+    char *item_desc, *res;
+    char *errors[]={"id","query", "time",NULL};
+    HELP_CMD *_helps;
+    int i;
+
+    nfields = 0;
+    deslen = RowDesLen( errors, &nfields);
+    item_desc = calloc(deslen+sizeof(char), sizeof(char));
+    if(!item_desc) return;
+
+    res = item_desc;
+
+    setRowDescription( errors, res, deslen, nfields );
+
+    Socket_Send(frontend, item_desc, deslen+sizeof(char));
+    free(item_desc);
+    
+    for(i=0; i<ERR_ROW; i++){
+        RowError ( i,  frontend, nfields );   
+    }
+
+    CommandComplete(0, i , frontend);
+    ReadyForQuery(frontend);
+
+}		/* -----  end of function fdbcQeuryError  ----- */
+/* 
+ * ===  FUNCTION  ======================================================================
  *         Name:  fdbcSet
  *  Description:  
  * =====================================================================================
@@ -503,6 +539,61 @@ void RowHelp ( HELP_CMD *_helps, int frontend , ssize_t nfields ){
         free(newbuf);
 
 }		/* -----  end of function RowHelp  ----- */
+
+
+/* 
+ * ===  FUNCTION  ======================================================================
+ *         Name:  RowError
+ *  Description:  
+ * =====================================================================================
+ */
+void RowError ( int offset,  int frontend, ssize_t nfields ){
+    char *crd, *newbuf, id[2];
+    uint32 tlen, nf, _ulen;     
+    ssize_t total, err_len, time_len;
+    ERREC *_errec;
+    
+    #define CALCH(val, len) do{\
+        _ulen = htonl((len));       \
+        memcpy(crd, &_ulen, sizeof(uint32));    \
+        crd+=sizeof(uint32);                \
+        memcpy(crd, (val), (len));   \
+        crd += (len);   \
+    }while(0)
+    _errec = pools_qerr->errs+(offset+pools_qerr->offset)%ERR_ROW;
+     
+     
+    err_len = strlen(_errec->error);
+    time_len = strlen(_errec->etime);
+    
+    total = sizeof(uint32) + sizeof(uint16) + 2 +err_len + time_len
+             + sizeof(uint32)*nfields;
+    newbuf = calloc(total+sizeof(char), sizeof(char));
+
+    if(!newbuf) return ;
+
+    crd = newbuf;
+    memcpy(crd, "D", sizeof(char));
+    crd+=sizeof(char);
+    tlen = htonl(total);
+    memcpy(crd, &tlen, sizeof(uint32));
+    crd += sizeof(uint32);
+    nf = htons((nfields));
+    memcpy(crd, &nf, sizeof(uint16));
+    crd += sizeof(uint16);
+    
+    snprintf(id, 2, "%d", offset);
+    CALCH(id, 2);
+
+    CALCH(_errec->error, err_len);
+    
+    CALCH(_errec->etime, time_len);
+   
+    Socket_Send(frontend, newbuf, total+sizeof(char));
+    if(newbuf)
+        free(newbuf);
+      
+}		/* -----  end of function RowError  ----- */
 
 /* 
  * ===  FUNCTION  ======================================================================

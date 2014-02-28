@@ -76,7 +76,7 @@ int PGStartupPacket3(int fd, DBP *_dbp){
 }
 
 int AuthPG(const int bfd,const int ffd, DBP *_dbp){
-    char *_hdrtmp;
+    char *_hdrtmp, key[KEY_LENGTH], qerr[ERR_LENG];
     DBP *_apack, *depo_pack; 
     ub1 *_drtmp;
     size_t totalsize,  total_size, cmd_size, pack_len;
@@ -85,12 +85,13 @@ int AuthPG(const int bfd,const int ffd, DBP *_dbp){
     int  isDATA;
     E_SQL_TYPE isSELECT;
     HDR *_hdr;
-    ULIST *_ulist;
+    ub4 utime;
     SLABPACK *mem_pack;
     E_SQL_TYPE cache;
     _ly *ply;
     int isDep ;
     H_STATE depo_lock;
+    ERREC *_errec;
 
     #define FB(type) \
 	do \
@@ -123,7 +124,7 @@ int AuthPG(const int bfd,const int ffd, DBP *_dbp){
     }while (0)
             
     _hdr = NULL;
-    _ulist = NULL;
+    key[0]='\0';
     _apack = _dbp;
     pack_len = 0;
     isSELECT = E_OTHER;
@@ -134,7 +135,6 @@ int AuthPG(const int bfd,const int ffd, DBP *_dbp){
     FB(1);
     
     auth_loop:
-        
         _apack->inCursor = 0;
          
         if(!_apack->inBuf){
@@ -171,32 +171,33 @@ int AuthPG(const int bfd,const int ffd, DBP *_dbp){
         }
         Socket_Read(rfd, _apack->inBuf+_apack->inCursor, totalsize);
 
-        if(*_apack->inBuf == 'X' &&
-            conn_global->hasdep == H_TRUE){
-             
-            if(pools_dest->isfull == H_TRUE){                
-                isDep = conn_global->quotient-1;                 
-            }else{
-                RQ_BUSY(isDep);
-                       
-            }
-            if(isDep <= conn_global->quotient &&
+        if(*_apack->inBuf == 'X' ){
+            if(conn_global->hasdep == H_TRUE &&
                 pools_dest->doing == H_FALSE){
-                DEP_DO_LOCK();                
-                if(pools_dest->doing == H_FALSE){
-                    pools_dest->doing = H_TRUE;
-                    depo_lock = H_TRUE;                    
-                   
+             
+                if(pools_dest->isfull == H_TRUE){                
+                    isDep = conn_global->quotient-1;                 
                 }else{
-                    DEP_DO_UNLOCK();
-                    return -1;
+                    RQ_BUSY(isDep);
                 }
-                DEP_DO_UNLOCK();                
-            }
-             else{
-                /*DEBUG("free isDep:%d, quotient:%d", isDep, conn_global->quotient);  */
-                return -1;
-            } 
+                if(isDep <= conn_global->quotient &&
+                    pools_dest->doing == H_FALSE){
+                    DEP_DO_LOCK();                
+                    if(pools_dest->doing == H_FALSE){
+                        pools_dest->doing = H_TRUE;
+                        depo_lock = H_TRUE;                    
+                       
+                    }else{
+                        DEP_DO_UNLOCK();
+                        return -1;
+                    }
+                    DEP_DO_UNLOCK();                
+                }
+                 else{
+                    /*DEBUG("free isDep:%d, quotient:%d", isDep, conn_global->quotient);  */
+                    return -1;
+                } 
+            }else return -1;
             
         }
         
@@ -262,15 +263,31 @@ int AuthPG(const int bfd,const int ffd, DBP *_dbp){
                     freeHdr(_hdr);
                     _hdr = NULL;
                 }
-                if(_ulist){
-                    freeUList(_ulist);
-                    _ulist = NULL;
-                }
-
+                QERR_LOCK();
+                
+                _errec = pools_qerr->errs+pools_qerr->offset;
+                    
+                memcpy(_errec->error, qerr, strlen(qerr));
+                time_t timep;
+                struct tm *p;
+                time (&timep);
+                p=localtime(&timep);
+                snprintf(_errec->etime, 25, "%d/%d/%d %d:%d:%d",(1900+p->tm_year),( p->tm_mon), p->tm_mday,p->tm_hour, p->tm_min, p->tm_sec);
+                pools_qerr->offset = (++pools_qerr->offset)%ERR_ROW;
+                QERR_UNLOCK();
+                
+                key[0]='\0'; 
+                
                 goto free_pack; 
             case 'Q':                
                 isDATA = FALSE;                
                 _hdrtmp = _apack->inBuf + _apack->inCursor;
+                bzero(qerr, ERR_LENG);
+                if(_apack->inEnd > ERR_LENG-1){
+                    memcpy(qerr, _hdrtmp, ERR_LENG-1);
+                }else{
+                    memcpy(qerr, _hdrtmp, _apack->inEnd);
+                }
                 isSELECT = findSQL(_hdrtmp, _apack->inEnd-_apack->inCursor);
                 if(isSELECT == E_SELECT){
                     GET_LOCK();
@@ -310,19 +327,13 @@ int AuthPG(const int bfd,const int ffd, DBP *_dbp){
                     pools_htab->set++;
                     SET_UNLOCK();
                     ply = parser_do (_hdrtmp, _apack->inEnd-_apack->inCursor);
-                    _ulist = initulist();
-                    if(_ulist &&
-                        ply){
-                        _ulist->keyl = ply->len;
-                        if(_ulist->keyl < (KEY_LENGTH-1)){
-                            memcpy(_ulist->key, ply->tab, _ulist->keyl);
-                            _ulist->utime = get_sec();
-                        }else{
-                            freeUList(_ulist);
-                            _ulist = NULL;
-                        }
-                    }
+                    bzero(key, KEY_LENGTH);
                     if(ply){
+                        
+                        if(ply->len < KEY_LENGTH-1){
+                            memcpy(key, ply->tab, ply->len);
+                            key[ply->len+1] = '\0';
+                        }
                         if(conn_global->hasdep == H_TRUE &&
                             conn_global->deprule){
                        
@@ -379,6 +390,11 @@ int AuthPG(const int bfd,const int ffd, DBP *_dbp){
                         gethtabstat(rfd); 
                         FB(0);
                         goto free_pack;
+                    }else if(cache == E_CACHE_ERRS){
+                        
+                        fdbcQeuryError(rfd); 
+                        FB(0);
+                        goto free_pack;
                     }else if(cache == E_CACHE_HELP){
                         
                         fdbcHelp(rfd); 
@@ -430,7 +446,8 @@ int AuthPG(const int bfd,const int ffd, DBP *_dbp){
                 STORE();
                 if(isSELECT == E_SELECT 
                     && _hdr
-                    && isDATA == TRUE){
+                    /*&& isDATA == TRUE save row is 0 */
+                    ){
                     if(_hdr->drl <= LIMIT_SLAB_BYTE ){                        
                         
                         addHdr(_hdr);
@@ -439,11 +456,11 @@ int AuthPG(const int bfd,const int ffd, DBP *_dbp){
                     freeHdr(_hdr);
                 }
                 isDATA = FALSE;
-                if(_ulist){
-                    addUlist(_ulist);
+                utime = get_sec();
+                if(key[0] != '\0'){
+                    pushList ( key, strlen(key), utime );
                 }
                 _hdr = NULL;
-                _ulist = NULL;
                 goto free_pack;
             case 'X':
                 
@@ -531,6 +548,7 @@ E_SQL_TYPE findCache (const char *sql, int *offset){
     char version[]="version";
     char htab[]="stat";
     char helps[]="help";
+    char errs[]="last_err";
     char sets[]="set";
     const char *p = sql;
 
@@ -580,6 +598,13 @@ E_SQL_TYPE findCache (const char *sql, int *offset){
         if(*p != ';') return E_OTHER;
 
         return E_CACHE_STAT;
+    }else if(memcmp(p, errs, strlen(errs)) == 0){
+        p += strlen(errs);
+        SPACE(p);
+ 
+        if(*p != ';') return E_OTHER;
+
+        return E_CACHE_ERRS;
     }else if(memcmp(p, helps, strlen(helps)) == 0){
         p += strlen(helps);
 

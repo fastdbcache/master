@@ -132,7 +132,6 @@ int mem_set ( ub1 *key, ub4 keyl ){
         }
         _dest->count++;
     }
-    DEBUG("sd:%d, ss:%llu", _dest->sd, _depo->ss);
     memcpy(_depo->sm+_depo->se, key, keyl);
     _depo->se += _lens;
  
@@ -155,7 +154,6 @@ int mem_pushdb ( DBP *_dbp ){
     _ly *ply;
     long utime;
      
-    DEBUG("mem_pushdb"); 
     if(!_dbp){
         DEBUG("dbp is null");
         return -1;
