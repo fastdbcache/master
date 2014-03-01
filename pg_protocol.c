@@ -86,8 +86,7 @@ int PGStartupPacket3(int fd, DBP *_dbp){
  * =====================================================================================
  */
 
-
-int AuthPG(const int bfd,const int ffd, DBP *_dbp){
+int AuthPG(const int bfd, const int ffd, DBP *_dbp, DBP *_cdbp){
     char *_hdrtmp, key[KEY_LENGTH], qerr[ERR_LENG];
     DBP *_apack, *depo_pack; 
     ub1 *_drtmp;
@@ -98,7 +97,7 @@ int AuthPG(const int bfd,const int ffd, DBP *_dbp){
     E_SQL_TYPE isSELECT;
     HDR *_hdr;
     ub4 utime;
-    SLABPACK *mem_pack;
+    DBP *mem_pack;
     E_SQL_TYPE cache;
     _ly *ply;
     int isDep ;
@@ -232,7 +231,7 @@ int AuthPG(const int bfd,const int ffd, DBP *_dbp){
                 depo_lock = H_FALSE;
                  
                 leadexit(bfd);
-                DEBUG("push one");
+                /*DEBUG("push one");  */
                 return -1;
             }
             
@@ -307,20 +306,19 @@ int AuthPG(const int bfd,const int ffd, DBP *_dbp){
                     GET_UNLOCK();
                     checkLimit(_apack);
                     _hdrtmp = _apack->inBuf + _apack->inCursor;
-                    mem_pack = (SLABPACK *)calloc(1, sizeof(SLABPACK));
+                    mem_pack = _cdbp;
                     if(mem_pack){ 
-                        mem_pack->len = 0;
+                        mem_pack->inEnd = 0;
                         hkey(_hdrtmp,_apack->inEnd-_apack->inCursor , mem_pack);
-                        if(mem_pack->len > 0){
-                            Socket_Send(rfd, mem_pack->pack, mem_pack->len);                        
-                            /*
-                            free(mem_pack->pack);*/
-                            mem_pack->pack = NULL;
+                        if(mem_pack->inEnd > 0){
+                            Socket_Send(rfd, mem_pack->inBuf, mem_pack->inEnd);                        
+                            
                             FB(0);
-                            free(mem_pack);
+                            DEBUG("cache here");
                             goto free_pack;
                         
                         }else{
+                            DEBUG("inEnd is 0 %s" , _hdrtmp);
                             _hdr = hdrcreate(); 
                             if(_hdr && (_apack->inEnd-_apack->inCursor)<KEY_LENGTH ){
                                 _hdr->keyl = _apack->inEnd-_apack->inCursor;
@@ -332,8 +330,7 @@ int AuthPG(const int bfd,const int ffd, DBP *_dbp){
                             }
                         }
                         
-                        free(mem_pack);
-                    }
+                    }else DEBUG("cdbp calloc error");
                 }else if(isSELECT==E_DELETE || isSELECT==E_UPDATE || isSELECT==E_INSERT){
                     SET_LOCK();
                     pools_htab->set++;
@@ -421,10 +418,10 @@ int AuthPG(const int bfd,const int ffd, DBP *_dbp){
                         goto free_pack;
                     }
                     
-                }/*
+                }
                   else{
                     DEBUG("system table:%s, len:%d", _apack->inBuf+sizeof(char)+sizeof(uint32), _apack->inEnd);
-                }    */
+                }    
                 Socket_Send(wfd, _apack->inBuf, _apack->inEnd );
                 FB(1);
                 goto free_pack;

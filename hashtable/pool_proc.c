@@ -135,7 +135,7 @@ word haddHitem ( HDR *mhdr ){
             ph->hval = _new_hval;
             ph->hjval = _new_hjval;
             ph->ahit = 0;
-            ph->amiss = 0;
+            ph->amiss = 1;
              
             pools_htab->count++; 
             pool_hg->count++;
@@ -316,6 +316,7 @@ void droprule ( int isize, HITEM *_ph ){
     ph->drl = 0;
     ph->sa = -1;
     ph->hval = 0;
+    ph->drops++;
     _ph->sa = ph->sa;
     _ph->sid = ph->sid;
     _haru->hid = 0;

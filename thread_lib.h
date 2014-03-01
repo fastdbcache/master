@@ -96,7 +96,8 @@ typedef struct {
     int notify_read_fd;    /*   通知事件关联的读fd，这和下面的notify_send_fd是一对管道，具体使用后面讲 */
     int notify_write_fd;     /*     通知事件关联的写fd，后面讲 */
     int no;
-    DBP *tdbp;            /* for any thread dbp */    
+    DBP *tdbp;            /* for any thread get and send pack dbp */    
+    DBP *cdbp;            /* for any thread cache dbp */
 } LIBEVENT_WORK_THREAD;
 
 /* a client item  */

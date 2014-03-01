@@ -219,7 +219,7 @@ int mmap_pushdb ( DBP *_dbp ){
                 goto found_mmdb;     
             }else{
                 
-                DEBUG("pushdb id eq");                
+                /*DEBUG("pushdb id eq"); */               
                 return -1;
             }
         }

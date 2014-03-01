@@ -102,6 +102,7 @@ struct __hitem
   ub4           offtime;  /* offset update time default 0 */
   ub4           ahit;     /* all hit */
   ub4           amiss;    /* all update */
+  ub4           drops;      /* drop rule with it */
  /* struct __hitem *next;      next hitem in list */
 };
 typedef  struct __hitem  HITEM;

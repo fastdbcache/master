@@ -76,7 +76,7 @@ void libevent_work_thread(int fd, short ev, void *arg){
 
     if(pg_len != pack_len) goto ok;
                
-    AuthPG(pg_fds, ffd, _dbp);
+    AuthPG(pg_fds, ffd, _dbp, me->cdbp);
                             
     if(notify_token_thread == NT_FREE){
         uint64_t u;
@@ -130,6 +130,7 @@ void work_thread_init(int nthreads){
         work_threads[i].notify_write_fd = fds[1];
         work_threads[i].no = i;
         work_threads[i].tdbp = initdbp(); 
+        work_threads[i].cdbp = initdbp();
         setup_thread(&work_threads[i]);
     }
 

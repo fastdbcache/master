@@ -54,7 +54,7 @@ void getItemStat ( char *key, ssize_t keyl, int frontend ){
     ssize_t nfields;
     char *item_desc, *res;
     int rows;
-    char *item[]={"key","utime","ahit","amiss",NULL};
+    char *item[]={"key","utime","ahit","amiss", "drops",NULL};
 
     nfields = 0;
     deslen = RowDesLen( item, &nfields);
@@ -325,7 +325,7 @@ int RowItem ( char *key, ssize_t keyl, int frontend , ssize_t nfields ){
     uint64_t _new_hval, _new_hjval;
     char *crd, *newbuf, nlen[256];
     HITEM *ph, *_h;
-    int  utime_len, ahit_len, amiss_len, x, y, n;
+    int  utime_len, ahit_len, amiss_len, drops_len, x, y, n;
     ssize_t total;
     uint32 tlen, nf, _ulen;
     HG *pool_hg;
@@ -370,8 +370,12 @@ int RowItem ( char *key, ssize_t keyl, int frontend , ssize_t nfields ){
     snprintf(nlen, 255, "%lu", _h->amiss);
     amiss_len = strlen(nlen);
 
+    bzero(nlen, strlen(nlen));
+    snprintf(nlen, 255, "%lu", _h->drops);
+    drops_len = strlen(nlen);
+
     total = sizeof(uint32) + sizeof(uint16) + _h->keyl
-            + utime_len + ahit_len + amiss_len + sizeof(uint32)*nfields;
+            + utime_len + ahit_len + amiss_len + drops_len + sizeof(uint32)*nfields;
     newbuf = calloc(total+sizeof(char), sizeof(char));
 
     if(!newbuf) return 0;
@@ -385,13 +389,14 @@ int RowItem ( char *key, ssize_t keyl, int frontend , ssize_t nfields ){
     nf = htons((nfields));
     memcpy(crd, &nf, sizeof(uint16));
     crd += sizeof(uint16);
-
+    
     _ulen = htonl(_h->keyl);
     memcpy(crd, &_ulen, sizeof(uint32));
     crd+=sizeof(uint32);
     memcpy(crd, _h->key, _h->keyl);
     crd += _h->keyl;
 
+    
     _ulen = htonl(utime_len);
     memcpy(crd, &_ulen, sizeof(uint32));
     crd+=sizeof(uint32);
@@ -414,7 +419,15 @@ int RowItem ( char *key, ssize_t keyl, int frontend , ssize_t nfields ){
     bzero(nlen, strlen(nlen));
     snprintf(nlen, 255, "%lu", _h->amiss);
     memcpy(crd, nlen, amiss_len);
-    
+    crd += amiss_len;
+
+    _ulen = htonl(drops_len);
+    memcpy(crd, &_ulen, sizeof(uint32));
+    crd+=sizeof(uint32);
+    bzero(nlen, strlen(nlen));
+    snprintf(nlen, 255, "%lu", _h->drops);
+    memcpy(crd, nlen, drops_len);
+
     Socket_Send(frontend, newbuf, total+sizeof(char));
     if(newbuf)
         free(newbuf);

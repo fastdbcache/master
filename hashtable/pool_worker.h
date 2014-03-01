@@ -27,9 +27,9 @@
 #include "hashtab.h"
 #include "../socket_lib.h"
 
-void hkey ( char *key, ub4 keyl, SLABPACK *dest);
+void hkey ( char *key, ub4 keyl, DBP *dest);
 HITEM *hfind ( char *key, ub4 keyl );
-void getslab ( HITEM * hitem, SLABPACK *dest);
+void getslab ( HITEM * hitem, DBP *dest);
 int addHdr ( HDR *myhdr );
 int addUlist ( ULIST *mlist);
 void pushList ( char *key, ub4 keyl, ub4 utime );

@@ -39,7 +39,7 @@
  *  Description:  
  * =====================================================================================
  */
-void hkey ( char *key, ub4 keyl, SLABPACK *dest){
+void hkey ( char *key, ub4 keyl, DBP *dest){
     HITEM *_h;
     
     _h = hfind(key, keyl);
@@ -124,7 +124,7 @@ HITEM *hfind ( char *key, ub4 keyl ){
  *  Description:  
  * =====================================================================================
  */
-void getslab ( HITEM * hitem, SLABPACK *dest){
+void getslab ( HITEM * hitem, DBP *dest){
     HITEM *_ph = hitem;
 
     if(!_ph) return;
@@ -135,8 +135,8 @@ void getslab ( HITEM * hitem, SLABPACK *dest){
         pools_hslab[_ph->sid].sm = hslabcreate(_ph->sid);
         if(pools_hslab[_ph->sid].sm == NULL) return;
     }
-    dest->pack = pools_hslab[_ph->sid].sm + _ph->sa + sizeof(uint32)*2;
-    dest->len = _ph->drl;
+    dest->inBuf = pools_hslab[_ph->sid].sm + _ph->sa + sizeof(uint32)*2;
+    dest->inEnd = _ph->drl;
 }		/* -----  end of function getslab  ----- */
 
 /* 
