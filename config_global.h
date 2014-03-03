@@ -60,6 +60,7 @@
 
 #include "conf_lib.h"
 #include "func.h"
+#include "log_lib.h"
 
 typedef unsigned short uint16;
 typedef unsigned int uint32;
@@ -131,7 +132,11 @@ typedef                 int  word;  /* fastest type available */
 #define FALSE 0
 #define SUCCESS 0  /* 1 on VAX */
 
-#define DEBUG(fmt, args...) printf(fmt" %s %d\n", ##args, __FILE__, __LINE__)
+#ifdef DEBUGS
+    #define DEBUG(fmt, args...) printf(fmt" %s %d\n", ##args, __FILE__, __LINE__)
+#else
+    #define DEBUG(fmt, args...) eprintf(fmt" %s %d\n", ##args, __FILE__, __LINE__)
+#endif
 
 #define SPACE(point) do{ \
     while (*(point) == ' ' || *(point) == '\t' || *(point) == '\r' || *(point) == '\n'){  \

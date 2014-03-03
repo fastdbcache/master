@@ -21,6 +21,49 @@
  */
 #include "log_lib.h"
 
+static Err_str_t err_levels[] = { 
+    err_null_string,
+    err_string("emerg"),
+    err_string("alert"),
+    err_string("crit"),
+    err_string("error"),
+    err_string("warn"),
+    err_string("notice"),
+    err_string("info"),
+    err_string("debug")
+};
+
+
+
+/* 
+ * ===  FUNCTION  ======================================================================
+ *         Name:  elog_open
+ *  Description:  
+ * =====================================================================================
+ */
+void elog_open ( int i ){
+    pools_elog = (Err_open_file)calloc(i, sizeof(Err_open_file));
+    if(!pools_elog){
+        eprintf("init pools_elog error");
+        exit(-1);
+    }
+}		/* -----  end of function elog_open  ----- */
+
+/* 
+ * ===  FUNCTION  ======================================================================
+ *         Name:  eprintf
+ *  Description:  
+ * =====================================================================================
+ */
+void eprintf ( const char *format, ... ){
+    char buffer[1024];
+    va_list args;
+    va_start (args, format);
+    vsprintf (buffer,format, args);
+    printf ("eprint: %s",buffer);
+    va_end (args);    
+    //return <+return_value+>;
+}		/* -----  end of function eprintf  ----- */
 
 /* 
  * ===  FUNCTION  ======================================================================

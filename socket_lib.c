@@ -333,7 +333,8 @@ size_t Socket_Read(int c_fd, void *buf, ssize_t len){
         nread = read(c_fd, buf+offset, (len-offset));
         if(nread < 0){
             if ( errno == EINTR || errno == EAGAIN){
-                continue;
+                //continue;
+                return -1;
             }else return -1;
         }else if(nread == 0){
             return -1;
@@ -374,7 +375,8 @@ size_t Socket_Send(int c_fd, const void *buf, ssize_t len){
 			{
 
                 DEBUG("Oh dear, something went wrong with read()! %s", strerror(errno));
-				continue;
+                return -1;
+				//continue;
 			}
 		}else if(nsend == 0)return -1;	
         
