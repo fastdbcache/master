@@ -59,7 +59,7 @@ void on_accept(int fd, short ev, void *arg){
         RQ_BUSY(isDep);           
         DEBUG("action isDep:%d", isDep);
         close(client_fd);
-        d_log("RQ is full");
+        DEBUG("%s:RQ is full", err_levels[ELOG_NOTICE].estr);
     }
     if(notify_token_thread == NT_FREE){
         /*  thread = work_threads+1;
@@ -111,7 +111,7 @@ void anyThread (void *(*func)(void *), void *arg  ){
    
     pthread_attr_setdetachstate(&attr,PTHREAD_CREATE_DETACHED); 
     if ((ret = pthread_create(&thread, &attr, func, arg)) != 0) {
-        d_log("Can't create thread");
+        FLOG_WARN("Can't create thread" );
         //exit(1);
     }   
     pthread_attr_destroy(&attr);

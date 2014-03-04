@@ -76,7 +76,7 @@ int main(int argc, char* argv[]){
     }
     
     pathCheck ( );
-	d_log(conn_global->fdbc);
+	FLOG_INFO("%s",conn_global->fdbc);
 
     pools_hfd = inithfd();
     hcreate(8);

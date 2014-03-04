@@ -82,13 +82,13 @@ void save_pid(const pid_t pid, const char *pid_file) {
         return;
 
     if ((fp = fopen(pid_file, "w")) == NULL) {
-        d_log("Could not open the pid file  for writing");
+        FLOG_ALERT("Could not open the pid file  for writing");
         return;
     }
 
     fprintf(fp,"%ld\n", (long)pid);
     if (fclose(fp) == -1) {
-        d_log("Could not close the pid file ");
+        FLOG_ALERT("Could not close the pid file ");
         return;
     }
 }		/* -----  end of function save_pid  ----- */
@@ -106,7 +106,7 @@ void remove_pidfile(const char *pid_file) {
       return;
 
   if (unlink(pid_file) != 0) {
-      d_log("Could not remove the pid file ");
+      FLOG_ALERT("Could not remove the pid file ");
   }
 }		/* -----  end of function remove_pidfile  ----- */
 

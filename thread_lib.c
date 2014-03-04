@@ -44,7 +44,7 @@ void libevent_work_thread(int fd, short ev, void *arg){
     DBP *_dbp;
 
     if (read(fd, buf, 1) != 1)
-	    d_log("error Can't read from libevent pipe");
+	    FLOG_ALERT("error Can't read from libevent pipe");
 
      
     work_child = wtq_queue_tail;
@@ -156,7 +156,7 @@ void work_thread_init(int nthreads){
 void setup_thread(LIBEVENT_WORK_THREAD *me) {
     me->base = event_init();
     if (! me->base) {
-        d_log("error Can't allocate event base");
+        FLOG_ERR("error Can't allocate event base");
         exit(1);
     }
 
@@ -166,7 +166,7 @@ void setup_thread(LIBEVENT_WORK_THREAD *me) {
     event_base_set(me->base, &me->notify_event);
 
     if (event_add(&me->notify_event, 0) == -1) {
-        d_log("Can't monitor libevent notify pipe");
+        FLOG_ERR("Can't monitor libevent notify pipe");
         exit(1);
     }
 
@@ -186,8 +186,7 @@ void create_worker(void *(*func)(void *), void *arg) {
     pthread_attr_init(&attr);
     
     if ((ret = pthread_create(&thread, &attr, func, arg)) != 0) {
-        d_log("Can't create thread");
-        printf("here---\n");
+        FLOG_ERR("Can't create thread");
         exit(1);
     }
 }		/* -----  end of function create_worker  ----- */
@@ -249,7 +248,7 @@ void token_thread_init(){
     token_thread = (LIBEVENT_TOKEN_THREAD *)calloc(1, sizeof(LIBEVENT_TOKEN_THREAD));
     token_thread->base = event_base_new();
     if (! token_thread->base) {
-        d_log("error Can't allocate event base");
+        FLOG_ERR("error Can't allocate event base");
         exit(1);
     }   
     token_efd = eventfd(0, 0);
@@ -263,7 +262,7 @@ void token_thread_init(){
               EV_READ | EV_PERSIST, libevent_token_thread, token_thread);
     event_base_set(token_thread->base, &token_thread->notify_event);
     if (event_add(&token_thread->notify_event, 0) == -1) {
-        d_log("Can't monitor libevent notify pipe");
+        FLOG_ERR("Can't monitor libevent notify pipe");
         exit(1);
     }   
 
@@ -284,7 +283,7 @@ void setup_token(void *(*func)(void *), void *arg) {
     pthread_attr_init(&attr);
 
     if ((ret = pthread_create(&thread, &attr, func, arg)) != 0) {
-        d_log("Can't create thread");
+        FLOG_ERR("Can't create thread");
         exit(1);
     }
 }		/* -----  end of function setup_token  ----- */
@@ -377,13 +376,13 @@ RQ *rq_item_init(){
 
     rq = (RQ *)calloc(1, sizeof(RQ));
     if(rq == NULL){
-        d_log("Can't calloc for RQ");
+        FLOG_ERR("Can't calloc for RQ");
         exit(1);    
     }   
 
     rq->frontend = (FC_ITEM *)calloc(1, sizeof(FC_ITEM));
     if(rq->frontend == NULL){
-        d_log("Can't calloc for CC_ITEM");
+        FLOG_ERR("Can't calloc for CC_ITEM");
         exit(1);
     }   
 
@@ -475,7 +474,7 @@ void rq_free(RQ *child){
 
     if(child != NULL){
         close(child->frontend->ffd);
-        /*  if(Socket_Close(child->client->cfd) == -1) d_log("close fd error!\n");*/
+        /*  if(Socket_Close(child->client->cfd) == -1) FLOG_ALERT("close fd error!\n");*/
         child->isjob = JOB_FREE; 
         if(child->frontend != NULL)
             free(child->frontend);

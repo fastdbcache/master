@@ -54,13 +54,13 @@ int SetNonBlocking(int s){
     opts=fcntl(s, F_GETFL);
     if(opts == -1)
     {
-        d_log("fcntl(sock,GETFL)");
+        FLOG_ERR("fcntl(sock,GETFL)");
         exit(-1);
     }
     opts |= O_NONBLOCK;
     if(fcntl(s, F_SETFL, opts) == -1)
     {
-        d_log("fcntl(sock,SETFL,opts)");
+        FLOG_ERR("fcntl(sock,SETFL,opts)");
         exit(1);
     }
 	return 0;
@@ -78,12 +78,12 @@ int SetUnsetBlocking(int s){
     opts=fcntl(s, F_GETFL, 0);
     if(opts == -1)
     {
-        d_log("fcntl(sock,GETFL)");
+        FLOG_ERR("fcntl(sock,GETFL)");
         exit(-1);
     }
     if(fcntl(s, F_SETFL, opts & !O_NONBLOCK) == -1)
     {
-        d_log("fcntl(sock,SETFL,opts)");
+        FLOG_ERR("fcntl(sock,SETFL,opts)");
         exit(1);
     }
 	return 0;
@@ -99,7 +99,7 @@ int new_socket_unix(void) {
     int sfd;
 
     if ((sfd = socket(AF_UNIX, SOCK_STREAM, 0)) == -1) {
-        d_log("socket()");
+        FLOG_ERR("socket()");
         return -1;
     }
 	SetNonBlocking(sfd);
@@ -189,17 +189,17 @@ int Set_SockOpt(int sockfd){
     int keepintvl = 120;
 
 	if (-1 == setsockopt(sockfd, SOL_SOCKET, SO_REUSEADDR, (void*)&sendbuflen, len)) {
-		d_log("Couldn't setsockopt(SO_REUSEADDR)\n");
+		FLOG_ALERT("Couldn't setsockopt(SO_REUSEADDR)\n");
 		return (-1);
 	}
 	
 	if (-1 == setsockopt(sockfd, SOL_SOCKET, SO_SNDBUF, (void*)&sendbuflen, len )) {
-		d_log("Couldn't setsockopt(SO_SNDBUF)\n");
+		FLOG_ALERT("Couldn't setsockopt(SO_SNDBUF)\n");
 		return (-1);
 	}
 
 	if (-1 == setsockopt(sockfd, SOL_SOCKET, SO_RCVBUF, (void*)&sendbuflen, len )) {
-		d_log("Couldn't setsockopt(SO_RCVBUF)\n");
+		FLOG_ALERT("Couldn't setsockopt(SO_RCVBUF)\n");
 		return (-1);
 	}
 	
@@ -220,13 +220,13 @@ int Set_SockOpt(int sockfd){
 
 	if (-1 == setsockopt(sockfd, SOL_SOCKET, SO_LINGER, &opt,
 		sizeof(struct linger))){
-		d_log("Coundn't setsockopt(SO_LINGER)\n");
+		FLOG_ALERT("Coundn't setsockopt(SO_LINGER)\n");
 		return (-1);
 	}
 
     if (setsockopt(sockfd, IPPROTO_TCP, TCP_NODELAY,
                   (void*)&enable, sizeof(enable)) == -1) {
-        printf("noblock SockOpt\n");
+        FLOG_ALERT("noblock SockOpt\n");
 		return (-1);
     }
 

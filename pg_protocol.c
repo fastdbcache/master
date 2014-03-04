@@ -47,7 +47,7 @@ int PGStartupPacket3(int fd, DBP *_dbp){
     _dbp->inCursor = 0; 
     _dbp->inEnd = 0;
     if(_dbp == NULL) {
-        d_log("pack calloc error !\n");         
+        FLOG_WARN("pack calloc error !\n");         
         return -1;
     }
     res = CheckBufSpace(sizeof(uint32), _dbp);

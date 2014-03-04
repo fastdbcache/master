@@ -32,6 +32,14 @@
 
 #define LOGFILE   "FastDBCache"
 
+#define ELOG_ERR               1
+#define ELOG_ALERT             2
+#define ELOG_WARN              3
+#define ELOG_NOTICE            4
+#define ELOG_INFO              5
+#define ELOG_DEBUG             6
+
+#define ERR_LENG 1024
 
 struct err_open_file {
     int fd;
@@ -42,7 +50,7 @@ typedef struct err_open_file Err_open_file;
 
 struct err_str_t {
     size_t      len;
-    char     *data;
+    char     *estr;
 };				/* ----------  end of struct err_str_t  ---------- */
 
 typedef struct err_str_t Err_str_t;
@@ -50,7 +58,15 @@ typedef struct err_str_t Err_str_t;
 #define err_string(str)     { sizeof(str) - 1, (char *) str }
 #define err_null_string     { 0, NULL }
 
-Err_open_file *pools_elog;
+static Err_str_t err_levels[] = { 
+    err_null_string,
+    err_string("alert"),
+    err_string("error"),
+    err_string("warn"),
+    err_string("notice"),
+    err_string("info"),
+    err_string("debug")
+};
 
 /*
 typedef struct log_context{
@@ -61,8 +77,8 @@ typedef struct log_context{
 
 } LogContext;
 */
-void d_log(const char *logs);
-void eprintf ( const char *format, ... );
+void eprintf ( Err_str_t est, const char *format, ... );
+void elog_write( Err_str_t est, const char *msg);
 
 #endif /* LOG_LIG_H_ */
 /* vim: set ts=4 sw=4: */
