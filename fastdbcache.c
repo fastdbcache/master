@@ -76,7 +76,7 @@ int main(int argc, char* argv[]){
     }
     
     pathCheck ( );
-	FLOG_INFO("%s",conn_global->fdbc);
+	FLOG_INFO("version %s",conn_global->fdbc);
 
     pools_hfd = inithfd();
     hcreate(8);
@@ -96,16 +96,16 @@ int main(int argc, char* argv[]){
         FLOG_ERR("failed to getrlimit number of files");
         exit(1);
     } else {
-        rlim.rlim_cur = conn_global->maxconns;
-        rlim.rlim_max = conn_global->maxconns;
+        rlim.rlim_cur = conn_global->maxrlim;
+        rlim.rlim_max = conn_global->maxrlim;
         if (setrlimit(RLIMIT_NOFILE, &rlim) != 0) { 
-            FLOG_ERR("failed to set rlimit for open files. Try starting as root or requesting smaller maxconns value.");
+            FLOG_ERR("failed to set rlimit for open files. Try starting as root or requesting smaller maxrlim value.");
             exit(1);
         }    
     }         
 
     /*rq_init(MAXCONN);*/
-    rq_init(conn_global->maxconn);
+    rq_init(conn_global->maxrq);
 
     work_thread_init(conn_global->process_num);
 

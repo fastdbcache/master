@@ -22,9 +22,9 @@
 #include <sys/types.h>
 #include <stdio.h>
 
+#include "config_global.h"
 
 #define MAXBUFFSIZE 65535
-#define MAXCONN 10000
 
 int SetNonBlocking(int s);
 int SetUnsetBlocking(int s);

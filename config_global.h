@@ -103,7 +103,10 @@ typedef                 int  word;  /* fastest type available */
 
 #define MD5_LENG 33
 
-#define MAXCONNS 5
+#define MAXCONN 10000
+
+#define MAXRLIM 1024
+#define MAXRQ 1024
 #define LIMITROW 30
 #define ERR_LENG 200
 #define ERR_ROW 10
@@ -274,7 +277,7 @@ pthread_mutex_t session_slot_lock;
 typedef struct __conn _conn;
 struct __conn{
     char *fdbc;  /* version for fastdbcache */
-    int maxconns;  /* rlimit */
+    int maxrlim;  /* rlimit */
 
     char *server_ip;   /* server listen ip */
     ssize_t server_port; /* server listen port */
@@ -312,7 +315,7 @@ struct __conn{
     char *mmap_path;
     ssize_t mmdb_length;
 
-    sb2 maxconn;
+    sb2 maxrq;
     sb2 limit_rows;    /* max return limit rows */
 };
 

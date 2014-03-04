@@ -44,7 +44,7 @@ void conn_init_global ( void ){
         FLOG_ERR("conn_global init error");
         exit(-1);
     }
-    conn_global->maxconns = MAXCONNS; 
+    conn_global->maxrlim = MAXRLIM; 
 
     conn_global->server_ip = "localhost";
     conn_global->server_port = 2345;
@@ -65,7 +65,7 @@ void conn_init_global ( void ){
     conn_global->delaytime = 0;
     conn_global->cache_method = D_MEM;
 
-    conn_global->fdbc = "fastdbcache version 0.0.1";
+    conn_global->fdbc = "0.0.4";
 
     conn_global->dmaxbytes = 2 * 1024 * 1024;
     conn_global->deptype = D_MMAP;
@@ -76,7 +76,7 @@ void conn_init_global ( void ){
     conn_global->mmdb_length = DEFAULT_MMAP_BYTE;
 
 
-    conn_global->maxconn = MAXCONNS;
+    conn_global->maxrq = MAXRQ;
     conn_global->limit_rows = LIMITROW;
     /*
     if(conn_global->deptype == D_MMAP){
@@ -104,7 +104,7 @@ void conn_init_global ( void ){
  */
 void conn_get_global (  ){
    
-    conn_global->maxconns = atoi(conf_get("max_openfile"));
+    conn_global->maxrlim = atoi(conf_get("max_openfile"));
     
     conn_global->server_ip = conf_get("server_ip");
     conn_global->server_port = atoi(conf_get("server_port"));

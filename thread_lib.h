@@ -50,7 +50,7 @@
 
 #define RQ_BUSY(c)  do{    \
     RQ_COUNT((c));               \
-    (c) = (conn_global->maxconn - (c));             \
+    (c) = (conn_global->maxrq - (c));             \
 }while(0)
 
 #define RQ_FREE(c)  do{    \
