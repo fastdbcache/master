@@ -103,7 +103,7 @@ word haddHitem ( HDR *mhdr ){
     if(hdr == NULL) return -1;
     if(hdr->drl > (LIMIT_SLAB_BYTE-sizeof(uint32)*2)) return -1;
     if(hdr->keyl > (KEY_LENGTH-1)){
-       DEBUG("keyl > KEY_LENGTH key:%s", hdr->key);
+       FLOG_NOTICE("keyl > KEY_LENGTH key:%s", hdr->key);
        return -1;
     }
     _new_hval = lookup(hdr->key, hdr->keyl, 0);
@@ -116,7 +116,7 @@ word haddHitem ( HDR *mhdr ){
     do{
         pool_hg = hitem_group[n];
         if(pool_hg == NULL){
-            DEBUG("pool_hg is null n:%d", n);
+            FLOG_WARN("pool_hg is null n:%d", n);
             break;
         }
         x=(_new_hval&pool_hg->mask);
@@ -125,7 +125,7 @@ word haddHitem ( HDR *mhdr ){
         ph = _hrow->hitem + y;
 
         if(!ph) {
-            DEBUG("ph is null x:%d, y:%d", x, y);
+            FLOG_NOTICE("ph is null x:%d, y:%d", x, y);
             break;
         }
         if(ph->drl == 0){
@@ -208,7 +208,7 @@ int saveHitem ( HITEM *_ph, HDR *_hdr, int i ){
     }
     if(ph->sa == -1) return -1;
     if((ph->sa+total_size) > conn_global->default_bytes){
-        DEBUG("sa add total_size error");
+        FLOG_NOTICE("sa add total_size error");
         return -1;
     }
     if(pools_hslab[ph->sid].sm == NULL) return -1;
@@ -268,7 +268,7 @@ void hrule ( HITEM *hitem, int isize, int x, int y, int id ){
 
         pool_hg = hitem_group[_haru->hid];
         if(pool_hg == NULL){
-            DEBUG("pool_hg is null n:%d", _haru->hid);
+            FLOG_WARN("pool_hg is null n:%d", _haru->hid);
             return;
         }
         _hrow = pool_hg->hrow + _haru->x;

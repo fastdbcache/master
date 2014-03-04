@@ -41,7 +41,7 @@ void conn_init_global ( void ){
     
     conn_global = (_conn *)calloc(1, sizeof(_conn));
     if(!conn_global){
-        DEBUG("conn_global init error");
+        FLOG_ERR("conn_global init error");
         exit(-1);
     }
     conn_global->maxconns = MAXCONNS; 
@@ -176,12 +176,12 @@ void pathCheck ( ){
     if(conn_global->deptype == D_MMAP){
         stat(conn_global->mmap_path, &sb);
         if(!S_ISDIR(sb.st_mode)){
-            DEBUG("cache is not dir %s, mode:%d", conn_global->mmap_path, sb.st_mode);
+            FLOG_ERR("cache is not dir %s, mode:%d", conn_global->mmap_path, sb.st_mode);
             exit(-1);
         }
         
         if(files_iswrite(conn_global->mmap_path) != 1){
-            DEBUG("cache dir can't read! dir:%s", conn_global->mmap_path);
+            FLOG_ERR("cache dir can't read! dir:%s", conn_global->mmap_path);
             exit(-1);
         }
            

@@ -34,7 +34,7 @@ void eprintf ( Err_str_t est, const char *format, ... ){
     va_start (args, format);
     vsnprintf (buffer, ERR_LENG-1, format, args);
 #ifdef DEBUGS
-    printf ("eprint:%s: %s",est.estr, buffer);
+    printf ("eprint:%s: %s\n",est.estr, buffer);
 #else
     elog_write(est, buffer);
 #endif
@@ -50,7 +50,7 @@ void eprintf ( Err_str_t est, const char *format, ... ){
 
 void elog_write( Err_str_t est, const char *msg ){
 	openlog(LOGFILE, LOG_PID|LOG_CONS, LOG_LOCAL0);
-	syslog(LOG_ALERT,"%s:%s\n",est.estr, msg);
+	syslog(LOG_ALERT,"%s:%s",est.estr, msg);
 	closelog();
 }		/* -----  end of function elog_write  ----- */
 

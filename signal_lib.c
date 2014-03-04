@@ -31,6 +31,7 @@
  */
 
 void sig_handler(const int sig){
+    FLOG_NOTICE("catch signal");
     exit(-1);
 	return;
 }		/* -----  end of function sig_handler  ----- */

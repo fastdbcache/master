@@ -39,7 +39,7 @@ int daemon_init(const char *pname, int facility){
 	if((pid = fork()) < 0)
 		return (-1);
 	else if(pid){
-        DEBUG("daemon pid error");
+        FLOG_ERR("daemon pid error");
 		_exit(0);
     }
 
@@ -51,7 +51,7 @@ int daemon_init(const char *pname, int facility){
 	if((pid = fork()) < 0)
 		return (-1);
 	else if(pid){
-        DEBUG("daemon pid error");
+        FLOG_ERR("daemon pid error");
 		_exit(0);
     }
 	

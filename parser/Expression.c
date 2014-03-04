@@ -47,7 +47,7 @@ _ly *parser_do (char *str, int len){
     tail = _init_ly();
     if (yylex_init(&scanner)) {
         // couldn't initialize
-        DEBUG("ly 0");
+        FLOG_WARN("ly 0");
         return NULL;
     }
 

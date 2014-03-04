@@ -63,7 +63,7 @@ HITEM *hfind ( char *key, ub4 keyl ){
     HROW *_hrow;
 
     i = m = 0;
-    if(!key){DEBUG("key error %d",i); return NULL;}
+    if(!key){FLOG_NOTICE("key error %d",i); return NULL;}
     if(keyl < 0) return NULL;
     if(keyl > (KEY_LENGTH-1) ) return NULL;
 
@@ -81,7 +81,7 @@ HITEM *hfind ( char *key, ub4 keyl ){
         _hrow = pool_hg->hrow + x;
         ph = _hrow->hitem + y;
         if(!ph){
-            DEBUG("hp is null");
+            FLOG_NOTICE("hp is null");
             break;
         }
         //DEBUG("pool_hg:%llu, _hrow:%llu, ph:%llu,m:%d, key:%s",pool_hg, _hrow, ph, m, key);
@@ -195,7 +195,7 @@ void pushList ( char *key, ub4 keyl, ub4 utime ){
 
     _tlist = pools_tlist;
     if(!_tlist){
-        DEBUG("pools_tlist is null");
+        FLOG_DEBUG("pools_tlist is null");
         return;
     }
     TLIST_LOCK();

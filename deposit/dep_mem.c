@@ -78,11 +78,11 @@ int mem_set ( ub1 *key, ub4 keyl ){
     uint32 mask;
  
     if(!_dest){  
-        DEBUG("pools_dest is null");
+        FLOG_WARN("pools_dest is null");
         return -1;
     }
     if(keyl > (LIMIT_SLAB_BYTE)){ 
-        DEBUG("keyl is too big %d", keyl);
+        FLOG_WARN("keyl is too big %d", keyl);
         return -1;
     }
 
@@ -119,7 +119,7 @@ int mem_set ( ub1 *key, ub4 keyl ){
         _depo->sp=0;
         _depo->se=0;
         if(_dest->count * (LIMIT_SLAB_BYTE) > _dest->maxbyte) {            
-            DEBUG("no momey use for dep_mem");
+            FLOG_NOTICE("no momey use for dep_mem");
             DEPO_UNLOCK();
             return -1;    
         }else{
@@ -155,13 +155,13 @@ int mem_pushdb ( DBP *_dbp ){
     long utime;
      
     if(!_dbp){
-        DEBUG("dbp is null");
+        FLOG_NOTICE("dbp is null");
         return -1;
     }
      
     _depo = _dest->pool_depo[_dest->nd];
     if(!_depo){
-        DEBUG("depo is null");
+        FLOG_NOTICE("depo is null");
         return -1;
     }
     mask = _dest->total;

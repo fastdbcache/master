@@ -52,14 +52,12 @@ void on_accept(int fd, short ev, void *arg){
         sprintf(err_log, "accept-- %s", err);
 		  d_log(err_log);
         free(err_log);*/
-        DEBUG("accept error %s --", err);
+        FLOG_WARN("accept error %s --", err);
 		return;
 	}
     if(rq_push(client_fd) != 0){
-        RQ_BUSY(isDep);           
-        DEBUG("action isDep:%d", isDep);
         close(client_fd);
-        DEBUG("%s:RQ is full", err_levels[ELOG_NOTICE].estr);
+        FLOG_WARN("RQ is full");
     }
     if(notify_token_thread == NT_FREE){
         /*  thread = work_threads+1;
@@ -68,7 +66,7 @@ void on_accept(int fd, short ev, void *arg){
          u = 1;
          s = write(token_efd, &u , sizeof(uint64_t));
 
-         if(s != sizeof(uint64_t))DEBUG("write to token_efd");
+         if(s != sizeof(uint64_t))FLOG_WARN("write to token_efd");
 
     }
 

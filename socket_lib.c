@@ -334,6 +334,7 @@ size_t Socket_Read(int c_fd, void *buf, ssize_t len){
         if(nread < 0){
             if ( errno == EINTR || errno == EAGAIN){
                 //continue;
+                FLOG_WARN("Oh dear, something went wrong with read()! %s", strerror(errno));
                 return -1;
             }else return -1;
         }else if(nread == 0){
@@ -374,7 +375,7 @@ size_t Socket_Send(int c_fd, const void *buf, ssize_t len){
 			if(errno == EAGAIN || errno == EINTR)
 			{
 
-                DEBUG("Oh dear, something went wrong with read()! %s", strerror(errno));
+                FLOG_WARN("Oh dear, something went wrong with send()! %s", strerror(errno));
                 return -1;
 				//continue;
 			}

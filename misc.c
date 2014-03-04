@@ -155,7 +155,7 @@ void *mcalloc ( size_t nmemb, size_t size, const char *pathname, int flags ){
 
     fd = open(pathname, flags, (mode_t)0660);
     if(fd==-1){
-        DEBUG("open file error");
+        FLOG_ALERT("open file error");
         return NULL;
     }
     fstat(fd, &sb);
@@ -165,7 +165,7 @@ void *mcalloc ( size_t nmemb, size_t size, const char *pathname, int flags ){
         result = lseek(fd, line-1, SEEK_SET);
         if (result == -1) {
             close(fd);
-            DEBUG("Error calling lseek() to 'stretch' the file");
+            FLOG_ALERT("Error calling lseek() to 'stretch' the file");
             return -1;
         }
         name[0]='\0';
@@ -173,7 +173,7 @@ void *mcalloc ( size_t nmemb, size_t size, const char *pathname, int flags ){
         result = write(fd, name, 1);
         if (result < 0) {
             close(fd);
-            DEBUG("Error writing a byte at the end of the file");
+            FLOG_ALERT("Error writing a byte at the end of the file");
             return -1;
         }
                 
@@ -183,14 +183,14 @@ void *mcalloc ( size_t nmemb, size_t size, const char *pathname, int flags ){
     isize = alignByte(sb.st_size);
     start = mmap(NULL, isize, PROT_READ|PROT_WRITE, MAP_SHARED, fd, 0);
     if(start == MAP_FAILED){
-        DEBUG("init mmap error %s", pathname);
+        FLOG_WARN("init mmap error %s", pathname);
         close(fd);
         return NULL;
     }
     _hfd_next = NULL;
     if(!pools_hfd){
         pools_hfd = inithfd();
-        DEBUG("init pools_hfd");
+        FLOG_WARN("init pools_hfd");
     }
     TAIL_HFD(_hfd_next);
                            
@@ -202,7 +202,7 @@ void *mcalloc ( size_t nmemb, size_t size, const char *pathname, int flags ){
         _hfd->name[len+1]='\0';
         _hfd->len = len;
         _hfd->ptr = start;
-        DEBUG("start pathname:%s, prt:%llu",pathname, _hfd->ptr);
+        FLOG_WARN("start pathname:%s, prt:%llu",pathname, _hfd->ptr);
         _hfd_next->next = _hfd;
     }
     
@@ -230,7 +230,7 @@ void unmmap ( const char *pathname ){
             strncmp(_hfd->name, pathname, len)==0){
             DEBUG("end pathname:%s prt:%llu",pathname, _hfd->ptr);
             if (munmap(_hfd->ptr, _hfd->fsize) == -1) {
-                DEBUG("Error un-mmapping the file");
+                FLOG_WARN("Error un-mmapping the file");
                 /* Decide here whether to close(fd) and exit() or not. Depends... */
             }           
             close(_hfd->fd);
@@ -340,7 +340,7 @@ void checkLimit ( DBP *dbp ){
     start_addr = _dbp->inEnd-i;
     
     if(CheckBufSpace((len - i), _dbp) != 0){
-        DEBUG("CheckBufSpace error");
+        FLOG_ALERT("CheckBufSpace error");
         return -1;
     }
     memcpy(_dbp->inBuf+start_addr, setlimit, len);

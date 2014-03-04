@@ -44,7 +44,7 @@ void leadinit ( size_t byte ){
     pthread_mutex_init(&work_lock_deps_do, NULL);
 
     if(byte < LIMIT_SLAB_BYTE) {
-        DEBUG("deposit is very little");
+        FLOG_ERR("deposit is very little");
         exit(1);
     }
     switch (conn_global->deptype  ) {
@@ -64,7 +64,7 @@ void leadinit ( size_t byte ){
     }				/* -----  end switch  ----- */
 
     if(!pools_dest){
-        DEBUG("init pools_dest error");
+        FLOG_ERR("init pools_dest error");
         exit(1);
     }
 }		/* -----  end of function leadinit  ----- */

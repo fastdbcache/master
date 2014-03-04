@@ -93,13 +93,13 @@ int main(int argc, char* argv[]){
 	}
     
     if (getrlimit(RLIMIT_NOFILE, &rlim) != 0) { 
-        DEBUG("failed to getrlimit number of files");
+        FLOG_ERR("failed to getrlimit number of files");
         exit(1);
     } else {
         rlim.rlim_cur = conn_global->maxconns;
         rlim.rlim_max = conn_global->maxconns;
         if (setrlimit(RLIMIT_NOFILE, &rlim) != 0) { 
-            DEBUG("failed to set rlimit for open files. Try starting as root or requesting smaller maxconns value.");
+            FLOG_ERR("failed to set rlimit for open files. Try starting as root or requesting smaller maxconns value.");
             exit(1);
         }    
     }         
@@ -126,7 +126,7 @@ int main(int argc, char* argv[]){
 		listen_fd = server_socket_unix(); 
 
 	if (listen_fd < 0){
-        DEBUG("listen_fd  error");
+        FLOG_ERR("listen_fd  error");
 		exit(-1);
 	}
     

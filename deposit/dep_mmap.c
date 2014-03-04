@@ -56,7 +56,7 @@ MMPO *mmpo_init (  ){
     pools_mmap[1] = (char *)mmapdb(_mmpo->id);
     for(i=0; i<2; i++){
         if(!pools_mmap[i]){
-            DEBUG("pools_mmap init error %d",i);
+            FLOG_ERR("pools_mmap init error %d",i);
             exit(-1);
         }
     }
@@ -108,12 +108,12 @@ int mmap_set ( ub1 *key, ub4 keyl ){
     char *mmdb;
     
     if(!pools_dest->pool_mmpo){
-        DEBUG("pool_mmpo is null");
+        FLOG_WARN("pool_mmpo is null");
         return -1;
     }
 
     if(keyl > (LIMIT_SLAB_BYTE)){
-        DEBUG("keyl is too big %d", keyl);
+        FLOG_WARN("keyl is too big %d", keyl);
         return -1;
     }
 
@@ -130,7 +130,7 @@ int mmap_set ( ub1 *key, ub4 keyl ){
                 memcpy(mmdb+_mmpo->offset, &val, sizeof(uint32));
             }
             else{
-                DEBUG("error");
+                FLOG_NOTICE("error");
                 DEPO_UNLOCK();
                 return -1;
             }
@@ -142,7 +142,7 @@ int mmap_set ( ub1 *key, ub4 keyl ){
          _mmpo->id++;   
         pools_mmap[0] = (char *)mmapdb(_mmpo->id);
         if(!pools_mmap[0]){
-            DEBUG("pools_mmap init error");
+            FLOG_NOTICE("pools_mmap init error");
             DEPO_UNLOCK();
             return -1;
         }
@@ -181,13 +181,13 @@ int mmap_pushdb ( DBP *_dbp ){
     char mmdb_name[FILE_PATH_LENGTH], *mmdb;
 
     if(!_dbp){
-        DEBUG("dbp is null");
+        FLOG_NOTICE("dbp is null");
         return -1;
     }
 
     _mmpo = pools_dest->pool_mmpo+1;
     if(!_mmpo) {
-        DEBUG("mmpo error");
+        FLOG_NOTICE("mmpo error");
         return -1;
     }
             
@@ -195,7 +195,7 @@ int mmap_pushdb ( DBP *_dbp ){
         _mmpo->id++;        
         pools_mmap[1] =(char *)mmapdb(_mmpo->id);
         if(!pools_mmap[1]){
-            DEBUG("_mmpo->id:%d", _mmpo->id);
+            FLOG_WARN("_mmpo->id:%d", _mmpo->id);
             return -1;
         }
         _mmpo->offset = 0; 
@@ -212,7 +212,7 @@ int mmap_pushdb ( DBP *_dbp ){
                 _mmpo->id++;        
                 pools_mmap[1] =(char *)mmapdb(_mmpo->id);
                 if(!pools_mmap[1]){
-                    DEBUG("_mmpo->id:%d", _mmpo->id);
+                    FLOG_NOTICE("_mmpo->id:%d", _mmpo->id);
                     return -1;
                 }
                 _mmpo->offset = 0;
@@ -234,7 +234,7 @@ int mmap_pushdb ( DBP *_dbp ){
         return -1;
     }  */
     if(CheckBufSpace(len, _dbp) != 0){
-        DEBUG("CheckBufSpace error");
+        FLOG_WARN("CheckBufSpace error");
         return -1;
     }
     memcpy(_dbp->inBuf, mmdb+sizeof(uint32)*2, len);
@@ -243,7 +243,7 @@ int mmap_pushdb ( DBP *_dbp ){
 
     if(!ply){
         /*  DEBUG("ply is null %s", _u->key);*/
-        DEBUG("ply is null");
+        FLOG_WARN("ply is null");
         return -1;
     } 
     /*  update tlist  */
@@ -285,7 +285,7 @@ void *mmapdb ( uint32 id ){
     /*DEBUG("mmdb_name:%s", mmdb_name);  */
     pdb = mcalloc(1, conn_global->mmdb_length, mmdb_name, O_RDWR|O_CREAT);
     if(!pdb){
-        DEBUG("pools_mmap mcalloc error");
+        FLOG_ALERT("pools_mmap mcalloc error");
         return NULL;
     }
 

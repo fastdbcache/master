@@ -85,7 +85,7 @@ int hsms ( ub4 bytes ){
     int i;
 
     if(bytes > conn_global->default_bytes){
-        DEBUG("big bytes");
+        FLOG_NOTICE("big bytes");
         return -1;
     }
 
@@ -212,7 +212,7 @@ int findslab ( ub4 _psize){
     for(i=0; i<conn_global->chunk_bytes; i++){
         hslab = pools_hslab+i;
         if(!hslab){
-            DEBUG("hslab is null error!!! in i:%d", i);
+            FLOG_NOTICE("hslab is null error!!! in i:%d", i);
             return -1;
         }
 
@@ -221,7 +221,7 @@ int findslab ( ub4 _psize){
             hslab->sm = hslabcreate(i); 
             
             if(hslab->sm == NULL){ 
-                DEBUG("sm init error %d", conn_global->default_bytes);
+                FLOG_NOTICE("sm init error %d", conn_global->default_bytes);
                 return -1;
             }
             hslab->ss = 0;

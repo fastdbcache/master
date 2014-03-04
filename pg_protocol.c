@@ -52,7 +52,7 @@ int PGStartupPacket3(int fd, DBP *_dbp){
     }
     res = CheckBufSpace(sizeof(uint32), _dbp);
     if(res == -1) {
-        DEBUG("CheckBufSpace error !\n");
+        FLOG_WARN("CheckBufSpace error !\n");
         return -1;
     }
     
@@ -151,7 +151,7 @@ int AuthPG(const int bfd, const int ffd, DBP *_dbp, DBP *_cdbp){
         if(!_apack->inBuf){
             
             if(CheckBufSpace(sizeof(char), _apack)!=0){
-                DEBUG("CheckBufSpace error");
+                FLOG_WARN("CheckBufSpace error");
                 return -1;
             }
 
@@ -163,12 +163,12 @@ int AuthPG(const int bfd, const int ffd, DBP *_dbp, DBP *_cdbp){
         }
          
         if(CheckBufSpace(sizeof(uint32), _apack) != 0){
-            DEBUG("CheckBufSpace error");
+            FLOG_WARN("CheckBufSpace error");
             return -1;
         }
         total_size = Socket_Read(rfd, _apack->inBuf + _apack->inCursor, sizeof(uint32));
         if(total_size != sizeof(uint32)){
-            DEBUG("total_size error");
+            FLOG_WARN("total_size error");
             return -1;
         }
         total = 0;
@@ -177,7 +177,7 @@ int AuthPG(const int bfd, const int ffd, DBP *_dbp, DBP *_cdbp){
         
         totalsize = total-sizeof(uint32);
         if(CheckBufSpace(totalsize, _apack) != 0){
-            DEBUG("CheckBufSpace error");
+            FLOG_WARN("CheckBufSpace error");
             return -1;
         }
         Socket_Read(rfd, _apack->inBuf+_apack->inCursor, totalsize);
@@ -243,7 +243,7 @@ int AuthPG(const int bfd, const int ffd, DBP *_dbp, DBP *_cdbp){
         if(*_apack->inBuf != 'Q'){
             
             if(Socket_Send(wfd, _apack->inBuf, _apack->inEnd) != _apack->inEnd){
-                DEBUG("error");
+                FLOG_NOTICE("send error");
             }
         }
         /*DEBUG("1.ask:%c", *(_apack->inBuf));  */
@@ -314,11 +314,9 @@ int AuthPG(const int bfd, const int ffd, DBP *_dbp, DBP *_cdbp){
                             Socket_Send(rfd, mem_pack->inBuf, mem_pack->inEnd);                        
                             
                             FB(0);
-                            DEBUG("cache here");
                             goto free_pack;
                         
                         }else{
-                            DEBUG("inEnd is 0 %s" , _hdrtmp);
                             _hdr = hdrcreate(); 
                             if(_hdr && (_apack->inEnd-_apack->inCursor)<KEY_LENGTH ){
                                 _hdr->keyl = _apack->inEnd-_apack->inCursor;
@@ -330,7 +328,7 @@ int AuthPG(const int bfd, const int ffd, DBP *_dbp, DBP *_cdbp){
                             }
                         }
                         
-                    }else DEBUG("cdbp calloc error");
+                    }else FLOG_NOTICE("cdbp calloc error");
                 }else if(isSELECT==E_DELETE || isSELECT==E_UPDATE || isSELECT==E_INSERT){
                     SET_LOCK();
                     pools_htab->set++;
@@ -374,7 +372,7 @@ int AuthPG(const int bfd, const int ffd, DBP *_dbp, DBP *_cdbp){
                                 }                                                                                            
                             }
                         }
-                    }else DEBUG("ply error len:%d :%s",_apack->inEnd-_apack->inCursor, _hdrtmp);
+                    }else FLOG_WARN("ply error len:%d :%s",_apack->inEnd-_apack->inCursor, _hdrtmp);
 
                     leaderr:                                         
                         if(ply){
@@ -418,10 +416,10 @@ int AuthPG(const int bfd, const int ffd, DBP *_dbp, DBP *_cdbp){
                         goto free_pack;
                     }
                     
-                }
+                }/*
                   else{
-                    DEBUG("system table:%s, len:%d", _apack->inBuf+sizeof(char)+sizeof(uint32), _apack->inEnd);
-                }    
+                    FLOG_INFO("system table:%s, len:%d", _apack->inBuf+sizeof(char)+sizeof(uint32), _apack->inEnd);
+                }    */  
                 Socket_Send(wfd, _apack->inBuf, _apack->inEnd );
                 FB(1);
                 goto free_pack;
@@ -479,7 +477,7 @@ int AuthPG(const int bfd, const int ffd, DBP *_dbp, DBP *_cdbp){
                 return 0;
                 
             default:
-                DEBUG("any:%c",*_apack->inBuf);	
+                FLOG_WARN("any:%c",*_apack->inBuf);	
                 return 0;
         }				/* -----  end switch  ----- */
     

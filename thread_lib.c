@@ -88,9 +88,7 @@ void libevent_work_thread(int fd, short ev, void *arg){
         }
         //printf("token_efd\n");
     }
-    if(_dbp->inBufSize > LIMIT_SLAB_BYTE){
-        DEBUG("inBufSize:%llu", _dbp->inBufSize);
-    }
+    
     ok:    
         work_child->rq_item->isjob = JOB_FREE;
         work_child->isjob = JOB_FREE;
@@ -112,7 +110,7 @@ void work_thread_init(int nthreads){
 
     work_threads = (LIBEVENT_WORK_THREAD *)calloc(nthreads, sizeof(LIBEVENT_WORK_THREAD));    
     if(!work_threads){
-        DEBUG("work_threads create error");
+        FLOG_ERR("work_threads create error");
         exit(1);
     }
 
@@ -253,7 +251,7 @@ void token_thread_init(){
     }   
     token_efd = eventfd(0, 0);
     if(token_efd == -1){ 
-        DEBUG("token_efd error");
+        FLOG_ERR("token_efd error");
         exit(1);
     }
 
@@ -340,7 +338,7 @@ void libevent_token_thread( int fd, short ev,void *arg){
                 thread = work_threads + work_child->no; 
 
                 if(thread == NULL){
-                    DEBUG("thread null ");
+                    FLOG_WARN("thread null ");
                     rq_item->isjob = JOB_HAS;
                     work_child->isjob = JOB_FREE;
                     break;
@@ -349,12 +347,12 @@ void libevent_token_thread( int fd, short ev,void *arg){
                     rq_item->isjob = JOB_HAS;
                     work_child->isjob = JOB_FREE;
                     close(rq_item->frontend->ffd);
-                    DEBUG("write thread error");
+                    FLOG_WARN("write thread error");
                 }
             }
         }
         else{
-            DEBUG("break");
+            FLOG_NOTICE("break");
             break;
         }
     }while(1);

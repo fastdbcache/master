@@ -140,12 +140,12 @@ typedef                 int  word;  /* fastest type available */
     #define DEBUG(fmt, args...) ELOG_DEBUG(fmt, args...)
 #endif
 
-#define FLOG_ALERT(fmt, args...)   eprintf(err_levels[ELOG_ALERT], fmt" %s %d\n", ##args, __FILE__, __LINE__ )
-#define FLOG_ERR(fmt, args...)     eprintf(err_levels[ELOG_ERR], fmt" %s %d\n", ##args, __FILE__, __LINE__ )          
-#define FLOG_WARN(fmt, args...)    eprintf(err_levels[ELOG_WARN], fmt" %s %d\n", ##args, __FILE__, __LINE__ ) 
-#define FLOG_NOTICE(fmt, args...)  eprintf(err_levels[ELOG_NOTICE], fmt" %s %d\n", ##args, __FILE__, __LINE__ ) 
-#define FLOG_INFO(fmt, args...)    eprintf(err_levels[ELOG_INFO], fmt" %s %d\n", ##args, __FILE__, __LINE__ )
-#define FLOG_DEBUG(fmt, args...)   eprintf(err_levels[ELOG_DEBUG], fmt" %s %d\n", ##args, __FILE__, __LINE__ ) 
+#define FLOG_ALERT(fmt, args...)   eprintf(err_levels[ELOG_ALERT], fmt" %s %d", ##args, __FILE__, __LINE__ )
+#define FLOG_ERR(fmt, args...)     eprintf(err_levels[ELOG_ERR], fmt" %s %d", ##args, __FILE__, __LINE__ )          
+#define FLOG_WARN(fmt, args...)    eprintf(err_levels[ELOG_WARN], fmt" %s %d", ##args, __FILE__, __LINE__ ) 
+#define FLOG_NOTICE(fmt, args...)  eprintf(err_levels[ELOG_NOTICE], fmt" %s %d", ##args, __FILE__, __LINE__ ) 
+#define FLOG_INFO(fmt, args...)    eprintf(err_levels[ELOG_INFO], fmt" %s %d", ##args, __FILE__, __LINE__ )
+#define FLOG_DEBUG(fmt, args...)   eprintf(err_levels[ELOG_DEBUG], fmt" %s %d", ##args, __FILE__, __LINE__ ) 
 
 
 #define SPACE(point) do{ \
