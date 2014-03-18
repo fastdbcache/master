@@ -51,7 +51,6 @@ SUM		{ return AMMSC; }
 COUNT		{ return AMMSC; }
 MONTH       { return AMMSC;}
 YEAR        { return AMMSC;}
-
 ANY		{ return ANY; }
 as  |
 AS		{ return AS; }
@@ -150,6 +149,19 @@ limit   |
 LIMIT       { return LIMIT; }
 offset  |
 OFFSET      { return OFFSET; }
+cache |
+CACHE { return CACHE; }
+item |
+ITEM { return ITEM; }
+version |
+VERSION { return VERSION; }
+help  |
+HELP { return HELP; }
+lasterr |
+LASTERR  { return LASTERR; }
+stat |
+STAT  { return STAT; }
+
 	/* punctuation */
 
 FCOMPARISON		{ return COMPARISON; }

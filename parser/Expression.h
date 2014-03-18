@@ -43,6 +43,7 @@
 _ly *parser_do (char *str, int len);
 _ly  *_init_ly();
 void _lysave(_ly *sly, char *_src);
+void _lysqltype ( _ly *myly, E_SQL_TYPE et );
 void freely ( _ly *_fly);
 
 #ifdef __cplusplus
