@@ -57,7 +57,7 @@
 #include <sys/mman.h>
 #include <string.h>
 
-
+#include "pg_system_atalogs.h"
 #include "conf_lib.h"
 #include "func.h"
 #include "log_lib.h"
@@ -108,7 +108,7 @@ typedef                 int  word;  /* fastest type available */
 #define MAXRLIM 1024
 #define MAXRQ 512
 #define LIMITROW 30
-#define ERR_LENG 200
+#define ERR_LENGS 200
 #define ERR_ROW 10
 
 
@@ -189,6 +189,7 @@ typedef struct __ly _ly;
 struct __ly {
     char *tab;
     int len;
+    E_SQL_TYPE stype; 
     _ly *next;
 };
 
@@ -213,7 +214,7 @@ struct __deporule{
 
 
 struct __error_record {
-    char error[ERR_LENG];
+    char error[ERR_LENGS];
     char etime[26];
 };				/* ----------  end of struct __error_record  ---------- */
 

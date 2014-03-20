@@ -116,7 +116,19 @@ void _lysave(_ly *myly, char *_src){
     }*/
 }
 
- 
+
+/* 
+ * ===  FUNCTION  ======================================================================
+ *         Name:  _lysqltype
+ *  Description:  
+ * =====================================================================================
+ */
+void _lysqltype ( _ly *myly, E_SQL_TYPE et ){
+    if(!myly) return;
+    printf("et:%d\n", et); 
+    myly->stype = et;
+
+}		/* -----  end of function _lysqltype  ----- */
 /* 
  * ===  FUNCTION  ======================================================================
  *         Name:  freely
@@ -134,12 +146,12 @@ void freely ( _ly *_fly){
     }
 }		/* -----  end of function freely  ----- */
 
-/*
+
 void
 main(int ac, char **av)
 {
-    extern yydebug;
-    yydebug = 1; 
+   /* extern yydebug;
+    yydebug = 1;   */
     _ly *tly;
     //char sql[]="insert into a(c)values(111);";
     //char sql[]="DELETE FROM wp_posts WHERE wp_posts.id = (select * from (select id from wp_posts order by RAND() limit 1) as x);";
@@ -156,10 +168,10 @@ main(int ac, char **av)
 	//}
     printf("sql: %s, len:%d\n", sql, strlen(sql));
     tly = parser_do(sql, strlen(sql));
-    printf("tab:%s\n", tly->tab);
+    printf("tab:%s - type:%d \n", tly->tab, tly->stype);
     freely(tly); 
 
-} main */
+}/* main */
 
 
  /* vim: set ts=4 sw=4: */

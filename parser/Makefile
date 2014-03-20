@@ -1,7 +1,7 @@
 OK := lex
 CC := cc
 CFLAGS := -Wall -O -g -pedantic -Wshadow -Wunused -Wstrict-aliasing -ll -ly -lm  
-DEBUG := n
+DEBUG := y
 LEX := flex
 YACC := bison
 
@@ -26,7 +26,7 @@ ly :  oy ol
 	$(CC) -c -o  $(OJL) $(OL)
 	$(CC) -c -o   $(EXOBJ)	$(SOURCE)
 ifeq ($(DEBUG),y)
-	$(CC)  -o $(OK) $(OJL) $(OJY) $(EXOBJ)  $(CFLAGS)
+	$(CC)  -o $(OK) $(OJL) $(OJY) $(EXOBJ)  $(CFLAGS) ../log_lib.c
 endif	
 
 oy	:	$(SY) 

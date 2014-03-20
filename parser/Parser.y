@@ -62,6 +62,7 @@ typedef void* yyscan_t;
 %token SMALLINT SOME SQLCODE SQLERROR TABLE TO UNION
 %token UNIQUE UPDATE USER VALUES VIEW WHENEVER WHERE WITH WORK
 %token COBOL FORTRAN PASCAL PLI C ADA LIMIT OFFSET LEFT JOIN
+%token CACHE ITEM VERSION HELP LASTERR STAT
 
 %%
 
@@ -185,7 +186,7 @@ operation_commalist:
 operation:
 		SELECT
 	|	INSERT
-	|	DELETE
+	|	DELETE  { _lysqltype(*myly, E_DELETE); }
 	|	UPDATE opt_column_commalist
 	|	REFERENCES opt_column_commalist
 	;
@@ -276,15 +277,15 @@ sql:		manipulative_statement
 manipulative_statement:
 		close_statement
 	|	commit_statement
-	|	delete_statement_positioned
-	|	delete_statement_searched
+	|	delete_statement_positioned { _lysqltype(*myly, E_DELETE); }
+	|	delete_statement_searched { _lysqltype(*myly, E_DELETE); }
 	|	fetch_statement
-	|	insert_statement
+	|	insert_statement  { _lysqltype(*myly, E_INSERT); }
 	|	open_statement
 	|	rollback_statement
-	|	select_statement
-	|	update_statement_positioned
-	|	update_statement_searched
+	|	select_statement  { _lysqltype(*myly, E_SELECT); }
+	|	update_statement_positioned { _lysqltype(*myly, E_UPDATE); }
+	|	update_statement_searched  { _lysqltype(*myly, E_UPDATE); }
 	;
 
 close_statement:
@@ -337,7 +338,7 @@ rollback_statement:
 select_statement:
 		SELECT opt_all_distinct selection
 		INTO target_commalist
-		table_exp
+		table_exp           
     | SELECT opt_all_distinct selection table_expe
 	;
 
@@ -670,6 +671,21 @@ sql:		WHENEVER NOT FOUND when_action
 when_action:	GOTO NAME
 	|	CONTINUE
 	;
+
+sql:    
+    /* empty */
+    | CACHE cache_method  
+    ;
+
+cache_method:
+    /* empty */
+    | ITEM NAME
+    | VERSION
+    | STAT
+    | HELP
+    | LASTERR
+    | SET NAME
+    ;
 %%
 
 
