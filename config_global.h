@@ -106,7 +106,7 @@ typedef                 int  word;  /* fastest type available */
 #define MAXCONN 10000
 
 #define MAXRLIM 1024
-#define MAXRQ 1024
+#define MAXRQ 512
 #define LIMITROW 30
 #define ERR_LENG 200
 #define ERR_ROW 10
