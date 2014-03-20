@@ -1,7 +1,7 @@
 OK := lex
 CC := cc
 CFLAGS := -Wall -O -g -pedantic -Wshadow -Wunused -Wstrict-aliasing -ll -ly -lm  
-DEBUG := n
+DEBUG := y
 LEX := flex
 YACC := bison
 

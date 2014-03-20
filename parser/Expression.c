@@ -63,11 +63,9 @@ _ly *parser_do (char *str, int len){
     yy_delete_buffer(state, scanner);
     yylex_destroy(scanner);
 
-    if(tail != NULL && tail->tab != NULL){
-        printf("1\n");
+    if(tail != NULL){
         return tail;
     }else{
-        printf("2\n");
         free(tail);
         return NULL;
     }
@@ -79,6 +77,7 @@ _ly *_init_ly(){
     if(!_l) return NULL;
 
     _l->tab = NULL;
+    _l->stype = E_OTHER;
     _l->next = NULL;
     _l->len = 0;
     return _l;
@@ -92,7 +91,6 @@ void _lysave(_ly *myly, char *_src){
     m = strlen(des);
 
     len = 0;
-    printf("src:%s\n", _src); 
     while(des && 
         m>0 &&
         *(des) != ' ' &&
@@ -104,7 +102,6 @@ void _lysave(_ly *myly, char *_src){
         des++;
         m--;
     }
-    printf("len---:%d\n", len);
 
     if(myly->tab == NULL){
         myly->len = len;
@@ -137,7 +134,7 @@ void _lysave(_ly *myly, char *_src){
  */
 void _lysqltype ( _ly *myly, E_SQL_TYPE et ){
     if(!myly) return;
-    DEBUG("et:%d", et); 
+
     myly->stype = et;
 
 }		/* -----  end of function _lysqltype  ----- */
@@ -158,17 +155,18 @@ void freely ( _ly *_fly){
     }
 }		/* -----  end of function freely  ----- */
 
-/*
+ /*
 void
 main(int ac, char **av)
 {
     extern yydebug;
     yydebug = 1;   
     _ly *tly;
-    char sql[]="insert into a ( c ) values( '111' );";
-    //char sql[]="DELETE FROM wp_posts WHERE wp_posts.id = (select * from (select id from wp_posts order by RAND() limit 1) as x);";
+    //char sql[]="insert into a ( c ) values( '111' );";
+    //char sql[]="DELETE FROM wp_posts WHERE wp_posts.id = (select * from (select id from wp_posts order by RAND() limit 1 OFFSET 1 ) as x);";
     //char sql[]="DELETE FROM pgwp_options where id = 'dsdf';";
     //char sql[]="SELECT * FROM tableme where ita='666dsf';";
+    char sql[]="cache version;";
     tly = NULL;
     if(ac < 1){
         return;
@@ -181,10 +179,10 @@ main(int ac, char **av)
 	//}
     printf("sql: %s, len:%d\n", sql, strlen(sql));
     tly = parser_do(sql, strlen(sql));
-        printf("tab:%s - type:%d \n", tly->tab, tly->stype);
+        printf("tab - type:%d \n", tly->stype);
     freely(tly); 
 
-} main */
+}main */
 
 
  /* vim: set ts=4 sw=4: */

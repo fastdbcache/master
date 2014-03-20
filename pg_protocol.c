@@ -397,7 +397,7 @@ int AuthPG(const int bfd, const int ffd, DBP *_dbp, DBP *_cdbp){
                         gethtabstat(rfd); 
                         FB(0);
                         goto free_pack;
-                    }else if(cache == E_CACHE_ERRS){
+                    }else if(cache == E_CACHE_LASTERR){
                         
                         fdbcQeuryError(rfd); 
                         FB(0);
@@ -555,7 +555,7 @@ E_SQL_TYPE findCache (const char *sql, int *offset){
     char version[]="version";
     char htab[]="stat";
     char helps[]="help";
-    char errs[]="last_err";
+    char errs[]="lasterr";
     char sets[]="set";
     const char *p = sql;
 
@@ -611,7 +611,7 @@ E_SQL_TYPE findCache (const char *sql, int *offset){
  
         if(*p != ';') return E_OTHER;
 
-        return E_CACHE_ERRS;
+        return E_CACHE_LASTERR;
     }else if(memcmp(p, helps, strlen(helps)) == 0){
         p += strlen(helps);
 

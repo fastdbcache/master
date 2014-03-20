@@ -37,7 +37,8 @@ void yyerror(_ly **myly, yyscan_t scanner, const char *s);
 
 %token <strval> NAME
 %token <lstring> STRING
-%token INTNUM APPROXNUM
+%token <intval> INTNUM
+%token <subtok> APPROXNUM
 
 	/* operators */
 
@@ -51,7 +52,7 @@ void yyerror(_ly **myly, yyscan_t scanner, const char *s);
 
 	/* literal keyword tokens */
 
-%token ALL AMMSC ANY AS ASC AUTHORIZATION BETWEEN BY
+%token ALL AMMSC ANY AS ASC AUTHORIZATION BETWEEN BY RAND
 %token CHARACTER CHECK CLOSE COMMIT CONTINUE CREATE CURRENT
 %token CURSOR DECIMAL DECLARE DEFAULT DELETE DESC DISTINCT DOUBLE
 %token ESCAPE EXISTS FETCH FLOAT FOR FOREIGN FOUND FROM GOTO
@@ -429,8 +430,8 @@ table_expe:
         opt_limit       
 	;
 
-from_clause:
-		FROM table_ref_commalist
+from_clause:        
+		FROM table_ref_commalist   
 	;
 
 table_ref_commalist:
@@ -441,7 +442,7 @@ table_ref_commalist:
 table_ref:
 		table 
 	|	table range_variable
-    |	'(' select_statement ')' AS NAME
+    |	LPAREN select_statement RPAREN AS NAME
 	;
 
 where_clause:    
@@ -560,7 +561,8 @@ scalar_exp:
     |	column_ref AS NAME
 	|	function_ref
 	|	function_ref AS NAME
-	|	'(' scalar_exp ')'
+	|	LPAREN scalar_exp RPAREN
+    |   LPAREN select_statement RPAREN
 	;
 
 scalar_exp_commalist:
@@ -589,7 +591,7 @@ function_ref:
 	;
 
 literal:
-		STRING { printf("stinrg---sdf:%s\n", $1);}
+		STRING 
 	|	INTNUM
 	|	APPROXNUM
 	;
@@ -617,6 +619,7 @@ opt_order_by_clause:
 ordering_spec_commalist:
 		ordering_spec
 	|	ordering_spec_commalist ',' ordering_spec
+    |   RAND LPAREN RPAREN
 	;
 
 ordering_spec:
@@ -630,21 +633,10 @@ opt_asc_desc:
 	|	DESC
 	;
 
-data_type:
-		CHARACTER
-	|	CHARACTER '(' INTNUM ')'
-	|	NUMERIC
-	|	NUMERIC '(' INTNUM ')'
-	|	NUMERIC '(' INTNUM ',' INTNUM ')'
-	|	DECIMAL
-	|	DECIMAL '(' INTNUM ')'
-	|	DECIMAL '(' INTNUM ',' INTNUM ')'
-	|	INTEGER
+data_type:	
+		INTEGER
 	|	SMALLINT
-	|	FLOAT
-	|	FLOAT '(' INTNUM ')'
-	|	REAL
-	|	DOUBLE PRECISION
+	|	NAME	
 	;
 
 	/* the various things you can name */
@@ -687,11 +679,11 @@ sql:
 
 cache_method:
     /* empty */
-    | ITEM NAME
-    | VERSION
-    | STAT
-    | HELP
-    | LASTERR
+    | ITEM  manipulative_statement { _lysqltype(*myly, E_CACHE_ITEM); } 
+    | VERSION { _lysqltype(*myly, E_CACHE_VERSION); }
+    | STAT { _lysqltype(*myly, E_CACHE_STAT); }
+    | HELP  { _lysqltype(*myly, E_CACHE_HELP); }
+    | LASTERR   { _lysqltype(*myly, E_CACHE_LASTERR); } 
     | SET NAME
     ;
 %%

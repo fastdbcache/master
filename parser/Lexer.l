@@ -27,7 +27,7 @@ FCOMPARISON  "="|"<>"|"<"|">"|"<="|">="
  
 FAPPROXNUM   [0-9]+[eE][+-]?[0-9]+|[0-9]+"."[0-9]*[eE][+-]?[0-9]+|"."[0-9]*[eE][+-]?[0-9]+
 
-FINTNUM [0-9]+"."[0-9]*|[0-9]+ 
+FINTNUM [0-9]+ 
 
 FNAME   [A-Za-z0-9_]* 
 FNOTES   [-+*/:(),.;]
@@ -45,6 +45,7 @@ ALL		{ return ALL; }
 AND		{ return AND; }
 AVG		{ return AMMSC; }
 MIN		{ return AMMSC; }
+RAND    { return RAND; }
 MAX		{ return AMMSC; }
 sum |
 SUM		{ return AMMSC; }
@@ -178,7 +179,7 @@ FCOMPARISON		{ return COMPARISON; }
         }
 	/* numbers */
 {FAPPROXNUM}	{ return APPROXNUM; }
-{FINTNUM}	{ return INTNUM; }
+{FINTNUM}	{yylval->intval = atoi(yytext); return INTNUM; }
 
 	
             /* strings */
