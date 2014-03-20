@@ -165,9 +165,9 @@ main(int ac, char **av)
     extern yydebug;
     yydebug = 1;   
     _ly *tly;
-    //char sql[]="insert into a(c)values(111);";
+    char sql[]="insert into a ( c ) values( '111' );";
     //char sql[]="DELETE FROM wp_posts WHERE wp_posts.id = (select * from (select id from wp_posts order by RAND() limit 1) as x);";
-    char sql[]="DELETE FROM pgwp_options where id = 'dsdf';";
+    //char sql[]="DELETE FROM pgwp_options where id = 'dsdf';";
     //char sql[]="SELECT * FROM tableme where ita='666dsf';";
     tly = NULL;
     if(ac < 1){

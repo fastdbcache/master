@@ -5,18 +5,17 @@
 #include "Parser.h"
 #include "Lexer.h"
 
+#ifndef YY_TYPEDEF_YY_SCANNER_T
+#define YY_TYPEDEF_YY_SCANNER_T
+typedef void* yyscan_t;
+#endif
 
 void yyerror(_ly **myly, yyscan_t scanner, const char *s);
 /*#define YYDEBUG 1 */
 
 %}
 
-%code requires {
-#ifndef YY_TYPEDEF_YY_SCANNER_T
-#define YY_TYPEDEF_YY_SCANNER_T
-typedef void* yyscan_t;
-#endif
-}
+
 
 %output  "Parser.c"
 %defines "Parser.h"
@@ -64,7 +63,7 @@ typedef void* yyscan_t;
 %token UNIQUE UPDATE USER VALUES VIEW WHENEVER WHERE WITH WORK
 %token COBOL FORTRAN PASCAL PLI C ADA LIMIT OFFSET LEFT JOIN
 %token CACHE ITEM VERSION HELP LASTERR STAT
-%token EQ
+%token EQ LPAREN RPAREN 
 
 %%
 
@@ -161,7 +160,7 @@ opt_with_check_option:
 
 opt_column_commalist:
 		/* empty */
-	|	'(' column_commalist ')'
+	|	LPAREN column_commalist RPAREN
 	;
 
 privilege_def:
@@ -322,7 +321,7 @@ insert_statement:
 	;
 
 values_or_query_spec:
-		VALUES '(' insert_atom_commalist ')'
+		VALUES LPAREN insert_atom_commalist RPAREN
 	|	query_spec
 	;
 

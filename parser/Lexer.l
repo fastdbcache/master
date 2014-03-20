@@ -138,6 +138,7 @@ UNIQUE		{ return UNIQUE; }
 update  |
 UPDATE		{ return UPDATE; }
 USER		{ return USER; }
+values |
 VALUES		{ return VALUES; }
 VIEW		{ return VIEW; }
 WHENEVER	{ return WHENEVER; }
@@ -162,6 +163,8 @@ LASTERR  { return LASTERR; }
 stat |
 STAT  { return STAT; }
 "="      { return EQ; }
+")"      { return RPAREN; }
+"("      { return LPAREN; }
 
 	/* punctuation */
 
