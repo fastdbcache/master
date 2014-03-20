@@ -7,7 +7,7 @@
 
 
 void yyerror(_ly **myly, yyscan_t scanner, const char *s);
-/*#define YYDEBUG 1*/
+/*#define YYDEBUG 1 */
 
 %}
 
@@ -32,11 +32,12 @@ typedef void* yyscan_t;
 	int intval;
 	double floatval;
 	char *strval;
+    char *lstring;
 	int subtok;
 }
 
 %token <strval> NAME
-%token STRING
+%token <lstring> STRING
 %token INTNUM APPROXNUM
 
 	/* operators */
@@ -63,6 +64,7 @@ typedef void* yyscan_t;
 %token UNIQUE UPDATE USER VALUES VIEW WHENEVER WHERE WITH WORK
 %token COBOL FORTRAN PASCAL PLI C ADA LIMIT OFFSET LEFT JOIN
 %token CACHE ITEM VERSION HELP LASTERR STAT
+%token EQ
 
 %%
 
@@ -186,7 +188,7 @@ operation_commalist:
 operation:
 		SELECT
 	|	INSERT
-	|	DELETE  { _lysqltype(*myly, E_DELETE); }
+	|	DELETE 
 	|	UPDATE opt_column_commalist
 	|	REFERENCES opt_column_commalist
 	;
@@ -271,7 +273,8 @@ parameter_def:
 
 	/* manipulative statements */
 
-sql:		manipulative_statement
+sql:	
+    	manipulative_statement
 	;
 
 manipulative_statement:
@@ -301,8 +304,14 @@ delete_statement_positioned:
 	;
 
 delete_statement_searched:
-		DELETE FROM table opt_where_clause
+        /* empty */
+	|	DELETE delete_table_exp
 	;
+
+delete_table_exp:
+        /* empty */
+    |   FROM table opt_where_clause
+    ;
 
 fetch_statement:
 		FETCH cursor INTO target_commalist
@@ -458,7 +467,7 @@ opt_having_clause:
 	/* search conditions */
 
 search_condition:
-	|	search_condition OR search_condition
+		search_condition OR search_condition
 	|	search_condition AND search_condition
 	|	NOT search_condition
 	|	'(' search_condition ')'
@@ -483,7 +492,7 @@ predicate:
 	;
 
 comparison_predicate:
-		scalar_exp COMPARISON scalar_exp
+		scalar_exp EQ scalar_exp
 	|	scalar_exp COMPARISON subquery
 	;
 
@@ -581,7 +590,7 @@ function_ref:
 	;
 
 literal:
-		STRING
+		STRING { printf("stinrg---sdf:%s\n", $1);}
 	|	INTNUM
 	|	APPROXNUM
 	;

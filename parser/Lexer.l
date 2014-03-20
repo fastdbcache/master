@@ -31,7 +31,7 @@ FINTNUM [0-9]+"."[0-9]*|[0-9]+
 
 FNAME   [A-Za-z0-9_]* 
 FNOTES   [-+*/:(),.;]
-FSTRINGS    '[^'\n]*'
+FSTRINGS   '[^'\n]*'
 FUNTERMINATE    '[^'\n]*$
 FLINENO \n
 FSPACE  [ \t\r]+
@@ -161,6 +161,7 @@ lasterr |
 LASTERR  { return LASTERR; }
 stat |
 STAT  { return STAT; }
+"="      { return EQ; }
 
 	/* punctuation */
 
@@ -187,7 +188,7 @@ FCOMPARISON		{ return COMPARISON; }
                 } else
                     yymore();
 	        }		
-{FUNTERMINATE}	{/* yyerror("Unterminated string");*/ }
+{FUNTERMINATE}	{ printf("Unterminated string---\n"); }
 
 {FLINENO}		{lineno++;}
 

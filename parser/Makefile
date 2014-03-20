@@ -1,7 +1,7 @@
 OK := lex
 CC := cc
 CFLAGS := -Wall -O -g -pedantic -Wshadow -Wunused -Wstrict-aliasing -ll -ly -lm  
-DEBUG := y
+DEBUG := n
 LEX := flex
 YACC := bison
 
@@ -22,11 +22,11 @@ EXOBJ	:=	$(patsubst %.c,%.o,$(SOURCE))
 
 ly :  oy ol 
 	@echo "+++ build lex and yacc +++"
-	$(CC) -c -o  $(OJY) $(OY)
-	$(CC) -c -o  $(OJL) $(OL)
-	$(CC) -c -o   $(EXOBJ)	$(SOURCE)
+	$(CC) -c -g -o $(OJY) $(OY)
+	$(CC) -c -g -o $(OJL) $(OL)
+	$(CC) -c -g -o $(EXOBJ)	$(SOURCE)
 ifeq ($(DEBUG),y)
-	$(CC)  -o $(OK) $(OJL) $(OJY) $(EXOBJ)  $(CFLAGS) ../log_lib.c
+	$(CC) -g  -o $(OK) $(OJL) $(OJY) $(EXOBJ)  $(CFLAGS) ../log_lib.c
 endif	
 
 oy	:	$(SY) 
