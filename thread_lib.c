@@ -54,9 +54,9 @@ void libevent_work_thread(int fd, short ev, void *arg){
    // printf("thread_id:%llu\n", me->thread_id);
 
     FIND_WTQPID(work_child, me->thread_id);
-    if(work_child->isjob == JOB_HAS)
+    if(work_child->isjob == JOB_HAS){
         work_child->isjob = JOB_WORKING;
-    else{
+    }else{
          goto ok;
     }
        
@@ -98,7 +98,7 @@ void libevent_work_thread(int fd, short ev, void *arg){
         close(pg_fds) ;
         close(work_child->rq_item->frontend->ffd);
         work_child->rq_item->frontend->ffd = 0;
-        ;
+        
         //if(close(work_child->rq_item->frontend->ffd) == -1)DEBUG("close fd error");
 }		/* -----  end of function libevent_work_thread  ----- */
                
@@ -357,7 +357,7 @@ void libevent_token_thread( int fd, short ev,void *arg){
                 }
                 
             }else{
-                FLOG_NOTICE("break");
+                FLOG_NOTICE("break work_child no free");
                 break;
             }
         }
