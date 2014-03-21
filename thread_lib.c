@@ -43,6 +43,7 @@ void libevent_work_thread(int fd, short ev, void *arg){
     int pg_fds, m, pg_len, client_len, pack_len;
     DBP *_dbp;
 
+    
     if (read(fd, buf, 1) != 1)
 	    FLOG_ALERT("error Can't read from libevent pipe");
 
@@ -60,6 +61,7 @@ void libevent_work_thread(int fd, short ev, void *arg){
     }
        
     ffd = work_child->rq_item->frontend->ffd;
+    DEBUG("work ffd:%d, no%d", ffd, work_child->rq_item->no);
     _dbp = me->tdbp;
     
     pack_len = PGStartupPacket3(ffd, _dbp);  /*  1. F -> B */
@@ -84,16 +86,19 @@ void libevent_work_thread(int fd, short ev, void *arg){
         u = 1;
         s = write(token_efd, &u , sizeof(uint64_t));
         if(s != sizeof(uint64_t)){
-            printf("write error s:%d\n", s);
+            DEBUG("write error s:%d\n", s);
         }
         //printf("token_efd\n");
     }
     
     ok:    
+        DEBUG("end ffd:%d, no%d", ffd, work_child->rq_item->no);
         work_child->rq_item->isjob = JOB_FREE;
         work_child->isjob = JOB_FREE;
         close(pg_fds) ;
         close(work_child->rq_item->frontend->ffd);
+        work_child->rq_item->frontend->ffd = 0;
+        ;
         //if(close(work_child->rq_item->frontend->ffd) == -1)DEBUG("close fd error");
 }		/* -----  end of function libevent_work_thread  ----- */
                
@@ -312,14 +317,14 @@ void libevent_token_thread( int fd, short ev,void *arg){
 
     s = read(token_efd, &u, sizeof(uint64_t));
     if (s != sizeof(uint64_t)){
-        printf("s is error\n");
+        FLOG_NOTICE("s is error\n");
     }
 
     notify_token_thread = NT_WORKING;
     do{
         RQ *rq_item = rq_pop();
         if(rq_item == NULL){ 
-            /* DEBUG("rq_item is null");*/
+            FLOG_WARN("rq_item is null");
             break;
         }
         if(rq_item->isjob == JOB_HAS) {
@@ -339,16 +344,21 @@ void libevent_token_thread( int fd, short ev,void *arg){
 
                 if(thread == NULL){
                     FLOG_WARN("thread null ");
-                    rq_item->isjob = JOB_HAS;
+                    rq_item->isjob = JOB_FREE;
                     work_child->isjob = JOB_FREE;
+                    close(rq_item->frontend->ffd);
                     break;
                 }
                 if(write(thread->notify_write_fd, "", 1) != 1){
-                    rq_item->isjob = JOB_HAS;
+                    rq_item->isjob = JOB_FREE;
                     work_child->isjob = JOB_FREE;
                     close(rq_item->frontend->ffd);
                     FLOG_WARN("write thread error");
                 }
+                
+            }else{
+                FLOG_NOTICE("break");
+                break;
             }
         }
         else{
@@ -405,9 +415,11 @@ int rq_init(int numbers){
     
     rq_queue_head = rq_item_init();
     rq_queue_tail = rq_queue_head;
+    rq_queue_head->no = 0;
 
     for(n=1; n<numbers; n++){
         rq_child = rq_item_init();
+        rq_child->no = n;
         rq_queue_head->next = rq_child;
         rq_queue_head = rq_child;
     }
@@ -425,6 +437,13 @@ int rq_init(int numbers){
  * =====================================================================================
  */
 int rq_push(int client_fd){
+    RQ *_tp;
+    _tp = rq_queue_head;
+    do{
+        DEBUG("no:%d, ffd:%d, isjob:%d", _tp->no, _tp->frontend->ffd, _tp->isjob);
+        _tp = _tp->next;
+    }while(_tp!=rq_queue_head);
+
 
     FIND_RQ(rq_queue_head, JOB_FREE);
    
@@ -448,8 +467,8 @@ int rq_push(int client_fd){
 
 RQ *rq_pop(){
     RQ *rq_i;
-    
     FIND_RQ(rq_queue_tail, JOB_HAS);
+
     
     if(rq_queue_tail->isjob != JOB_HAS){
         return NULL;

@@ -49,10 +49,20 @@
 }while(0)
 
 #define RQ_BUSY(c)  do{    \
+    DEBUG("head:%d, tail:%d", rq_queue_head->no, rq_queue_tail->no);    \
+    if(rq_queue_head->no >= rq_queue_tail->no){    \
+        (c) = rq_queue_head->no - rq_queue_tail->no;   \
+    }else{                                              \
+        (c) = conn_global->maxrq - (rq_queue_tail->no - rq_queue_head->no); \
+    }                                               \
+}while(0)
+
+/*
+#define RQ_BUSY(c)  do{    \
     RQ_COUNT((c));               \
     (c) = (conn_global->maxrq - (c));             \
 }while(0)
-
+  */
 #define RQ_FREE(c)  do{    \
     RQ_COUNT((c));               \
 }while(0)
@@ -110,8 +120,9 @@ struct frontend_conn_item{
 /* a ring connect queue  */
 typedef struct ring_queue RQ;
 struct ring_queue{
-    FC_ITEM *frontend; 
+    FC_ITEM *frontend;    
     RING_JOB_STATE isjob;
+    int no;
     RQ *next; 
 };
 

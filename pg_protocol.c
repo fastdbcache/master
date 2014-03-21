@@ -58,7 +58,10 @@ int PGStartupPacket3(int fd, DBP *_dbp){
     
     pv_len = Socket_Read(fd, _dbp->inBuf, sizeof(uint32));
 
-    if(pv_len != sizeof(uint32)) return -1;
+    if(pv_len != sizeof(uint32)){
+        FLOG_NOTICE("PGStartupPacket3 read error");
+        return -1;
+    }
 
     getInt(&pv, 4, _dbp);
     res = CheckBufSpace((pv-sizeof(uint32)), _dbp);

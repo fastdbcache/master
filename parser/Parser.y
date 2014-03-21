@@ -15,8 +15,6 @@ void yyerror(_ly **myly, yyscan_t scanner, const char *s);
 
 %}
 
-
-
 %output  "Parser.c"
 %defines "Parser.h"
 /*

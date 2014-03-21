@@ -45,7 +45,7 @@ void on_accept(int fd, short ev, void *arg){
 
 	/* Accept the new connection. */
 	client_fd = accept(fd, (struct sockaddr *)&client_addr, &client_len);
-	if (client_fd == -1) {
+	if (client_fd <= 0) {
           err = strerror(errno);
         /*err_len = strlen(err);
         err_log = calloc(1, err_len+10);
@@ -55,19 +55,20 @@ void on_accept(int fd, short ev, void *arg){
         FLOG_WARN("accept error %s --", err);
 		return;
 	}
+
     if(rq_push(client_fd) != 0){
         close(client_fd);
         FLOG_WARN("RQ is full");
     }
+
     if(notify_token_thread == NT_FREE){
         /*  thread = work_threads+1;
           write(thread->notify_write_fd, "", 1);       
              token_sem_post();*/
-         u = 1;
-         s = write(token_efd, &u , sizeof(uint64_t));
+        u = 1;
+        s = write(token_efd, &u , sizeof(uint64_t));
 
-         if(s != sizeof(uint64_t))FLOG_WARN("write to token_efd");
-
+        if(s != sizeof(uint64_t))FLOG_WARN("write to token_efd");
     }
 
     if(proc_status == NT_FREE){

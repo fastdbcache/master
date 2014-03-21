@@ -103,10 +103,10 @@ typedef                 int  word;  /* fastest type available */
 
 #define MD5_LENG 33
 
-#define MAXCONN 10000
+#define MAXCONN 5
 
 #define MAXRLIM 1024
-#define MAXRQ 512
+#define MAXRQ MAXCONN
 #define LIMITROW 30
 #define ERR_LENGS 200
 #define ERR_ROW 10
