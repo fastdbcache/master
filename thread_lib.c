@@ -43,11 +43,9 @@ void libevent_work_thread(int fd, short ev, void *arg){
     int pg_fds, m, pg_len, client_len, pack_len;
     DBP *_dbp;
 
-    
     if (read(fd, buf, 1) != 1)
 	    FLOG_ALERT("error Can't read from libevent pipe");
 
-     
     work_child = wtq_queue_tail;
     wtq_queue_tail = wtq_queue_tail->next;
 
@@ -57,17 +55,16 @@ void libevent_work_thread(int fd, short ev, void *arg){
     if(work_child->isjob == JOB_HAS){
         work_child->isjob = JOB_WORKING;
     }else{
-         goto ok;
+        DEBUG("can found job_has");
+        goto ok;
     }
        
     ffd = work_child->rq_item->frontend->ffd;
-    DEBUG("work ffd:%d, no%d", ffd, work_child->rq_item->no);
-    _dbp = me->tdbp;
-    
-    pack_len = PGStartupPacket3(ffd, _dbp);  /*  1. F -> B */
-    
-    if(pack_len == -1)goto ok; 
+    if(ffd==0) goto ok;
 
+    _dbp = me->tdbp;
+    pack_len = PGStartupPacket3(ffd, _dbp);  /*  1. F -> B */
+    if(pack_len == -1)goto ok; 
     pg_fds = Client_Init(conn_global->pg_host, conn_global->pg_port);
     if(pg_fds == -1){
         /*freedbp(_dbp);        */
@@ -75,11 +72,17 @@ void libevent_work_thread(int fd, short ev, void *arg){
     }
     pg_len = Socket_Send(pg_fds, _dbp->inBuf, _dbp->inEnd);
     /*freedbp(_dbp);  */
-
     if(pg_len != pack_len) goto ok;
-               
     AuthPG(pg_fds, ffd, _dbp, me->cdbp);
-                            
+                                    
+    ok:    
+        close(pg_fds) ;
+        close(ffd);
+        work_child->rq_item->frontend->ffd = 0;
+
+        work_child->rq_item->isjob = JOB_FREE;        
+        work_child->isjob = JOB_FREE;
+
     if(notify_token_thread == NT_FREE){
         uint64_t u;
         ssize_t s;
@@ -89,16 +92,7 @@ void libevent_work_thread(int fd, short ev, void *arg){
             DEBUG("write error s:%d\n", s);
         }
         //printf("token_efd\n");
-    }
-    
-    ok:    
-        DEBUG("end ffd:%d, no%d", ffd, work_child->rq_item->no);
-        work_child->rq_item->isjob = JOB_FREE;
-        work_child->isjob = JOB_FREE;
-        close(pg_fds) ;
-        close(work_child->rq_item->frontend->ffd);
-        work_child->rq_item->frontend->ffd = 0;
-        
+    }            
         //if(close(work_child->rq_item->frontend->ffd) == -1)DEBUG("close fd error");
 }		/* -----  end of function libevent_work_thread  ----- */
                
@@ -214,6 +208,10 @@ void *worker_libevent(void *arg) {
     pthread_mutex_lock(&init_work_lock);
     
     work_child = wtq_init();     
+    if(!work_child) {
+        DEBUG("work_child init error");
+        exit(-1);
+    }
     work_child->pid = pthread_self();
     me->thread_id = work_child->pid;
     work_child->no = me->no;
@@ -314,6 +312,7 @@ void *main_token_thread(void *arg){
 void libevent_token_thread( int fd, short ev,void *arg){
     uint64_t u;
     ssize_t s;
+    RQ *rq_item;
 
     s = read(token_efd, &u, sizeof(uint64_t));
     if (s != sizeof(uint64_t)){
@@ -322,49 +321,46 @@ void libevent_token_thread( int fd, short ev,void *arg){
 
     notify_token_thread = NT_WORKING;
     do{
-        RQ *rq_item = rq_pop();
-        if(rq_item == NULL){ 
-            FLOG_WARN("rq_item is null");
-            break;
-        }
-        if(rq_item->isjob == JOB_HAS) {
-            
-            WTQ *work_child = wtq_queue_tail;
-            
-            FIND_WTQ(work_child, JOB_FREE);
+                    
+        WTQ *work_child = wtq_queue_head;
+        
+        FIND_WTQ(work_child, JOB_FREE);
 
-            if(work_child->isjob == JOB_FREE){
-
-                rq_item->isjob = JOB_WORKING;
-                work_child->rq_item = rq_item;
-                work_child->isjob = JOB_HAS;
-
-                LIBEVENT_WORK_THREAD *thread;
-                thread = work_threads + work_child->no; 
-
-                if(thread == NULL){
-                    FLOG_WARN("thread null ");
-                    rq_item->isjob = JOB_FREE;
-                    work_child->isjob = JOB_FREE;
-                    close(rq_item->frontend->ffd);
-                    break;
-                }
-                if(write(thread->notify_write_fd, "", 1) != 1){
-                    rq_item->isjob = JOB_FREE;
-                    work_child->isjob = JOB_FREE;
-                    close(rq_item->frontend->ffd);
-                    FLOG_WARN("write thread error");
-                }
-                
-            }else{
-                FLOG_NOTICE("break work_child no free");
+        if(work_child->isjob == JOB_FREE){
+            rq_item = rq_pop();
+            if(rq_item == NULL){ 
+                FLOG_WARN("rq_item is null");
                 break;
             }
-        }
-        else{
-            FLOG_NOTICE("break");
+            if(rq_item->isjob != JOB_HAS) {
+                FLOG_NOTICE("rq no job");
+                break;
+            }
+            rq_item->isjob = JOB_WORKING;
+            work_child->rq_item = rq_item;
+            work_child->isjob = JOB_HAS;
+
+            LIBEVENT_WORK_THREAD *thread;
+            thread = work_threads + work_child->no; 
+            if(thread == NULL){
+                FLOG_WARN("thread null ");
+                rq_item->isjob = JOB_FREE;
+                work_child->isjob = JOB_FREE;
+                close(rq_item->frontend->ffd);
+                break;
+            }
+            if(write(thread->notify_write_fd, "", 1) != 1){
+                rq_item->isjob = JOB_FREE;
+                work_child->isjob = JOB_FREE;
+                close(rq_item->frontend->ffd);
+                FLOG_WARN("write thread error");
+            }
+        }else{
+            
+            DEBUG("break work_child no free");
             break;
         }
+        
     }while(1);
 
     notify_token_thread = NT_FREE;
@@ -437,14 +433,7 @@ int rq_init(int numbers){
  * =====================================================================================
  */
 int rq_push(int client_fd){
-    RQ *_tp;
-    _tp = rq_queue_head;
-    do{
-        DEBUG("no:%d, ffd:%d, isjob:%d", _tp->no, _tp->frontend->ffd, _tp->isjob);
-        _tp = _tp->next;
-    }while(_tp!=rq_queue_head);
-
-
+     
     FIND_RQ(rq_queue_head, JOB_FREE);
    
     if(rq_queue_head->isjob != JOB_FREE) return -1;
@@ -510,6 +499,7 @@ WTQ *wtq_init(){
 
     WTQ *work_child;
     work_child = (WTQ *)calloc(1, sizeof(WTQ));
+    if(!work_child) return NULL;
     work_child->rq_item = NULL;
     work_child->next = NULL;
     

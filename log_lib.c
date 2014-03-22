@@ -33,11 +33,8 @@ void eprintf ( Err_str_t est, const char *format, ... ){
     va_list args;
     va_start (args, format);
     vsnprintf (buffer, ERR_LENG-1, format, args);
-#ifdef DEBUGS
-    printf ("eprint:%s: %s\n",est.estr, buffer);
-#else
+    //printf ("eprint:%s: %s\n",est.estr, buffer);
     elog_write(est, buffer);
-#endif
     va_end (args);    
 }		/* -----  end of function eprintf  ----- */
 

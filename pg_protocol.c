@@ -55,9 +55,7 @@ int PGStartupPacket3(int fd, DBP *_dbp){
         FLOG_WARN("CheckBufSpace error !\n");
         return -1;
     }
-    
     pv_len = Socket_Read(fd, _dbp->inBuf, sizeof(uint32));
-
     if(pv_len != sizeof(uint32)){
         FLOG_NOTICE("PGStartupPacket3 read error");
         return -1;
@@ -66,9 +64,7 @@ int PGStartupPacket3(int fd, DBP *_dbp){
     getInt(&pv, 4, _dbp);
     res = CheckBufSpace((pv-sizeof(uint32)), _dbp);
     if(res == -1) return -1;
-
     pv_len = Socket_Read(fd, _dbp->inBuf+_dbp->inCursor, pv-sizeof(uint32));
-
     if(pv_len == (pv-sizeof(uint32))){
         /*uint32  v=0;
         memcpy(&v, _dbp->inBuf+sizeof(uint32), sizeof(uint32));
@@ -183,7 +179,10 @@ int AuthPG(const int bfd, const int ffd, DBP *_dbp, DBP *_cdbp){
             FLOG_WARN("CheckBufSpace error");
             return -1;
         }
-        Socket_Read(rfd, _apack->inBuf+_apack->inCursor, totalsize);
+        if(Socket_Read(rfd, _apack->inBuf+_apack->inCursor, totalsize) != totalsize) {
+            FLOG_NOTICE("totalsize:%d read error ", totalsize);
+            return -1;
+        }
 
         if(*_apack->inBuf == 'X' ){
             if(conn_global->hasdep == H_TRUE &&
@@ -238,7 +237,10 @@ int AuthPG(const int bfd, const int ffd, DBP *_dbp, DBP *_cdbp){
                 return -1;
             }
             
-            Socket_Send(bfd, depo_pack->inBuf, depo_pack->inEnd); 
+            if(Socket_Send(bfd, depo_pack->inBuf, depo_pack->inEnd) != depo_pack->inEnd){
+                DEBUG("depo_pack inEnd send error");
+                return -1;
+            }
             
             FB(1);
             goto free_pack;
@@ -314,7 +316,7 @@ int AuthPG(const int bfd, const int ffd, DBP *_dbp, DBP *_cdbp){
                         mem_pack->inEnd = 0;
                         hkey(_hdrtmp,_apack->inEnd-_apack->inCursor , mem_pack);
                         if(mem_pack->inEnd > 0){
-                            Socket_Send(rfd, mem_pack->inBuf, mem_pack->inEnd);                        
+                            if(Socket_Send(rfd, mem_pack->inBuf, mem_pack->inEnd) != mem_pack->inEnd)return -1;
                             
                             FB(0);
                             goto free_pack;
@@ -423,7 +425,7 @@ int AuthPG(const int bfd, const int ffd, DBP *_dbp, DBP *_cdbp){
                   else{
                     FLOG_INFO("system table:%s, len:%d", _apack->inBuf+sizeof(char)+sizeof(uint32), _apack->inEnd);
                 }    */  
-                Socket_Send(wfd, _apack->inBuf, _apack->inEnd );
+                if(Socket_Send(wfd, _apack->inBuf, _apack->inEnd ) != _apack->inEnd)return -1;
                 FB(1);
                 goto free_pack;
             case 'T':

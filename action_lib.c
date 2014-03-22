@@ -34,33 +34,39 @@
 void on_accept(int fd, short ev, void *arg){
 	int client_fd, err_len;
     char *err, *err_log;
-	struct sockaddr_in client_addr;
+	//struct sockaddr_in client_addr;
+    struct sockaddr_storage client_addr;
 	socklen_t client_len;
-    client_len = sizeof(client_addr);
+    conn *_conn;
     uint64_t u;
     ssize_t s;
     extern NOTIFY_TOKEN_STATE notify_token_thread;
     extern int token_efd;
-    int isDep;
+
+    _conn = (conn *)arg;
+    if(fd != _conn->sfd) return;
 
 	/* Accept the new connection. */
+    client_len = sizeof(client_addr);
+    memset(&client_addr, 0, client_len);
 	client_fd = accept(fd, (struct sockaddr *)&client_addr, &client_len);
-	if (client_fd <= 0) {
+	if (client_fd == -1) {
           err = strerror(errno);
         /*err_len = strlen(err);
         err_log = calloc(1, err_len+10);
         sprintf(err_log, "accept-- %s", err);
 		  d_log(err_log);
         free(err_log);*/
-        FLOG_WARN("accept error %s --", err);
+        DEBUG(" error %s", err); 
 		return;
 	}
+
+    //SetNonBlocking(client_fd);
 
     if(rq_push(client_fd) != 0){
         close(client_fd);
         FLOG_WARN("RQ is full");
     }
-
     if(notify_token_thread == NT_FREE){
         /*  thread = work_threads+1;
           write(thread->notify_write_fd, "", 1);       

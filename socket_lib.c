@@ -211,9 +211,9 @@ int Set_SockOpt(int sockfd){
     setsockopt(sockfd, IPPROTO_TCP, TCP_KEEPCNT, &keepcnt, sizeof(int));
     setsockopt(sockfd, IPPROTO_TCP, TCP_KEEPIDLE, &keepidle, sizeof(int));
     setsockopt(sockfd, IPPROTO_TCP, TCP_KEEPINTVL, &keepintvl, sizeof(int));
-
+*/
     setsockopt(sockfd, SOL_SOCKET, SO_KEEPALIVE, (char *)&nNetTimeout, sizeof(int));
-        setsockopt(sockfd, SOL_SOCKET, SO_NOSIGPIPE, (char *)&nNetTimeout, sizeof(int));*/
+ //       setsockopt(sockfd, SOL_SOCKET, SO_NOSIGPIPE, (char *)&nNetTimeout, sizeof(int));
 
 	opt.l_onoff = 1;
 	opt.l_linger = 60;
