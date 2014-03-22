@@ -35,6 +35,7 @@ int addUlist ( ULIST *mlist);
 void pushList ( char *key, ub4 keyl, ub4 utime );
 void freeHdr ( HDR *fhdr );
 void freeUList ( ULIST *flist );
+void listkey ( );
 
 #ifdef __cplusplus
  }

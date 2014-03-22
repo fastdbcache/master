@@ -408,7 +408,7 @@ int AuthPG(const int bfd, const int ffd, DBP *_dbp, DBP *_cdbp){
                         FB(0);
                         goto free_pack;
                     }else if(cache == E_CACHE_HELP){
-                        
+                        listkey(); 
                         fdbcHelp(rfd); 
                         FB(0);
                         goto free_pack;
@@ -492,7 +492,6 @@ int AuthPG(const int bfd, const int ffd, DBP *_dbp, DBP *_cdbp){
     /*freedbp(_apack);   */
     _apack = NULL;
 }		/* -----  end of function AuthPG  ----- */
-
 
 /* 
  * ===  FUNCTION  ======================================================================

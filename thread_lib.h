@@ -49,7 +49,6 @@
 }while(0)
 
 #define RQ_BUSY(c)  do{    \
-    DEBUG("head:%d, tail:%d", rq_queue_head->no, rq_queue_tail->no);    \
     if(rq_queue_head->no >= rq_queue_tail->no){    \
         (c) = rq_queue_head->no - rq_queue_tail->no;   \
     }else{                                              \

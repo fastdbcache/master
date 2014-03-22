@@ -322,7 +322,7 @@ void libevent_token_thread( int fd, short ev,void *arg){
     notify_token_thread = NT_WORKING;
     do{
                     
-        WTQ *work_child = wtq_queue_head;
+        WTQ *work_child = wtq_queue_tail;
         
         FIND_WTQ(work_child, JOB_FREE);
 

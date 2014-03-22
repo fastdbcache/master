@@ -73,7 +73,6 @@ void on_accept(int fd, short ev, void *arg){
              token_sem_post();*/
         u = 1;
         s = write(token_efd, &u , sizeof(uint64_t));
-
         if(s != sizeof(uint64_t))FLOG_WARN("write to token_efd");
     }
 

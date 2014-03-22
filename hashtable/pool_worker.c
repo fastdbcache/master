@@ -255,5 +255,44 @@ void freeUList ( ULIST *flist ){
     
     free(flist);
 }		/* -----  end of function freeUList  ----- */
+
+/* 
+ * ===  FUNCTION  ======================================================================
+ *         Name:  listkey
+ *  Description:  
+ * =====================================================================================
+ */
+void listkey ( ){
+    HG *pool_hg;
+    HROW *_hrow;
+    int m, x, y, n;
+    HITEM *ph;
+    
+    m=0;
+    n=0;
+    do{
+        pool_hg = hitem_group[m];
+        if(pool_hg == NULL){
+            /*DEBUG("pool_hg is null m:%d", m);  */
+            break;
+        }
+        for(x=0;x<pool_hg->mask; x++){
+            for(y=0; y<MAX_HITEM_LENGTH; y++){
+
+                _hrow = pool_hg->hrow + x;
+                ph = _hrow->hitem + y;
+                if(!ph){
+                    FLOG_NOTICE("hp is null");
+                    continue;
+                }
+                if(strlen(ph->key)>1){
+                    DEBUG("%d.x:%d, y:%d, m:%d, key:%s",n,x, y,m, ph->key);
+                    n++;
+                }
+            }
+        }
+        m++;
+    }while(m < pools_htab->gcount);
+}		/* -----  end of function listkey  ----- */
  /* vim: set ts=4 sw=4: */
 
