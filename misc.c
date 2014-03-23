@@ -149,6 +149,7 @@ void *mcalloc ( size_t nmemb, size_t size, const char *pathname, int flags ){
     
     char name[1];
     HFD *_hfd, *_hfd_next;    
+    if(!pathname) return NULL;
 
     len = strlen(pathname);
     if(len >FILE_PATH_LENGTH) return NULL;
@@ -202,7 +203,6 @@ void *mcalloc ( size_t nmemb, size_t size, const char *pathname, int flags ){
         _hfd->name[len+1]='\0';
         _hfd->len = len;
         _hfd->ptr = start;
-        FLOG_WARN("start pathname:%s, prt:%llu",pathname, _hfd->ptr);
         _hfd_next->next = _hfd;
     }
     
