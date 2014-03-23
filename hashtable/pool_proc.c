@@ -136,7 +136,6 @@ word haddHitem ( HDR *mhdr ){
             ph->hjval = _new_hjval;
             ph->ahit = 0;
             ph->amiss = 1;
-             
             pools_htab->count++; 
             pool_hg->count++;
             hrule ( ph, i,  x,  y, n );
@@ -154,6 +153,7 @@ word haddHitem ( HDR *mhdr ){
             if(saveHitem ( ph, hdr, i ) == -1){
                 return -1;
             }
+            
             /* 
             if((ph->amiss / ph->ahit) > LIMIT_PERCENT){
                 ph->drl = 0;
@@ -190,6 +190,8 @@ int saveHitem ( HITEM *_ph, HDR *_hdr, int i ){
     uint32 pre_sid, pre_sa;
     sb2 slab_id;
     ub1 *slab_sm;
+
+    if(_hdr->drl<1)return -1;
 
     total_size = slabclass[i].size;
     if(pools_fslab[i].sa != -1 &&

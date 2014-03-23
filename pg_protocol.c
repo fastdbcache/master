@@ -179,10 +179,7 @@ int AuthPG(const int bfd, const int ffd, DBP *_dbp, DBP *_cdbp){
             FLOG_WARN("CheckBufSpace error");
             return -1;
         }
-        if(Socket_Read(rfd, _apack->inBuf+_apack->inCursor, totalsize) != totalsize) {
-            FLOG_NOTICE("totalsize:%d read error ", totalsize);
-            return -1;
-        }
+        Socket_Read(rfd, _apack->inBuf+_apack->inCursor, totalsize);
 
         if(*_apack->inBuf == 'X' ){
             if(conn_global->hasdep == H_TRUE &&
@@ -323,7 +320,9 @@ int AuthPG(const int bfd, const int ffd, DBP *_dbp, DBP *_cdbp){
                         
                         }else{
                             _hdr = hdrcreate(); 
-                            if(_hdr && (_apack->inEnd-_apack->inCursor)<KEY_LENGTH ){
+                            if(_hdr && 
+                                (_apack->inEnd-_apack->inCursor)<KEY_LENGTH &&
+                                (_apack->inEnd-_apack->inCursor)>0 ){
                                 _hdr->keyl = _apack->inEnd-_apack->inCursor;
                                 memcpy(_hdr->key, _hdrtmp, _hdr->keyl);
                                 _hdr->stime = get_sec(); 
@@ -408,7 +407,7 @@ int AuthPG(const int bfd, const int ffd, DBP *_dbp, DBP *_cdbp){
                         FB(0);
                         goto free_pack;
                     }else if(cache == E_CACHE_HELP){
-                        listkey(); 
+                        /*listkey();   */
                         fdbcHelp(rfd); 
                         FB(0);
                         goto free_pack;

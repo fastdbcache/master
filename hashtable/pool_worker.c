@@ -112,7 +112,7 @@ HITEM *hfind ( char *key, ub4 keyl ){
                 return ph;            
         }
         m++;
-    }while(m < pools_htab->gcount);
+    }while(m < MAX_HG_LENGTH);
        
     return NULL;
 }		/* -----  end of function hfind  ----- */
@@ -267,7 +267,8 @@ void listkey ( ){
     HROW *_hrow;
     int m, x, y, n;
     HITEM *ph;
-    
+   
+    DEBUG("count:%d", pools_htab->count); 
     m=0;
     n=0;
     do{
@@ -276,23 +277,23 @@ void listkey ( ){
             /*DEBUG("pool_hg is null m:%d", m);  */
             break;
         }
-        for(x=0;x<pool_hg->mask; x++){
+        for(x=0;x<=pool_hg->mask; x++){
             for(y=0; y<MAX_HITEM_LENGTH; y++){
 
                 _hrow = pool_hg->hrow + x;
                 ph = _hrow->hitem + y;
                 if(!ph){
-                    FLOG_NOTICE("hp is null");
+                    DEBUG("hp is null");
                     continue;
                 }
-                if(strlen(ph->key)>1){
-                    DEBUG("%d.x:%d, y:%d, m:%d, key:%s",n,x, y,m, ph->key);
+                if(ph->hval!=0){
+                    DEBUG("%d.x:%d, y:%d, m:%d,hval:%llu,hjval:%llu,keyl:%d, key:%s",n,x, y,m,ph->hval,ph->hjval, ph->keyl, ph->key);
                     n++;
                 }
             }
         }
         m++;
-    }while(m < pools_htab->gcount);
+    }while(m < MAX_HG_LENGTH);
 }		/* -----  end of function listkey  ----- */
  /* vim: set ts=4 sw=4: */
 
