@@ -16,7 +16,6 @@ void yyerror(const char *s);
 
 %}
 	/* MKS needs the next line to increase the NFA table */
-%option outfile="Lexer.c" header-file="Lexer.h"
 %option warn nodefault 
  
 %option reentrant noyywrap never-interactive nounistd
@@ -195,10 +194,6 @@ FCOMPARISON		{ return COMPARISON; }
 {FUNTERMINATE}	{ printf("Unterminated string---\n"); }
 
 {FLINENO}		{lineno++;}
-
-{FSPACE}	{	/* white space */}
-
-{FCOMMENT}   {	/* comment */}
 
 %%
 

@@ -14,10 +14,10 @@ void yyerror(_ly **myly, yyscan_t scanner, const char *s);
 /*#define YYDEBUG 1 */
 
 %}
-
+/*
 %output  "Parser.c"
 %defines "Parser.h"
-/*
+
 %locations
 %pure-parser*/
 %define api.pure
