@@ -18,12 +18,14 @@ endif(YACC_EXE STREQUAL "YACC_EXE-NOTFOUND")
 MACRO(YACC_FILE _filename)
     GET_FILENAME_COMPONENT(_basename ${_filename} NAME_WE)
     ADD_CUSTOM_COMMAND(
-        OUTPUT  ${CMAKE_CURRENT_SOURCE_DIR}/${_basename}.c
-                ${CMAKE_CURRENT_SOURCE_DIR}/${_basename}.h
+        OUTPUT  ${PROJECT_SOURCE_DIR}/${_basename}.c
+                ${PROJECT_SOURCE_DIR}/${_basename}.h               
         COMMAND ${YACC_EXE} -d
-                -o ${_basename}.c 
+                ARGS --output=${PROJECT_SOURCE_DIR}/${_basename}.c 
+                --defines=${PROJECT_SOURCE_DIR}/${_basename}.h
                 ${CMAKE_CURRENT_SOURCE_DIR}/${_filename}
         DEPENDS ${_filename}
+        COMMENT "me BIOS Generating ${PROJECT_SOURCE_DIR}/${_basename}.c"
     )
 ENDMACRO(YACC_FILE)
 
@@ -31,11 +33,14 @@ ENDMACRO(YACC_FILE)
 MACRO(LEX_FILE _filename)
     GET_FILENAME_COMPONENT(_basename ${_filename} NAME_WE)
     ADD_CUSTOM_COMMAND(
-        OUTPUT  ${CMAKE_CURRENT_SOURCE_DIR}/${_basename}.c
+        OUTPUT  ${PROJECT_SOURCE_DIR}/${_basename}.c
+        OUTPUT  ${PROJECT_SOURCE_DIR}/${_basename}.h
         COMMAND ${LEX_EXE}
-                -o  ${_basename}.c 
+               ARGS  --outfile=${PROJECT_SOURCE_DIR}/${_basename}.c 
+               --header-file=${PROJECT_SOURCE_DIR}/${_basename}.h
                 ${CMAKE_CURRENT_SOURCE_DIR}/${_filename}
-        DEPENDS ${_filename} )
+        DEPENDS ${_filename}
+        COMMENT "me FLEX Generating ${CMAKE_CURRENT_SOURCE_DIR}/${_basename}.c" )
 ENDMACRO(LEX_FILE)
 
 YACC_FILE(Parser.y)
@@ -46,6 +51,7 @@ LEX_FILE(Lexer.l)
 #    Parser.c
 #    Lexer.c
 #)
+#INCLUDE_DIRECTORIES("${PROJECT_SOURCE_DIR}")
 
-ADD_LIBRARY(parser Expression.c  Parser.c Lexer.c)
+ADD_LIBRARY(parser Expression.c Parser.c Lexer.c)
 
