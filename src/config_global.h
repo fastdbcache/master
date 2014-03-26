@@ -318,6 +318,9 @@ struct __conn{
 
     sb2 maxrq;
     sb2 limit_rows;    /* max return limit rows */
+
+    /* cluster */
+    char 
 };
 
 _conn *conn_global;

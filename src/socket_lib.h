@@ -33,6 +33,7 @@ int new_socket_unix(void);
 int Set_SockOpt(int sockfd);
 int Client_Init(char *host, int port);
 int Socket_Init(void);
+int Socket_bind ( const char *host, int port );
 int Content_Length(char *Buf);
 size_t Socket_Read(int c_fd, void *buf, ssize_t len);
 size_t Socket_Send(int c_fd, const void *buf, ssize_t len);

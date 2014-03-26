@@ -243,15 +243,24 @@ int Set_SockOpt(int sockfd){
  */
 
 int Socket_Init(void){
-
-	int sockfd, port;
-	struct sockaddr_in   server_addr;
-	char *host;
 	
-	host = conf_get("server_ip");
+	const char *host = conf_get("server_ip");
 	port = atoi(conf_get("server_port"));
+	
+	return Socket_bind(host, port);
+}		/* -----  end of function Socket_Init  ----- */
 
-	bzero(&server_addr, sizeof(server_addr));
+/* 
+ * ===  FUNCTION  ======================================================================
+ *         Name:  Socket_bind
+ *  Description:  
+ * =====================================================================================
+ */
+int Socket_bind ( const char *host, int port ){
+    int sockfd, port;
+	struct sockaddr_in   server_addr;
+
+    bzero(&server_addr, sizeof(server_addr));
 	inet_pton(AF_INET, host, &(server_addr.sin_addr));
 	server_addr.sin_family = AF_INET;
 	server_addr.sin_port = htons(port);
@@ -273,10 +282,9 @@ int Socket_Init(void){
 		close(sockfd);
 		return(-1);
 	}
-	
-	return (sockfd);
-}		/* -----  end of function Socket_Init  ----- */
 
+    return (sockfd);
+}		/* -----  end of function Socket_bind  ----- */
 
 /* 
  * ===  FUNCTION  ======================================================================

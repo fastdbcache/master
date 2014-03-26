@@ -23,10 +23,9 @@ if (CMAKE_COMPILER_IS_GNUCC)
 
 endif(CMAKE_COMPILER_IS_GNUCC)
 
-
-ADD_SUBDIRECTORY(deposit)
-ADD_SUBDIRECTORY(hashtable)
-ADD_SUBDIRECTORY(parser)
+foreach(loop_var deposit hashtable cluster parser)
+    ADD_SUBDIRECTORY(${loop_var})   
+endforeach(loop_var)
 
 AUX_SOURCE_DIRECTORY(. DIR_SRCS)
 MESSAGE(STATUS "This is BINARY dir " ${PROJECT_BINARY_DIR})
