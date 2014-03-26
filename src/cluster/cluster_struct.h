@@ -25,10 +25,11 @@
 #include "../config_global.h"
 #include "../socket_lib.h"
 
-struct cdb {
-};				/* ----------  end of struct cdb  ---------- */
 
-typedef struct cdb CDB;
+struct __cdbl {
+};				/* ----------  end of struct __cdbl  ---------- */
+
+typedef struct __cdbl _CDBL;
 
 #ifdef __cplusplus
  }

@@ -320,7 +320,10 @@ struct __conn{
     sb2 limit_rows;    /* max return limit rows */
 
     /* cluster */
-    char 
+    char *cluster_listen; 
+    int cluster_port;
+    /* [{"ip",port},{"ip",port},{"ip",port}] */
+    int *cluster_nodes; 
 };
 
 _conn *conn_global;
