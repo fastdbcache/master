@@ -28,6 +28,7 @@
 void Json_Root ( char *src_json ){
     char *ptr;
     ssize_t val_len;
+    
     FJSON *_fjson;
     ptr = src_json;
      
@@ -43,10 +44,11 @@ void Json_Root ( char *src_json ){
                 break;
 
             case '[':
+            case '{':
+                val_len = 0;
                 break;
             case ']':
-                break;
-            case '{':
+                
                 break;
             case '}':
                 break;
@@ -58,11 +60,14 @@ void Json_Root ( char *src_json ){
             case '\r':  *ptr2++='r';    break;
             case '\t':  *ptr2++='t';    break;
             case ',':
+                
+                _fjson->
                 break;
 
             case '"':
                 break;
-            default:	
+            default:
+                val_len++;
                 break;
         }				/* -----  end switch  ----- */
         ptr++;

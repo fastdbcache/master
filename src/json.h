@@ -23,10 +23,20 @@
 #endif
 #include "config_global.h"
 
+enum __json_class {
+    J_STRING=0;
+    J_NUMBER;
+    J_OBJECT;
+    J_ARRAY;
+    J_TRUE;
+    J_FALSE;
+    J_NULL;
+};				/* ----------  end of enum __json_class  ---------- */
 
+typedef enum __json_class __JSONC;
 #ifdef __cplusplus
- }
+}
 #endif
 #endif /* --- #json_H ---*/
- /* vim: set ts=4 sw=4: */
+/* vim: set ts=4 sw=4: */
 

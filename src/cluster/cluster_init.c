@@ -69,7 +69,7 @@ void clu_reset_nodes ( <+argument_list+> ){
  * =====================================================================================
  */
 void clu_set_lead ( <+argument_list+> ){
-
+    
     return <+return_value+>;
 }		/* -----  end of function clu_set_lead  ----- */
 
