@@ -41,20 +41,20 @@ void clu_init (  ){
 
 /* 
  * ===  FUNCTION  ======================================================================
- *         Name:  clu_find_an
- *  Description:  
+ *         Name:  clu_find_lead
+ *  Description:  for all server 
  * =====================================================================================
  */
-void clu_find_an (  ){
+void clu_find_lead (  ){
 
     return <+return_value+>;
-}		/* -----  end of function clu_find_an  ----- */
+}		/* -----  end of function clu_find_lead  ----- */
 
 
 /* 
  * ===  FUNCTION  ======================================================================
  *         Name:  clu_reset_nodes
- *  Description:  
+ *  Description:  for leader
  * =====================================================================================
  */
 void clu_reset_nodes ( <+argument_list+> ){
@@ -64,30 +64,32 @@ void clu_reset_nodes ( <+argument_list+> ){
 
 /* 
  * ===  FUNCTION  ======================================================================
- *         Name:  clu_set_anno
- *  Description:  
+ *         Name:  clu_set_lead 
+ *  Description:  for proposer and voters
  * =====================================================================================
  */
-void clu_set_anno ( <+argument_list+> ){
+void clu_set_lead ( <+argument_list+> ){
+
     return <+return_value+>;
-}		/* -----  end of function clu_set_anno  ----- */
+}		/* -----  end of function clu_set_lead  ----- */
 
 
 /* 
  * ===  FUNCTION  ======================================================================
- *         Name:  clu_bcast_anno
- *  Description:  
+ *         Name:  clu_bcast_lead
+ *  Description:  for who is lead, because lead will bcast the leader command
+ *  and lead time
  * =====================================================================================
  */
-void clu_bcast_anno ( <+argument_list+> ){
+void clu_bcast_lead ( <+argument_list+> ){
     return <+return_value+>;
-}		/* -----  end of function clu_bcast_anno  ----- */
+}		/* -----  end of function clu_bcast_lead  ----- */
 
 
 /* 
  * ===  FUNCTION  ======================================================================
  *         Name:  clu_fetch_uuid
- *  Description:  
+ *  Description:  for lead,  fetch from all proposers and voters 
  * =====================================================================================
  */
 void clu_fetch_uuid ( <+argument_list+> ){
@@ -98,7 +100,7 @@ void clu_fetch_uuid ( <+argument_list+> ){
 /* 
  * ===  FUNCTION  ======================================================================
  *         Name:  clu_fetch_cdb
- *  Description:  
+ *  Description:  fetch cdb from all server 
  * =====================================================================================
  */
 void clu_fetch_cdb ( <+argument_list+> ){
@@ -109,7 +111,7 @@ void clu_fetch_cdb ( <+argument_list+> ){
 /* 
  * ===  FUNCTION  ======================================================================
  *         Name:  clu_node_push
- *  Description:  
+ *  Description:  node push cdb to leader 
  * =====================================================================================
  */
 void clu_node_push ( <+argument_list+> ){
@@ -120,12 +122,13 @@ void clu_node_push ( <+argument_list+> ){
 /* 
  * ===  FUNCTION  ======================================================================
  *         Name:  clu_node_pop
- *  Description:  
+ *  Description:  get from lead cdb info 
  * =====================================================================================
  */
 void clu_node_pop ( <+argument_list+> ){
     return <+return_value+>;
 }		/* -----  end of function clu_node_pop  ----- */
+
  /* vim: set ts=4 sw=4: */
 
 

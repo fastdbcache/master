@@ -213,6 +213,17 @@ struct __deporule{
 };
 
 
+struct __json {
+    char *string;
+    size_t string_len;
+    size_t  number;
+    H_STATE flag;
+
+};				/* ----------  end of struct __json  ---------- */
+
+typedef struct __json FJSON;
+
+
 struct __error_record {
     char error[ERR_LENGS];
     char etime[26];
