@@ -23,6 +23,8 @@
 #endif
 #include "config_global.h"
 
+#define NUMBER_LENGTH 10
+
 enum __json_class {
     J_STRING=0;
     J_NUMBER;
@@ -31,9 +33,11 @@ enum __json_class {
     J_TRUE;
     J_FALSE;
     J_NULL;
+    J_NEXT;
+    J_END;
 };				/* ----------  end of enum __json_class  ---------- */
 
-typedef enum __json_class __JSONC;
+typedef enum __json_class _JSONC;
 #ifdef __cplusplus
 }
 #endif
