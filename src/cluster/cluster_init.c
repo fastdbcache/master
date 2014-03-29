@@ -16,7 +16,7 @@
  * =====================================================================================
  */
 
-
+#include "cluster_struct.h"
 /* 
  * ===  FUNCTION  ======================================================================
  *         Name:  clu_init
@@ -24,18 +24,38 @@
  * =====================================================================================
  */
 void clu_init (  ){
-    int clu_fd;
-    if(!conn_global->cluster_listen) return;
-    if(conn_global->cluster_port == 0) return;
+    int i; 
+    FJSON *_jsons, *_tjson;
+    int clu_fd, client_fd;
+    pid_t cpid;
+    struct sockaddr_storage client_addr;
+	socklen_t client_len;
+    
+    cpid = fork();
+    if(cpid == 0){
+        DEBUG("pid:%d", getpid());
+        if(!conn_global->cluster_listen_ip) return;
+        if(conn_global->cluster_listen_port == 0) return;
 
-    clu_fd = Socket_bind(conn_global->cluster_listen, conn_global->cluster_port);
-    if(clu_fd == -1){
-        FLOG_WARN("cluster listen error");
-        return;
+        clu_fd = Socket_bind(conn_global->cluster_listen_ip, conn_global->cluster_listen_port);
+        if(clu_fd == -1){
+            FLOG_WARN("cluster listen error");
+            return;
+        }
+        
+        DEBUG("ip:%s, port:%d, clu_fd:%d",conn_global->cluster_listen_ip, conn_global->cluster_listen_port, clu_fd);   
+       _jsons = calloc(1, sizeof(FJSON)); 
+       Json_Root(conn_global->cluster_nodes, _jsons);
+       i=0;
+       _tjson = _jsons->next;
+       while(_tjson){
+           DEBUG("%d. _jsons_len:%d, _jsons:%s",i++, _tjson->string_len, _tjson->string);
+           DEBUG("json_number:%d", _tjson->number);
+           _tjson = _tjson->next;
+       }  
+
+       client_fd = accept(clu_fd, (struct sockaddr *)&client_addr, &client_len);
     }
-
-    
-    
 }		/* -----  end of function clu_init  ----- */
 
 
@@ -47,7 +67,7 @@ void clu_init (  ){
  */
 void clu_find_lead (  ){
 
-    return <+return_value+>;
+    return ;
 }		/* -----  end of function clu_find_lead  ----- */
 
 
@@ -57,8 +77,8 @@ void clu_find_lead (  ){
  *  Description:  for leader
  * =====================================================================================
  */
-void clu_reset_nodes ( <+argument_list+> ){
-    return <+return_value+>;
+void clu_reset_nodes (  ){
+    return ;
 }		/* -----  end of function clu_reset_nodes  ----- */
 
 
@@ -68,9 +88,9 @@ void clu_reset_nodes ( <+argument_list+> ){
  *  Description:  for proposer and voters
  * =====================================================================================
  */
-void clu_set_lead ( <+argument_list+> ){
+void clu_set_lead (  ){
     
-    return <+return_value+>;
+    return ;
 }		/* -----  end of function clu_set_lead  ----- */
 
 
@@ -81,8 +101,8 @@ void clu_set_lead ( <+argument_list+> ){
  *  and lead time
  * =====================================================================================
  */
-void clu_bcast_lead ( <+argument_list+> ){
-    return <+return_value+>;
+void clu_bcast_lead (  ){
+    return ;
 }		/* -----  end of function clu_bcast_lead  ----- */
 
 
@@ -92,8 +112,8 @@ void clu_bcast_lead ( <+argument_list+> ){
  *  Description:  for lead,  fetch from all proposers and voters 
  * =====================================================================================
  */
-void clu_fetch_uuid ( <+argument_list+> ){
-    return <+return_value+>;
+void clu_fetch_uuid ( ){
+    return ;
 }		/* -----  end of function clu_fetch_uuid  ----- */
 
 
@@ -103,8 +123,8 @@ void clu_fetch_uuid ( <+argument_list+> ){
  *  Description:  fetch cdb from all server 
  * =====================================================================================
  */
-void clu_fetch_cdb ( <+argument_list+> ){
-    return <+return_value+>;
+void clu_fetch_cdb (  ){
+    return ;
 }		/* -----  end of function clu_fetch_cdb  ----- */
 
 
@@ -114,8 +134,8 @@ void clu_fetch_cdb ( <+argument_list+> ){
  *  Description:  node push cdb to leader 
  * =====================================================================================
  */
-void clu_node_push ( <+argument_list+> ){
-    return <+return_value+>;
+void clu_node_push (  ){
+    return ;
 }		/* -----  end of function clu_node_push  ----- */
 
 
@@ -125,8 +145,8 @@ void clu_node_push ( <+argument_list+> ){
  *  Description:  get from lead cdb info 
  * =====================================================================================
  */
-void clu_node_pop ( <+argument_list+> ){
-    return <+return_value+>;
+void clu_node_pop (  ){
+    return ;
 }		/* -----  end of function clu_node_pop  ----- */
 
  /* vim: set ts=4 sw=4: */

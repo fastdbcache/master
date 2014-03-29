@@ -34,6 +34,7 @@
 #include "./modules/modules.h"
 #include "./hashtable/pool_init.h"
 #include "./deposit/dep_struct.h"
+#include "./cluster/cluster_struct.h"
 
 int main(int argc, char* argv[]){
     int listen_fd, unix_sock;
@@ -78,20 +79,22 @@ int main(int argc, char* argv[]){
     pathCheck ( );
 	FLOG_INFO("version %s",conn_global->fdbc);
 
-    pools_hfd = inithfd();
-    hcreate(8);
-
-    if(conn_global->hasdep == H_TRUE)
-        leadinit(conn_global->dmaxbytes);
-
-	if(do_daemonize == 1 || conn_global->do_daemonize == 1){
+    if(do_daemonize == 1 || conn_global->do_daemonize == 1){
 		daemon_init(argv[0], 0);	
 		if(strlen(conn_global->pid_file) > 0)strcpy(pid_file, conn_global->pid_file);
 		else strcpy(pid_file, "/var/run/fdbcd.pid");
 
 		save_pid(getpid(), pid_file);
 	}
-    
+
+    clu_init();
+
+    pools_hfd = inithfd();
+    hcreate(8);
+
+    if(conn_global->hasdep == H_TRUE)
+        leadinit(conn_global->dmaxbytes);
+
     if (getrlimit(RLIMIT_NOFILE, &rlim) != 0) { 
         FLOG_ERR("failed to getrlimit number of files");
         exit(1);
@@ -129,7 +132,7 @@ int main(int argc, char* argv[]){
         FLOG_ERR("listen_fd  error");
 		exit(-1);
 	}
-    
+    DEBUG("listen_fd:%d", listen_fd); 
     conn_new(listen_fd, main_base);
 
     event_base_loop(main_base, 0);

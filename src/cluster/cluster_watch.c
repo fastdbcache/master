@@ -25,10 +25,7 @@
  */
 void watch_init ( ){
 
-    const char *host = conf_get("server_ip");
-	port = atoi(conf_get("server_port"));
-	
-	return Socket_bind(host, port);   
+    
 }		/* -----  end of function watch_init  ----- */
 
  /* vim: set ts=4 sw=4: */

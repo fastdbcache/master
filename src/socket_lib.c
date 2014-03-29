@@ -243,11 +243,8 @@ int Set_SockOpt(int sockfd){
  */
 
 int Socket_Init(void){
-	
-	const char *host = conf_get("server_ip");
-	port = atoi(conf_get("server_port"));
-	
-	return Socket_bind(host, port);
+			
+	return Socket_bind(conn_global->server_ip, conn_global->server_port);
 }		/* -----  end of function Socket_Init  ----- */
 
 /* 
@@ -257,7 +254,7 @@ int Socket_Init(void){
  * =====================================================================================
  */
 int Socket_bind ( const char *host, int port ){
-    int sockfd, port;
+    int sockfd;
 	struct sockaddr_in   server_addr;
 
     bzero(&server_addr, sizeof(server_addr));

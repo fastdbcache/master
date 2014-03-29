@@ -24,12 +24,15 @@
 
 #include "../config_global.h"
 #include "../socket_lib.h"
-#include "../json_lib.h"
+#include "../json.h"
 
 struct __cdbl {
 };				/* ----------  end of struct __cdbl  ---------- */
 
 typedef struct __cdbl _CDBL;
+
+
+void clu_init (  );
 
 #ifdef __cplusplus
  }

@@ -130,8 +130,10 @@ void conn_get_global (  ){
         conn_global->cache_method = D_MEM;
 
     initDeposit(); 
-    
-    
+   
+    conn_global->cluster_nodes = conf_get("cluster_nodes"); 
+    conn_global->cluster_listen_ip = conf_get("cluster_listen_ip");
+    conn_global->cluster_listen_port = atoi(conf_get("cluster_listen_port"));
     return ;
 }		/* -----  end of function conn_get_global  ----- */
 

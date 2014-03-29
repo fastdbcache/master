@@ -26,18 +26,21 @@
 #define NUMBER_LENGTH 10
 
 enum __json_class {
-    J_STRING=0;
-    J_NUMBER;
-    J_OBJECT;
-    J_ARRAY;
-    J_TRUE;
-    J_FALSE;
-    J_NULL;
-    J_NEXT;
-    J_END;
+    J_STRING=0,
+    J_STRING_END,
+    J_NUMBER,
+    J_OBJECT,
+    J_ARRAY,
+    J_TRUE,
+    J_FALSE,
+    J_NULL,
+    J_NEXT,
+    J_END
 };				/* ----------  end of enum __json_class  ---------- */
 
 typedef enum __json_class _JSONC;
+
+void Json_Root ( char *src_json, FJSON *_json );
 #ifdef __cplusplus
 }
 #endif
