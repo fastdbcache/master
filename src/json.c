@@ -90,11 +90,10 @@ void Json_Root ( char *src_json, FJSON *_json ){
                 if(!ptrs){
                     _tjson = calloc(1, sizeof(FJSON));
                     _jsonc = J_STRING;
-                    ptrs = ptr;
-                     
+                    ptrs = ptr+1;                     
                 }else{
                     _tjson->string = ptrs;
-                    _tjson->string_len = val_len;
+                    _tjson->string_len = val_len - 2;
                     ptrs = NULL;
                     _jsonc = J_NEXT;
                     val_len = 0;

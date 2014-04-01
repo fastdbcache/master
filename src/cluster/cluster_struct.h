@@ -32,6 +32,19 @@ struct __cdbl {
 typedef struct __cdbl _CDBL;
 
 
+enum __roles {
+    R_LEADER=0,
+    R_PROPOSER,
+    R_VOTER,
+    R_NODE
+};				/* ----------  end of enum __roles  ---------- */
+
+typedef enum __roles _Roles;
+
+_Roles clu_roles;
+int clu_lead_fd;
+
+
 void clu_init (  );
 
 #ifdef __cplusplus

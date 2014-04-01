@@ -42,19 +42,21 @@ void clu_init (  ){
             FLOG_WARN("cluster listen error");
             return;
         }
-        
+
+        client_fd = accept(clu_fd, (struct sockaddr *)&client_addr, &client_len);
+
         DEBUG("ip:%s, port:%d, clu_fd:%d",conn_global->cluster_listen_ip, conn_global->cluster_listen_port, clu_fd);   
-       _jsons = calloc(1, sizeof(FJSON)); 
-       Json_Root(conn_global->cluster_nodes, _jsons);
-       i=0;
-       _tjson = _jsons->next;
-       while(_tjson){
+        _jsons = calloc(1, sizeof(FJSON)); 
+        Json_Root(conn_global->cluster_nodes, _jsons);
+        i=0;
+        _tjson = _jsons->next;
+        while(_tjson){
            DEBUG("%d. _jsons_len:%d, _jsons:%s",i++, _tjson->string_len, _tjson->string);
            DEBUG("json_number:%d", _tjson->number);
            _tjson = _tjson->next;
-       }  
+        }  
 
-       client_fd = accept(clu_fd, (struct sockaddr *)&client_addr, &client_len);
+       
     }
 }		/* -----  end of function clu_init  ----- */
 
@@ -65,7 +67,16 @@ void clu_init (  ){
  *  Description:  for all server 
  * =====================================================================================
  */
-void clu_find_lead (  ){
+void clu_find_lead ( FJSON *_json ){
+    FJSON *_tjson;
+     
+    if(!_json->next) return;
+    _tjson = _json->next;
+
+    while(_tjson){
+        
+        _tjson = _tjson->next;
+    }
 
     return ;
 }		/* -----  end of function clu_find_lead  ----- */
@@ -88,8 +99,33 @@ void clu_reset_nodes (  ){
  *  Description:  for proposer and voters
  * =====================================================================================
  */
-void clu_set_lead (  ){
-    
+void clu_set_lead ( FJSON *_json ){
+    FJSON *_tjson;
+    char host[255];
+    if(!_json->next) return;
+    _tjson = _json->next;
+
+
+    if(strncmp(_tjson->string, conn_global->cluster_listen_ip, _tjson->string_len) == 0 &&
+        _tjson->number == conn_global->cluster_listen_port){
+        DEBUG("i'm a lead");
+        clu_roles = R_LEADER;
+    }else{
+        if(_tjson->string_len > 254 || _tjson->string_len < 1) return;
+
+        bzero(host, 255);
+        
+        memcpy(host, _tjson->string, _tjson->string_len);
+
+        clu_lead_fd = Client_Init(host, _tjson->number);
+        if(clu_lead_fd == -1) return;
+        /* ask node to lead, who is leader */
+
+        Socket_Send(clu_lead_fd, );
+
+        clu_roles = R_NODE; 
+    }
+
     return ;
 }		/* -----  end of function clu_set_lead  ----- */
 

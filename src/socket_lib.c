@@ -293,6 +293,7 @@ int Socket_bind ( const char *host, int port ){
 int Client_Init(char *host, int port){
 	int flag = 1, client_fd;
 	struct sockaddr_in to_server_addr;
+    struct hostent *hostp;
 
     if((client_fd = socket(AF_INET , SOCK_STREAM , 0)) == - 1) {
         /*d_log("socket error") ;*/
@@ -308,7 +309,26 @@ int Client_Init(char *host, int port){
     memset((char *)&to_server_addr, 0, sizeof(to_server_addr)) ;
     to_server_addr.sin_family = AF_INET;
     to_server_addr.sin_port = htons(port);
-    to_server_addr.sin_addr.s_addr = inet_addr(host) ;
+
+    if((to_server_addr.sin_addr.s_addr = inet_addr(host)) == (unsigned long)INADDR_NONE){
+        /* get host address */
+        hostp = gethostbyname(host);
+
+        if(hostp == (struct hostent *)NULL){
+
+            FLOG_NOTICE("HOST NOT FOUND --> ");
+
+            /* h_errno is usually defined */
+
+            /* in netdb.h */
+
+            FLOG_NOTICE("h_errno = %d",h_errno);
+            close(client_fd);
+            return -1;
+        }
+        memcpy(&to_server_addr.sin_addr, hostp->h_addr, sizeof(to_server_addr.sin_addr));
+    }
+
 
 	if(connect(client_fd, (struct sockaddr *)&to_server_addr, sizeof(struct sockaddr)) == - 1) {
         FLOG_ALERT("can't connect backend server\n");
