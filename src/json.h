@@ -40,7 +40,8 @@ enum __json_class {
 
 typedef enum __json_class _JSONC;
 
-void Json_Root ( char *src_json, FJSON *_json );
+int Json_Root ( char *src_json, FJSON *_json );
+void free_json ( FJSON *_json );
 #ifdef __cplusplus
 }
 #endif

@@ -25,10 +25,11 @@
  *  Description:  
  * =====================================================================================
  */
-void Json_Root ( char *src_json, FJSON *_json ){
+int Json_Root ( char *src_json, FJSON *_json ){
     char *ptr, *ptrs;
     char number[NUMBER_LENGTH];
     ssize_t val_len;
+    int number;
     _JSONC _jsonc, _sjsonc;
 
     FJSON *_fjson, *_tjson;
@@ -37,6 +38,7 @@ void Json_Root ( char *src_json, FJSON *_json ){
     _fjson = _json; 
     _tjson = NULL;
     ptrs = NULL; 
+    number = 0;
     while ( *ptr ) {
          
         switch ( *ptr ) {
@@ -90,7 +92,8 @@ void Json_Root ( char *src_json, FJSON *_json ){
                 if(!ptrs){
                     _tjson = calloc(1, sizeof(FJSON));
                     _jsonc = J_STRING;
-                    ptrs = ptr+1;                     
+                    ptrs = ptr+1;   
+                    number++;                  
                 }else{
                     _tjson->string = ptrs;
                     _tjson->string_len = val_len - 2;
@@ -110,9 +113,29 @@ void Json_Root ( char *src_json, FJSON *_json ){
         ptr++;
     }
 
-    return ;
+    return number;
 }		/* -----  end of function Json_Root  ----- */
 
+
+
+/* 
+ * ===  FUNCTION  ======================================================================
+ *         Name:  free_json
+ *  Description:  
+ * =====================================================================================
+ */
+void free_json ( FJSON *_json ){
+    FJSON *_tmp;
+    _tmp = _json;
+
+    if(_tmp->next){
+        free_json(_tmp->next);
+    }
+
+    if(!_tmp->string)
+        free(_tmp->string);
+    free(_tmp);        
+}		/* -----  end of function free_json  ----- */
 
  /* vim: set ts=4 sw=4: */
 

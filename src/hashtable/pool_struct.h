@@ -57,13 +57,6 @@ static const char *HashTable_for_list[] = {
  * slab class  39: chunk size 489032 perslab     2  
  * */
 
-struct __slabpack {
-    char *pack;
-    int  len;
-};				/* ----------  end of struct __slabpack  ---------- */
-
-typedef struct __slabpack SLABPACK;
-
 struct __hslab
 {
   ub1           *sm;      /* slab malloc 1M */
@@ -78,7 +71,7 @@ typedef  struct __hslab  HSLAB;
 struct __fslab
 {
   ssize_t           psize;     /* hpool size */
-  sb2           sid;       /* slab id */
+  sb2           sid;       /* slab id  */
   uint32           sa;       /* data row start addr of hslab  sa*psize  sa = ss */   
   /*struct __fslab *next;      next */
 };
@@ -94,6 +87,7 @@ struct __hitem
   ub4           keyl;     /* length of key */
   ub4           drl;      /* length of data row */
   ssize_t           psize;    /* hpools size */
+  sb2       cid;            /* cluster id */
   sb2           sid;      /* slab id */
   uint32           sa;       /* data row start addr of hslab  sa*psize  sa = ss */
   uint64_t          hval;     /* hash value for key */

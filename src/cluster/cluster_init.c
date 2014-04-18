@@ -25,18 +25,19 @@
  */
 void clu_init (  ){
     int i; 
-    FJSON *_jsons, *_tjson;
+    
     int clu_fd, client_fd;
     pid_t cpid;
     struct sockaddr_storage client_addr;
 	socklen_t client_len;
-    
+   
+    if(!conn_global->cluster_listen_ip) return;
+    if(conn_global->cluster_listen_port == 0) return;
+
     cpid = fork();
     if(cpid == 0){
         DEBUG("pid:%d", getpid());
-        if(!conn_global->cluster_listen_ip) return;
-        if(conn_global->cluster_listen_port == 0) return;
-
+        
         clu_fd = Socket_bind(conn_global->cluster_listen_ip, conn_global->cluster_listen_port);
         if(clu_fd == -1){
             FLOG_WARN("cluster listen error");
@@ -46,17 +47,7 @@ void clu_init (  ){
         client_fd = accept(clu_fd, (struct sockaddr *)&client_addr, &client_len);
 
         DEBUG("ip:%s, port:%d, clu_fd:%d",conn_global->cluster_listen_ip, conn_global->cluster_listen_port, clu_fd);   
-        _jsons = calloc(1, sizeof(FJSON)); 
-        Json_Root(conn_global->cluster_nodes, _jsons);
-        i=0;
-        _tjson = _jsons->next;
-        while(_tjson){
-           DEBUG("%d. _jsons_len:%d, _jsons:%s",i++, _tjson->string_len, _tjson->string);
-           DEBUG("json_number:%d", _tjson->number);
-           _tjson = _tjson->next;
-        }  
-
-       
+                 
     }
 }		/* -----  end of function clu_init  ----- */
 
@@ -67,19 +58,65 @@ void clu_init (  ){
  *  Description:  for all server 
  * =====================================================================================
  */
-void clu_find_lead ( FJSON *_json ){
-    FJSON *_tjson;
-     
-    if(!_json->next) return;
-    _tjson = _json->next;
+void clu_find_lead (  ){
+   
+    if(!conn_global->cluster_leader_ip)return;
+    if(conn_global->cluster_leader_port == 0) return;
 
+    if(strcmp(conn_global->cluster_leader_ip, conn_global->cluster_listen_ip) == 0 &&
+        conn_global->cluster_leader_port == conn_global->cluster_listen_port)return;
+
+    conn_global->cluster_leader_fd= Client_Init(conn_global->cluster_leader_ip, conn_global->cluster_leader_port);
+
+    if(conn_global->cluster_leader_fd == -1)FLOG_WARN("cluster_leader_fd is -1");
+
+}		/* -----  end of function clu_find_lead  ----- */
+
+
+
+/* 
+ * ===  FUNCTION  ======================================================================
+ *         Name:  clu_find_dbd
+ *  Description:  
+ * =====================================================================================
+ */
+void clu_find_dbd (  ){
+    FJSON *_jsons, *_tjson;
+    int *dbd_fd, *dbd_fd_tmp;
+    int dbd_num;
+    char host[255]
+
+    if(!conn_global->cluster_fdbd_nodes) return;
+
+    _jsons = calloc(1, sizeof(FJSON)); 
+    dbd_num = Json_Root(conn_global->cluster_fdbd_nodes, _jsons);
+    if(dbd_num == 0){
+        free_json(_jsons);
+        return ;
+    }
+    dbd_fd = calloc(dbd_num, sizeof(int));
+    if(!dbd_fd) return;
+
+    dbd_fd_tmp = dbd_fd;
+
+    i=0;
+    _tjson = _jsons->next;
     while(_tjson){
-        
-        _tjson = _tjson->next;
+       DEBUG("%d. _jsons_len:%d, _jsons:%s",i++, _tjson->string_len, _tjson->string);
+       DEBUG("json_number:%d", _tjson->number);
+       bzero(host, 254);
+       if(_tjson->string_len > 254) continue;
+       memcpy(host, _tjson->string, _tjson->string_len);
+       dbd_fd_tmp = Client_Init(host, _tjson->number);
+       dbd_fd_tmp += 1;
+
+       _tjson = _tjson->next;
+       
     }
 
-    return ;
-}		/* -----  end of function clu_find_lead  ----- */
+    return <+return_value+>;
+}		/* -----  end of function clu_find_dbd  ----- */
+
 
 
 /* 

@@ -330,8 +330,14 @@ struct __conn{
     /* cluster */
     char *cluster_listen_ip; 
     int cluster_listen_port;
+
+    char *cluster_leader_ip;
+    int cluster_leader_port;
+    int cluster_leader_fd;
+
     /* [{"ip",port},{"ip",port},{"ip",port}] */
-    int *cluster_nodes; 
+    char *cluster_fdbd_nodes;
+
 };
 
 _conn *conn_global;
